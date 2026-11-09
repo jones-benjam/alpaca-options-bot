@@ -62,6 +62,19 @@ ODTE_EXIT_AT = "15:00"      # flat well before expiry
 
 # ---- Engine -----------------------------------------------------------------
 LOOP_SECONDS = _env("LOOP_SECONDS", 60, int)
+ODTE_LOOP_SECONDS = _env("ODTE_LOOP_SECONDS", 10, int)  # while a 0DTE position is open
+HEARTBEAT_SECONDS = 300     # how often the status line is logged
+
+# ---- Safety ------------------------------------------------------------------
+EXIT_CONFIRMATIONS = 2      # passes a stop / trailing exit must persist before selling
+KILL_CONFIRMATIONS = 3      # passes under the kill floor before flattening
+MAX_TRIGGER_SPREAD = 0.50   # ignore quotes wider than this (of mid) for price exits
+# Early-close days (for example the Friday after Thanksgiving): the clock-time
+# rules above also fire this many minutes before the actual close.
+ODTE_ENTRY_MIN_TO_CLOSE = 120
+ODTE_EXIT_MIN_TO_CLOSE = 60
+FLIP_MIN_TO_CLOSE = 30
+CORE_ENTRY_MIN_TO_CLOSE = 15
 MAX_ENTRY_ATTEMPTS = 3      # per symbol per day
 QUOTE_MAX_AGE_SEC = 900     # ignore option quotes older than this
 MIN_OPTION_ASK = 0.20
