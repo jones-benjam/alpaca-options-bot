@@ -1,0 +1,18 @@
+# Fly.io config: one small always-on worker, no web service.
+# Deploy with:  fly deploy --ha=false   (exactly one machine; two would double-trade)
+app = "msbc5220-optbot"
+primary_region = "ewr"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  END_DATE = "2026-12-02"
+
+[[vm]]
+  size = "shared-cpu-1x"
+  memory = "256mb"
+
+[[restart]]
+  policy = "always"
+  retries = 10
