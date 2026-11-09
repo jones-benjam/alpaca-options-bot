@@ -62,6 +62,8 @@ ODTE_EXIT_AT = "15:00"      # flat well before expiry
 
 # ---- Engine -----------------------------------------------------------------
 LOOP_SECONDS = _env("LOOP_SECONDS", 60, int)
+ODTE_LOOP_SECONDS = _env("ODTE_LOOP_SECONDS", 10, int)  # while a 0DTE position is open
+HEARTBEAT_SECONDS = 300     # how often the status line is logged
 MAX_ENTRY_ATTEMPTS = 3      # per symbol per day
 QUOTE_MAX_AGE_SEC = 900     # ignore option quotes older than this
 MIN_OPTION_ASK = 0.20

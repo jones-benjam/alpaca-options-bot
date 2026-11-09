@@ -26,6 +26,8 @@ two positions per direction).
   call slightly out of the money; below the low, a put. One trade per symbol
   per day, entries until 14:00.
 - Exits: -50% stop, +100% sell half then 35% trail, everything closed by 15:00.
+- While a 0DTE position is open the bot checks exits every 10 seconds instead
+  of every 60, because same-day options can fall through a stop in seconds.
 
 **Guard rails.**
 - Kill switch: if the sleeve falls to 30% of its start ($7,500) the bot closes
@@ -46,6 +48,7 @@ python3 check_options.py                 # confirm the account can trade options
 python3 bot.py run --dry-run --once      # show what it would do, send nothing
 python3 bot.py run                       # trade until stopped (Ctrl+C)
 python3 bot.py status                    # sleeve P&L, positions, recent trades
+python3 sim_test.py                      # offline test with a fake broker, no keys
 ```
 
 Keys are read from `.env` (copy `.env.example`) or from the environment.

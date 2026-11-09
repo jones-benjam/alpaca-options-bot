@@ -134,7 +134,7 @@ class Bot:
         self.closes, self.bars_at, self.bars_day = {}, 0.0, ""
         self.range_cache = {}
         self.attempts = defaultdict(int)
-        self.loops = 0
+        self.last_beat = 0.0
         self.qnow = None      # set while the market is open, to age-check quotes
         self.state = {"peaks": {}, "synthetic": []}
         if STATE_PATH.exists():
@@ -538,7 +538,7 @@ class Bot:
     def odte_entries(self, now, led, view, equity, cash):
         hhmm, today = now.strftime("%H:%M"), now.date()
         if not C.ODTE_ENABLED or not (C.ODTE_ENTRY_FROM <= hhmm < C.ODTE_ENTRY_TO):
-            return
+            return led
         ranges = self.opening_range(now)
         for und in C.ODTE_SYMBOLS:
             key = (today, "odte", und)
@@ -568,9 +568,12 @@ class Bot:
             if self.buy(und, pick["symbol"], qty, "odte", note) and not self.dry:
                 led = self.build_ledger(now)
                 equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos))
+        return led
 
     # ---- main loop -----------------------------------------------------------
     def tick(self, now, market_open):
+        """One pass. Returns True while a 0DTE position is open, so the caller
+        can loop faster: same-day options can move through a stop in seconds."""
         self.qnow = now if market_open else None
         today, hhmm = now.date().isoformat(), now.strftime("%H:%M")
         if not self.dry:
@@ -580,7 +583,8 @@ class Bot:
         quotes = self.api.option_snapshots(led.pos) if led.pos else {}
         equity, cash = self.sleeve(led, quotes)
 
-        if self.loops % 5 == 0:
+        if time.time() - self.last_beat >= C.HEARTBEAT_SECONDS:
+            self.last_beat = time.time()
             book = ", ".join(
                 f"{p.qty} {p.label()}"
                 + (f" {read_quote(quotes.get(s))[2] / p.avg - 1:+.0%}" if read_quote(quotes.get(s)) else "")
@@ -591,7 +595,6 @@ class Bot:
                 f"sleeve ${equity:,.0f} ({equity / C.SLEEVE_START - 1:+.1%}) cash ${cash:,.0f} | "
                 f"regime {regime} | holding: {book or 'nothing'} | signals: {top or 'none'}"
             )
-        self.loops += 1
 
         halted = equity <= C.KILL_FLOOR_PCT * C.SLEEVE_START
         last_day = bool(C.END_DATE) and today >= C.END_DATE
@@ -601,10 +604,10 @@ class Bot:
         if self.manage(now, led, quotes, view, flatten) and not self.dry:
             led = self.build_ledger(now)
             equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos) if led.pos else {})
-        if halted or last_day:
-            return
-        led, equity, cash = self.core_entries(now, led, view, regime, equity, cash)
-        self.odte_entries(now, led, view, equity, cash)
+        if not (halted or last_day):
+            led, equity, cash = self.core_entries(now, led, view, regime, equity, cash)
+            led = self.odte_entries(now, led, view, equity, cash)
+        return any(p.tag == "odte" for p in led.pos.values())
 
     def run(self, once):
         log(
@@ -614,12 +617,13 @@ class Bot:
         )
         told_closed = False
         while True:
+            fast = False
             try:
                 clock = self.api.clock()
                 now = parse_ts(clock["timestamp"])
                 if clock["is_open"]:
                     told_closed = False
-                    self.tick(now, True)
+                    fast = self.tick(now, True)
                 elif once:
                     log("market is closed: evaluating on last prices, nothing will be sent")
                     self.dry = True
@@ -637,7 +641,7 @@ class Bot:
                 log("unexpected error:\n" + traceback.format_exc())
             if once:
                 return
-            time.sleep(C.LOOP_SECONDS)
+            time.sleep(C.ODTE_LOOP_SECONDS if fast else C.LOOP_SECONDS)
 
     def status(self):
         now = parse_ts(self.api.clock()["timestamp"])
