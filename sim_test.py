@@ -27,6 +27,7 @@ class FakeAlpaca:
         self.mult = {s: 1.0 for s in C.UNIVERSE}  # option price multiplier per underlying
         self.growth = {s: 0.001 for s in C.UNIVERSE}
         self.growth.update(NVDA=0.006, TSLA=0.005, COIN=0.004)
+        self.glitch = set()  # underlyings whose option quotes are currently garbage
 
     def iso(self):
         return self.now.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000000Z")
@@ -51,6 +52,8 @@ class FakeAlpaca:
 
     def quote(self, sym):
         root, exp, _, _ = bot.parse_occ(sym)
+        if root in self.glitch:
+            return {"bp": 0.0, "ap": 0.3, "t": self.iso()}
         base = 0.5 if exp == self.now.date() else 5.0
         mid = round(base * self.mult[root], 2)
         return {"bp": round(mid - 0.02, 2), "ap": round(mid + 0.02, 2), "t": self.iso()}
@@ -121,12 +124,14 @@ def main():
     b = bot.Bot(dry=False)
     f = b.api
 
-    def step(label, **mult):
+    def step(label, ticks=1, to_close=None, **mult):
         f.mult.update(mult)
-        f.now += dt.timedelta(minutes=1)
-        print(f"\n--- {label} ({f.now:%H:%M}) ---")
+        print(f"\n--- {label} ---")
         b.last_beat = 0
-        fast = b.tick(f.now, True)
+        for _ in range(ticks):
+            f.now += dt.timedelta(minutes=1)
+            b.last_core_scan = 0
+            fast = b.tick(f.now, True, to_close)
         led = b.build_ledger(f.now)
         equity, cash = b.sleeve(led, f.option_snapshots(led.pos))
         book = [(p.tag, p.und, p.qty) for p in led.pos.values()]
@@ -142,25 +147,36 @@ def main():
     assert fast, "loop should speed up while a 0DTE position is open"
     start_qty = {p.und: p.qty for p in led.pos.values() if p.tag == "core"}
 
-    led, _ = step("NVDA option -60%: expect stop loss", NVDA=0.4)
+    led, _ = step("NVDA option -60%, first sighting: expect NO sale yet", NVDA=0.4)
+    assert "NVDA" in unds(led), "a stop must be confirmed on a second pass"
+    led, _ = step("NVDA still -60% on the next pass: expect stop loss")
     assert "NVDA" not in unds(led), "stop loss"
 
     led, _ = step("TSLA option +120%: expect half sold", TSLA=2.2)
     assert [p.qty for p in led.pos.values() if p.und == "TSLA"] == [start_qty["TSLA"] - start_qty["TSLA"] // 2], "half"
 
-    led, _ = step("TSLA 35% off its peak: expect trailing stop", TSLA=1.4)
+    led, _ = step("TSLA 35% off its peak for two passes: expect trailing stop", ticks=2, TSLA=1.4)
     assert "TSLA" not in unds(led), "trailing stop"
 
     step("COIN +60% ...", COIN=1.6)
-    led, _ = step("... then back to entry: expect breakeven stop", COIN=1.0)
+    led, _ = step("... then back to entry for two passes: expect breakeven stop", ticks=2, COIN=1.0)
     assert "COIN" not in unds(led), "breakeven stop"
 
-    led, _ = step("SPY 0DTE -60%: expect stop loss on the 0DTE position", SPY=0.4)
+    led, _ = step("SPY 0DTE -60% for two passes: expect stop loss", ticks=2, SPY=0.4)
     assert unds(led, "odte") == ["QQQ"], "0DTE stop"
 
-    f.now = f.now.replace(hour=15, minute=0)
-    led, fast = step("15:01: expect the remaining 0DTE position closed on time")
-    assert not unds(led, "odte"), "0DTE time exit"
+    before = {s: p.qty for s, p in led.pos.items()}
+    f.glitch = {"QQQ"}
+    equity_before = b.sleeve(led, f.option_snapshots(led.pos))[0]
+    led, _ = step("QQQ option quotes glitch to a zero bid for three passes: expect no sale", ticks=3)
+    assert abs(b.sleeve(led, f.option_snapshots(led.pos))[0] - equity_before) < 1, "glitch must not move sleeve value"
+    assert {s: p.qty for s, p in led.pos.items() if p.und == "QQQ"} == {
+        s: q for s, q in before.items() if bot.parse_occ(s)[0] == "QQQ"
+    }, "garbage quotes must not trigger exits"
+    f.glitch = set()
+
+    led, fast = step("half day, 50 minutes to the close: expect the 0DTE position closed", to_close=50)
+    assert not unds(led, "odte"), "0DTE early-close exit"
     assert not fast, "loop should slow down once no 0DTE position is open"
 
     victim = next(iter(led.pos))
@@ -176,7 +192,10 @@ def main():
     print("\n--- restart: a new process rebuilt the same book from order history ---")
 
     C.KILL_FLOOR_PCT = 2.0
-    led, _ = step("kill switch forced on: expect everything closed, nothing opened")
+    held = set(led.pos)
+    led, _ = step("under the kill floor for two passes: expect no sales yet and no new entries", ticks=2)
+    assert set(led.pos) == held, "kill switch must be confirmed before selling"
+    led, _ = step("third pass under the floor: expect everything closed")
     assert not led.pos, "kill switch"
 
     print("\nALL SIMULATION CHECKS PASSED")

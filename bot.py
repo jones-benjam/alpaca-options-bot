@@ -92,6 +92,12 @@ def read_quote(snap, now=None):
     return bid, ask, (bid + ask) / 2
 
 
+def quote_ok(q):
+    """A quote good enough to act on or value with: a real bid and a spread
+    that is not absurd. The free feed is approximate and can glitch."""
+    return bool(q) and q[0] > 0 and (q[1] - q[0] <= 0.05 or (q[1] - q[0]) / q[2] <= C.MAX_TRIGGER_SPREAD)
+
+
 def tick_for(underlying, price):
     return 0.01 if underlying in C.PENNY_ALL or price < 3 else 0.05
 
@@ -135,6 +141,11 @@ class Bot:
         self.range_cache = {}
         self.attempts = defaultdict(int)
         self.last_beat = 0.0
+        self.last_core_scan = 0.0
+        self.to_close = 24 * 60.0          # minutes until today's close
+        self.exit_hits = defaultdict(int)  # consecutive passes a price exit was seen
+        self.halt_hits = 0                 # consecutive passes under the kill floor
+        self.marks = {}                    # last believable price per held option
         self.qnow = None      # set while the market is open, to age-check quotes
         self.state = {"peaks": {}, "synthetic": []}
         if STATE_PATH.exists():
@@ -214,7 +225,12 @@ class Bot:
         value = 0.0
         for symbol, p in led.pos.items():
             q = read_quote(quotes.get(symbol))
-            value += p.qty * q[2] * 100 if q else p.cost
+            if quote_ok(q):
+                self.marks[symbol] = q[2]
+            # A bad quote is valued at the last good mark, so a feed glitch
+            # cannot fake a collapse of the sleeve and trip the kill switch.
+            mark = self.marks.get(symbol)
+            value += p.qty * mark * 100 if mark is not None else p.cost
         cash = C.SLEEVE_START + led.realized - cost
         return cash + value, cash
 
@@ -338,13 +354,14 @@ class Bot:
             bars = self.api.minute_bars(
                 C.ODTE_SYMBOLS, f"{day}T09:30:00{off}", f"{day}T09:59:00{off}"
             )
-            self.range_cache = {
-                day: {
-                    s: (max(b["h"] for b in bs), min(b["l"] for b in bs))
-                    for s, bs in bars.items()
-                    if len(bs) >= 15
-                }
+            ranges = {
+                s: (max(b["h"] for b in bs), min(b["l"] for b in bs))
+                for s, bs in bars.items()
+                if len(bs) >= 15
             }
+            if len(ranges) < len(C.ODTE_SYMBOLS):
+                return ranges  # incomplete data: do not cache, ask again next pass
+            self.range_cache = {day: ranges}
         return self.range_cache[day]
 
     # ---- execution -----------------------------------------------------------
@@ -462,24 +479,33 @@ class Bot:
             )
             dte = (p.expiry - today).days
             reason, qty = None, p.qty
+            sane = quote_ok(q)  # price rules only act on a believable quote
             if flatten:
                 reason = "flatten"
-            elif dte <= 0 and hhmm >= C.ODTE_EXIT_AT:
+            elif dte <= 0 and (hhmm >= C.ODTE_EXIT_AT or self.to_close <= C.ODTE_EXIT_MIN_TO_CLOSE):
                 reason = "expiry-day time exit"
             elif not odte and dte <= C.CORE_MIN_DTE_EXIT:
                 reason = "time stop"
-            elif mid is not None:
+            elif sane:
                 peak = max(peaks.get(symbol, p.avg), mid)
                 peaks[symbol] = peak
                 pnl = mid / p.avg - 1
                 v = view.get(p.und)
+                price_exit = None
                 if pnl <= stop:
-                    reason = "stop loss"
+                    price_exit = "stop loss"
                 elif peak >= p.avg * (1 + tp1) and mid <= peak * (1 - trail):
-                    reason = "trailing stop"
+                    price_exit = "trailing stop"
                 elif peak >= p.avg * 1.5 and mid <= p.avg * 1.05:
-                    reason = "breakeven stop"
-                elif not odte and v and hhmm >= C.FLIP_CHECK_FROM and (
+                    price_exit = "breakeven stop"
+                # A price exit must show on consecutive passes, so one bad tick
+                # cannot close a position.
+                self.exit_hits[symbol] = self.exit_hits[symbol] + 1 if price_exit else 0
+                near_close = hhmm >= C.FLIP_CHECK_FROM or self.to_close <= C.FLIP_MIN_TO_CLOSE
+                if price_exit:
+                    if self.exit_hits[symbol] >= C.EXIT_CONFIRMATIONS:
+                        reason = price_exit
+                elif not odte and v and near_close and (
                     (p.kind == "call" and v["px"] < v["ema10"])
                     or (p.kind == "put" and v["px"] > v["ema10"])
                 ):
@@ -487,10 +513,15 @@ class Bot:
                 elif p.sold == 0 and p.qty >= 2 and pnl >= tp1:
                     reason, qty = "take profit on half", p.qty // 2
             if reason:
-                self.sell(p, qty, reason, mid)
+                try:
+                    self.sell(p, qty, reason, mid)
+                except ApiError as err:  # keep managing the other positions
+                    log(f"     sell of {symbol} failed, will retry next pass: {err}")
                 acted = True
         for symbol in [s for s in peaks if s not in led.pos]:
             del peaks[symbol]
+        for symbol in [s for s in self.exit_hits if s not in led.pos]:
+            del self.exit_hits[symbol]
         self.save_state()
         return acted
 
@@ -501,9 +532,14 @@ class Bot:
 
     def core_entries(self, now, led, view, regime, equity, cash):
         hhmm, today = now.strftime("%H:%M"), now.date()
-        if not (C.CORE_ENTRY_FROM <= hhmm < C.CORE_ENTRY_TO):
+        if not (C.CORE_ENTRY_FROM <= hhmm < C.CORE_ENTRY_TO) or self.to_close <= C.CORE_ENTRY_MIN_TO_CLOSE:
             return led, equity, cash
-        core = [p for p in led.pos.values() if p.tag == "core"]
+        # Scan for entries at most once a minute, even when the loop runs fast
+        # for an open 0DTE position; a scan can cost many API calls.
+        if time.time() - self.last_core_scan < C.LOOP_SECONDS - 1:
+            return led, equity, cash
+        self.last_core_scan = time.time()
+        core =[p for p in led.pos.values() if p.tag == "core"]
         free = C.CORE_SLOTS - len(core)
         held = {p.und for p in core}
         count = {"call": sum(p.kind == "call" for p in core), "put": sum(p.kind == "put" for p in core)}
@@ -539,6 +575,8 @@ class Bot:
         hhmm, today = now.strftime("%H:%M"), now.date()
         if not C.ODTE_ENABLED or not (C.ODTE_ENTRY_FROM <= hhmm < C.ODTE_ENTRY_TO):
             return led
+        if self.to_close <= C.ODTE_ENTRY_MIN_TO_CLOSE:  # early-close days
+            return led
         ranges = self.opening_range(now)
         for und in C.ODTE_SYMBOLS:
             key = (today, "odte", und)
@@ -571,10 +609,12 @@ class Bot:
         return led
 
     # ---- main loop -----------------------------------------------------------
-    def tick(self, now, market_open):
+    def tick(self, now, market_open, to_close=None):
         """One pass. Returns True while a 0DTE position is open, so the caller
-        can loop faster: same-day options can move through a stop in seconds."""
+        can loop faster: same-day options can move through a stop in seconds.
+        `to_close` is minutes until today's close (matters on half days)."""
         self.qnow = now if market_open else None
+        self.to_close = 24 * 60.0 if to_close is None else to_close
         today, hhmm = now.date().isoformat(), now.strftime("%H:%M")
         if not self.dry:
             self.cancel_stale()
@@ -596,15 +636,23 @@ class Bot:
                 f"regime {regime} | holding: {book or 'nothing'} | signals: {top or 'none'}"
             )
 
-        halted = equity <= C.KILL_FLOOR_PCT * C.SLEEVE_START
+        # The kill switch needs the breach on consecutive passes before it
+        # sells, but new entries stop on the first sign of it.
+        breach = equity <= C.KILL_FLOOR_PCT * C.SLEEVE_START
+        self.halt_hits = self.halt_hits + 1 if breach else 0
+        halted = self.halt_hits >= C.KILL_CONFIRMATIONS
         last_day = bool(C.END_DATE) and today >= C.END_DATE
-        flatten = halted or (bool(C.END_DATE) and (today > C.END_DATE or (today == C.END_DATE and hhmm >= "15:00")))
+        end_flat = bool(C.END_DATE) and (
+            today > C.END_DATE
+            or (today == C.END_DATE and (hhmm >= "15:00" or self.to_close <= C.ODTE_EXIT_MIN_TO_CLOSE))
+        )
+        flatten = halted or end_flat
         if halted and led.pos:
             log(f"KILL SWITCH: sleeve at ${equity:,.0f}, closing everything and standing down")
         if self.manage(now, led, quotes, view, flatten) and not self.dry:
             led = self.build_ledger(now)
             equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos) if led.pos else {})
-        if not (halted or last_day):
+        if not (breach or last_day):
             led, equity, cash = self.core_entries(now, led, view, regime, equity, cash)
             led = self.odte_entries(now, led, view, equity, cash)
         return any(p.tag == "odte" for p in led.pos.values())
@@ -623,7 +671,8 @@ class Bot:
                 now = parse_ts(clock["timestamp"])
                 if clock["is_open"]:
                     told_closed = False
-                    fast = self.tick(now, True)
+                    to_close = (parse_ts(clock["next_close"]) - now).total_seconds() / 60
+                    fast = self.tick(now, True, to_close)
                 elif once:
                     log("market is closed: evaluating on last prices, nothing will be sent")
                     self.dry = True

@@ -33,6 +33,12 @@ two positions per direction).
 - Kill switch: if the sleeve falls to 30% of its start ($7,500) the bot closes
   everything and stops opening trades.
 - `END_DATE`: no new trades on that day, flat by 15:00 ET.
+- Bad quotes: a stop or trailing exit must show on two passes in a row, and
+  the kill switch on three, before the bot sells. Quotes with no bid or an
+  absurd spread are ignored for exits and for valuing the sleeve.
+- Half days (for example the Friday after Thanksgiving): the time-based rules
+  follow the real closing time, so 0DTE positions are closed an hour before
+  an early close.
 - The bot only sells contracts it bought. It recognises them by the `optbot-`
   prefix on its order ids, so teammates can trade anything else in the account.
   Teammates should leave the bot's option positions alone; if one is closed by
