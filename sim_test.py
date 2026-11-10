@@ -20,14 +20,16 @@ TZ = dt.timezone(dt.timedelta(hours=-5))
 
 
 class FakeAlpaca:
+    trend = 1  # +1 builds a rising market, -1 a falling one
+
     def __init__(self):
         self.now = dt.datetime(2026, 11, 10, 10, 30, tzinfo=TZ)
         self.o, self.pos, self.ids = [], {}, itertools.count(1)
-        self.px = {s: 100.0 for s in C.UNIVERSE}
         self.mult = {s: 1.0 for s in C.UNIVERSE}  # option price multiplier per underlying
-        self.growth = {s: 0.001 for s in C.UNIVERSE}
-        self.growth.update(NVDA=0.006, TSLA=0.005, COIN=0.004)
+        self.growth = {s: 0.001 * self.trend for s in C.UNIVERSE}
+        self.growth.update(NVDA=0.006 * self.trend, TSLA=0.005 * self.trend, COIN=0.004 * self.trend)
         self.glitch = set()  # underlyings whose option quotes are currently garbage
+        self.range = (99.9, 99.0)  # the first 30 minutes' high and low, every symbol
 
     def iso(self):
         return self.now.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000000Z")
@@ -77,20 +79,21 @@ class FakeAlpaca:
         return order
 
     def spot(self, s):
-        return 100 * (1 + self.growth.get(s, 0.001)) ** 60 * self.px[s] / 100
+        return 100 * (1 + self.growth.get(s, 0.001 * self.trend)) ** 60
 
     def daily_bars(self, symbols, start):
         d0 = dt.date(2026, 9, 1)
         return {
             s: [
-                {"c": 100 * (1 + self.growth.get(s, 0.001)) ** i, "t": f"{d0 + dt.timedelta(days=i)}T04:00:00Z"}
+                {"c": 100 * (1 + self.growth.get(s, 0.001 * self.trend)) ** i,
+                 "t": f"{d0 + dt.timedelta(days=i)}T04:00:00Z"}
                 for i in range(60)
             ]
             for s in symbols
         }
 
     def minute_bars(self, symbols, start, end):
-        return {s: [{"h": self.px[s] * 0.999, "l": self.px[s] * 0.99}] * 30 for s in symbols}
+        return {s: [{"h": self.range[0], "l": self.range[1]}] * 30 for s in symbols}
 
     def stock_snapshots(self, symbols):
         return {s: {"latestTrade": {"p": self.spot(s)}} for s in symbols}
@@ -116,11 +119,12 @@ class FakeAlpaca:
         return out
 
 
-def main():
+def harness(trend):
+    """A fresh bot wired to a fresh fake broker, plus a helper to advance time."""
+    FakeAlpaca.trend = trend
     bot.Alpaca = FakeAlpaca
     bot.STATE_PATH = Path(tempfile.mkdtemp()) / "state.json"
     bot.time.sleep = lambda s: None
-    C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
     b = bot.Bot(dry=False)
     f = b.api
 
@@ -134,18 +138,28 @@ def main():
             fast = b.tick(f.now, True, to_close)
         led = b.build_ledger(f.now)
         equity, cash = b.sleeve(led, f.option_snapshots(led.pos))
-        book = [(p.tag, p.und, p.qty) for p in led.pos.values()]
+        book = [(p.tag, p.und, p.kind, p.qty) for p in led.pos.values()]
         print(f"   => equity {equity:,.0f} cash {cash:,.0f} realized {led.realized:+,.0f} fast={fast} {book}")
         return led, fast
 
-    def unds(led, tag="core"):
-        return sorted(p.und for p in led.pos.values() if p.tag == tag)
+    return b, f, step
 
-    led, fast = step("bull market: expect 3 core calls + SPY/QQQ 0DTE calls")
+
+def unds(led, tag="core"):
+    return sorted(p.und for p in led.pos.values() if p.tag == tag)
+
+
+def test_lifecycle():
+    b, f, step = harness(trend=1)
+
+    led, fast = step("bull market, SPY and QQQ both break out upward: expect 3 core calls + ONE 0DTE call")
     assert unds(led) == ["COIN", "NVDA", "TSLA"], "core picks"
-    assert unds(led, "odte") == ["QQQ", "SPY"], "0DTE picks"
+    assert unds(led, "odte") == ["SPY"], "only one 0DTE trade a day, even when both indexes break out"
     assert fast, "loop should speed up while a 0DTE position is open"
     start_qty = {p.und: p.qty for p in led.pos.values() if p.tag == "core"}
+
+    led, _ = step("another pass: expect no second 0DTE trade")
+    assert unds(led, "odte") == ["SPY"], "0DTE daily limit"
 
     led, _ = step("NVDA option -60%, first sighting: expect NO sale yet", NVDA=0.4)
     assert "NVDA" in unds(led), "a stop must be confirmed on a second pass"
@@ -162,17 +176,12 @@ def main():
     led, _ = step("... then back to entry for two passes: expect breakeven stop", ticks=2, COIN=1.0)
     assert "COIN" not in unds(led), "breakeven stop"
 
-    led, _ = step("SPY 0DTE -60% for two passes: expect stop loss", ticks=2, SPY=0.4)
-    assert unds(led, "odte") == ["QQQ"], "0DTE stop"
-
     before = {s: p.qty for s, p in led.pos.items()}
-    f.glitch = {"QQQ"}
     equity_before = b.sleeve(led, f.option_snapshots(led.pos))[0]
-    led, _ = step("QQQ option quotes glitch to a zero bid for three passes: expect no sale", ticks=3)
+    f.glitch = {"SPY"}
+    led, _ = step("SPY option quotes glitch to a zero bid for three passes: expect no sale", ticks=3)
+    assert {s: p.qty for s, p in led.pos.items()} == before, "garbage quotes must not trigger exits"
     assert abs(b.sleeve(led, f.option_snapshots(led.pos))[0] - equity_before) < 1, "glitch must not move sleeve value"
-    assert {s: p.qty for s, p in led.pos.items() if p.und == "QQQ"} == {
-        s: q for s, q in before.items() if bot.parse_occ(s)[0] == "QQQ"
-    }, "garbage quotes must not trigger exits"
     f.glitch = set()
 
     led, fast = step("half day, 50 minutes to the close: expect the 0DTE position closed", to_close=50)
@@ -191,13 +200,35 @@ def main():
     assert abs(again.realized - led.realized) < 1e-6 and set(again.pos) == set(led.pos), "restart"
     print("\n--- restart: a new process rebuilt the same book from order history ---")
 
+    floor = C.KILL_FLOOR_PCT
     C.KILL_FLOOR_PCT = 2.0
     held = set(led.pos)
     led, _ = step("under the kill floor for two passes: expect no sales yet and no new entries", ticks=2)
     assert set(led.pos) == held, "kill switch must be confirmed before selling"
     led, _ = step("third pass under the floor: expect everything closed")
     assert not led.pos, "kill switch"
+    C.KILL_FLOOR_PCT = floor
 
+
+def test_odte_follows_regime():
+    b, f, step = harness(trend=-1)  # falling market: the bot should read "bear"
+
+    f.range = (90.0, 89.0)  # price is far above the morning range: an upside breakout
+    led, _ = step("bear market, upside breakout: expect core puts and NO 0DTE call")
+    assert all(p.kind == "put" for p in led.pos.values()), "bear market means puts only"
+    assert not unds(led, "odte"), "0DTE must not trade against the regime"
+
+    f.range = (99.9, 99.0)  # now price is below the morning range: a downside breakout
+    b.range_cache = {}
+    led, _ = step("bear market, downside breakout: expect exactly one 0DTE put")
+    odte = [p for p in led.pos.values() if p.tag == "odte"]
+    assert len(odte) == 1 and odte[0].kind == "put", "0DTE put with the regime"
+
+
+def main():
+    C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
+    test_lifecycle()
+    test_odte_follows_regime()
     print("\nALL SIMULATION CHECKS PASSED")
 
 

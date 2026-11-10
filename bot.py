@@ -17,6 +17,7 @@ loop, which means it survives restarts with no local database.
     python3 bot.py run --dry-run --once   # show what it would do, place nothing
     python3 bot.py run                    # trade (paper) until stopped
     python3 bot.py status                 # sleeve P&L, positions, recent trades
+    python3 bot.py journal                # record the day in STRATEGY_LOG.md
 """
 import argparse
 import datetime as dt
@@ -34,6 +35,7 @@ from alpaca import Alpaca, ApiError
 
 OCC = re.compile(r"^([A-Z]+)(\d{2})(\d{2})(\d{2})([CP])(\d{8})$")
 STATE_PATH = Path(C.STATE_FILE) if C.STATE_FILE else Path(__file__).with_name("state.json")
+LOG_PATH = Path(__file__).with_name("STRATEGY_LOG.md")
 TERMINAL = {"filled", "canceled", "expired", "rejected", "done_for_day", "replaced"}
 
 
@@ -131,6 +133,7 @@ class Ledger:
         self.realized = 0.0
         self.today = set()    # (tag, underlying) pairs with a fill today
         self.closed = []      # (time, symbol, qty, price, pnl dollars)
+        self.opened = []      # (time, symbol, qty, price)
 
 
 class Bot:
@@ -196,6 +199,7 @@ class Bot:
                 p.qty += qty
                 p.cost += qty * px * 100
                 p.last_buy = when
+                led.opened.append((when, symbol, qty, px))
                 if when.astimezone(now.tzinfo).date() == today:
                     led.today.add((tag, p.und))
             else:
@@ -571,14 +575,19 @@ class Bot:
                     equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos))
         return led, equity, cash
 
-    def odte_entries(self, now, led, view, equity, cash):
+    def odte_entries(self, now, led, view, regime, equity, cash):
         hhmm, today = now.strftime("%H:%M"), now.date()
         if not C.ODTE_ENABLED or not (C.ODTE_ENTRY_FROM <= hhmm < C.ODTE_ENTRY_TO):
             return led
         if self.to_close <= C.ODTE_ENTRY_MIN_TO_CLOSE:  # early-close days
             return led
+        if regime == "unknown":
+            return led
+        taken = sum(1 for tag, _ in led.today if tag == "odte")
         ranges = self.opening_range(now)
         for und in C.ODTE_SYMBOLS:
+            if taken >= C.ODTE_MAX_PER_DAY:  # SPY and QQQ move together: one bet a day
+                break
             key = (today, "odte", und)
             if ("odte", und) in led.today or self.attempts[key] >= C.MAX_ENTRY_ATTEMPTS:
                 continue
@@ -592,6 +601,11 @@ class Bot:
                 kind = "put"
             else:
                 continue
+            # Trade only with the market's trend, never against the core book:
+            # no calls in a bear market, no puts in a bull market.
+            against = (regime == "bear" and kind == "call") or (regime == "bull" and kind == "put")
+            if C.ODTE_WITH_REGIME and against:
+                continue
             pick = self.pick_odte(und, kind, px, today)
             if not pick:
                 continue
@@ -603,9 +617,11 @@ class Bot:
                 f"0DTE {kind} on {und}: ${px:.2f} broke the opening range "
                 f"${low:.2f}-${high:.2f}, strike {pick['strike']:g}, ask ${pick['ask']:.2f}"
             )
-            if self.buy(und, pick["symbol"], qty, "odte", note) and not self.dry:
-                led = self.build_ledger(now)
-                equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos))
+            if self.buy(und, pick["symbol"], qty, "odte", note):
+                taken += 1
+                if not self.dry:
+                    led = self.build_ledger(now)
+                    equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos))
         return led
 
     # ---- main loop -----------------------------------------------------------
@@ -654,7 +670,7 @@ class Bot:
             equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos) if led.pos else {})
         if not (breach or last_day):
             led, equity, cash = self.core_entries(now, led, view, regime, equity, cash)
-            led = self.odte_entries(now, led, view, equity, cash)
+            led = self.odte_entries(now, led, view, regime, equity, cash)
         return any(p.tag == "odte" for p in led.pos.values())
 
     def run(self, once):
@@ -720,6 +736,75 @@ class Bot:
             print("  none")
 
 
+def journal(bot):
+    """Add or refresh the latest trading day's row in STRATEGY_LOG.md.
+
+    Values come from Alpaca's own prices so the sleeve adds up with the account
+    balance the class is graded on. Safe to run more than once a day: the row
+    for that date is replaced, not duplicated."""
+    api = bot.api
+    if not LOG_PATH.exists():
+        raise SystemExit(f"{LOG_PATH.name} not found next to bot.py")
+    clock = api.clock()
+    now = parse_ts(clock["timestamp"])
+    led = bot.build_ledger(now)
+    acct = api.account()
+    equity, last = float(acct["equity"]), float(acct["last_equity"])
+    prices = {x["symbol"]: float(x.get("current_price") or 0) for x in api.positions()}
+    quotes = api.option_snapshots(led.pos) if led.pos else {}
+
+    value, book = 0.0, []
+    for symbol, p in led.pos.items():
+        px = prices.get(symbol)
+        if not px:
+            q = read_quote(quotes.get(symbol))
+            px = q[2] if q else p.avg
+        value += p.qty * px * 100
+        book.append(f"{p.qty} {p.label()} ({px / p.avg - 1:+.0%})")
+    sleeve = C.SLEEVE_START + led.realized - sum(p.cost for p in led.pos.values()) + value
+
+    spy = api.stock_snapshots(["SPY"])["SPY"]
+    day = spy["dailyBar"]["t"][:10]  # the latest trading session
+    spy_day = spy["dailyBar"]["c"] / spy["prevDailyBar"]["c"] - 1
+    start = dt.date.fromisoformat(C.START_DATE)
+    bars = api.daily_bars(["SPY"], (start - dt.timedelta(days=10)).isoformat()).get("SPY", [])
+    base = [b["c"] for b in bars if b["t"][:10] < C.START_DATE]
+    spy_total = f"{spy['dailyBar']['c'] / base[-1] - 1:+.2%}" if base else "n/a"
+
+    def on_day(when):
+        return when.astimezone(now.tzinfo).date().isoformat() == day
+
+    events = [(w, f"Bought {q} {Pos(s, '').label()} at ${px:.2f}") for w, s, q, px in led.opened if on_day(w)]
+    events += [
+        (w, f"Sold {q} {Pos(s, '').label()} at ${px:.2f} ({'+' if pnl >= 0 else '-'}${abs(pnl):,.0f})")
+        for w, s, q, px, pnl in led.closed
+        if on_day(w)
+    ]
+    trades = "; ".join(text for _, text in sorted(events, key=lambda e: e[0])) or "No trades"
+
+    lines = LOG_PATH.read_text().splitlines()
+    rows = [i for i, line in enumerate(lines) if re.match(r"^\| \d{4}-\d{2}-\d{2}", line)]
+    earlier = [lines[i] for i in rows if lines[i][2:12] < day]
+    sleeve_day = "n/a"
+    if earlier:
+        m = re.search(r"\$([\d,]+)", earlier[-1].split("|")[4])
+        if m:
+            sleeve_day = f"{sleeve / float(m.group(1).replace(',', '')) - 1:+.2%}"
+    label = day + (f" (as of {now:%H:%M} ET)" if clock["is_open"] else "")
+    row = (
+        f"| {label} | ${equity:,.0f} | {equity / last - 1:+.2%} | ${sleeve:,.0f} | {sleeve_day} | "
+        f"{sleeve / C.SLEEVE_START - 1:+.1%} | {spy_day:+.2%} | {spy_total} | "
+        f"{', '.join(book) or 'Nothing'} | {trades} |"
+    )
+    same = [i for i in rows if lines[i][2:12] == day]
+    if same:
+        lines[same[0]] = row
+    else:
+        lines.append(row)
+    LOG_PATH.write_text("\n".join(lines) + "\n")
+    print(row)
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     sub = parser.add_subparsers(dest="cmd", required=True)
@@ -727,9 +812,12 @@ def main():
     run.add_argument("--dry-run", action="store_true", help="log decisions, send no orders")
     run.add_argument("--once", action="store_true", help="one pass, then exit")
     sub.add_parser("status", help="print the sleeve's P&L and positions")
+    sub.add_parser("journal", help="record the day's results in STRATEGY_LOG.md")
     args = parser.parse_args()
     if args.cmd == "status":
         Bot(dry=True).status()
+    elif args.cmd == "journal":
+        journal(Bot(dry=True))
     else:
         dry = args.dry_run or C._env("DRY_RUN", False, bool)
         Bot(dry=dry).run(args.once)
