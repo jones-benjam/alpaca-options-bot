@@ -148,7 +148,7 @@ trending, not on skill.
   expire in about six weeks instead of three cut the chance of losing more
   than half the sleeve from about 1 in 4 to about 1 in 11, and beat SPY a
   little more often (about 4 stretches in 10). The price is smaller best
-  cases. This has NOT been changed in the bot; it is an open decision.
+  cases. This has not been changed in the bot (see the next entry).
 - **Finding 4: the "trend reversed, sell" rule earns its keep.** Removing it
   made every measure worse.
 - **Caveats:** Those five years were a strong period for stocks (SPY rose
@@ -157,6 +157,14 @@ trending, not on skill.
 - **What it means:** The bot is a high-risk bet that a big move happens in the
   next three weeks. It is not a reliable way to beat the market. That was the
   choice made on day one; this test puts numbers on it.
+
+### Tue Nov 10, 2026, 5:08 pm: Decision to keep three-week options
+- **What:** No change. The team looked at the test result above and chose to
+  keep buying options that expire in about three weeks, not six.
+- **Why:** Three-week options move more for the same money, so the best
+  outcomes are bigger. The team prefers the larger possible win and accepts
+  the higher chance of a large loss that comes with it.
+- **Effect:** The bot's rules stay exactly as they were.
 
 ## Daily record
 
