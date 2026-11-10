@@ -94,7 +94,7 @@ trending, not on skill.
 - **Effect:** The most the bot can lose on same-day bets in a day drops from
   about 6% of the sleeve to about 3%.
 
-### Tue Nov 10, 2026, 4:35 pm: Sleeve doubled to $50,000, six main bets
+### Tue Nov 10, 2026, 4:30 pm: Sleeve doubled to $50,000, six main bets
 - **What:** (1) The bot now manages $50,000, half of the starting portfolio,
   up from $25,000. (2) It holds up to six main bets instead of three, each
   about 14% of the sleeve (roughly $7,400, the same size as before). In effect
