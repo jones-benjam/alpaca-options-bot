@@ -1,0 +1,49 @@
+# Adds the day's row to STRATEGY_LOG.md after each market close and commits it,
+# so the log on GitHub stays current without anyone running a command.
+#
+# Needs two repository secrets: ALPACA_API_KEY and ALPACA_SECRET_KEY (the PAPER
+# keys). It only reads the account; it never places orders.
+name: Daily journal
+
+on:
+  schedule:
+    - cron: "20 21 * * 1-5"  # 4:20 pm Eastern (standard time), Monday to Friday
+  workflow_dispatch:          # also runnable by hand from the Actions tab
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-journal
+  cancel-in-progress: false
+
+jobs:
+  journal:
+    runs-on: ubuntu-latest
+    env:
+      ALPACA_API_KEY: ${{ secrets.ALPACA_API_KEY }}
+      ALPACA_SECRET_KEY: ${{ secrets.ALPACA_SECRET_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Record the day's results
+        run: |
+          if [ -z "$ALPACA_API_KEY" ] || [ -z "$ALPACA_SECRET_KEY" ]; then
+            echo "::warning::Alpaca secrets are not set on this repository; skipping."
+            exit 0
+          fi
+          python3 bot.py journal
+
+      - name: Commit the updated log
+        run: |
+          if git diff --quiet -- STRATEGY_LOG.md; then
+            echo "No change to the log (market holiday or already recorded)."
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add STRATEGY_LOG.md
+          git commit -m "Daily journal: $(TZ=America/New_York date +%Y-%m-%d)"
+          git push
