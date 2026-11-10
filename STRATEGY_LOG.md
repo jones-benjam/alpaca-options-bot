@@ -161,9 +161,9 @@ trending, not on skill.
 ### Tue Nov 10, 2026, 5:08 pm: Decision to keep three-week options
 - **What:** No change. The team looked at the test result above and chose to
   keep buying options that expire in about three weeks, not six.
-- **Why:** Three-week options move more for the same money, so the best
-  outcomes are bigger. The team prefers the larger possible win and accepts
-  the higher chance of a large loss that comes with it.
+- **The trade-off accepted:** Three-week options move more for the same
+  money, so the best outcomes are bigger. In return, the chance of a large
+  loss stays higher than it would be with six-week options.
 - **Effect:** The bot's rules stay exactly as they were.
 
 ## Daily record
