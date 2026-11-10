@@ -5,6 +5,10 @@ beat SPY by as much as possible over a few weeks, accepting a real chance of
 losing most of the sleeve. It cannot reach a live account: the paper endpoint
 is hard-coded.
 
+**Start here: [STRATEGY_LOG.md](STRATEGY_LOG.md).** It explains the strategy
+in plain English, lists every change to it with the date and reason, and has
+a row for each trading day's results.
+
 ## Strategy
 
 **Regime.** SPY and QQQ both above their 20-day EMA is a bull market (calls
