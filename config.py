@@ -13,7 +13,10 @@ def _env(name, default, cast=str):
 
 
 # ---- Sleeve -----------------------------------------------------------------
-SLEEVE_START = _env("SLEEVE_START", 25_000.0, float)  # the bot's 25% of $100k
+# The money the bot manages. Each step is (first trading day in effect, total).
+# Add a step when the sleeve is resized so the daily record stays correct.
+SLEEVE_STEPS = [("2026-11-09", 25_000.0), ("2026-11-11", 50_000.0)]
+SLEEVE_START = _env("SLEEVE_START", SLEEVE_STEPS[-1][1], float)  # 50% of $100k
 BOT_TAG = "optbot"              # prefix on every order the bot places
 START_DATE = _env("START_DATE", "2026-11-09")  # ledger counts bot orders from here
 END_DATE = _env("END_DATE", "2026-12-02")  # last day: no new trades, flat by 15:00 ET
@@ -29,8 +32,8 @@ UNIVERSE = [
 PENNY_ALL = {"SPY", "QQQ", "IWM"}  # options quoted in $0.01 at every price
 
 # ---- Core: short-dated momentum options --------------------------------------
-CORE_SLOTS = _env("CORE_SLOTS", 3, int)
-CORE_SLOT_PCT = _env("CORE_SLOT_PCT", 0.28, float)  # of sleeve equity, per slot
+CORE_SLOTS = _env("CORE_SLOTS", 6, int)
+CORE_SLOT_PCT = _env("CORE_SLOT_PCT", 0.14, float)  # of sleeve equity, per slot
 CORE_MIN_STRENGTH = 0.02    # skip names with under 2% blended momentum
 CORE_DTE_MIN = 14
 CORE_DTE_MAX = 35
@@ -50,6 +53,8 @@ FLIP_CHECK_FROM = "15:30"   # trend-flip exits are judged near the close
 ODTE_ENABLED = _env("ODTE_ENABLED", True, bool)
 ODTE_SYMBOLS = ["SPY", "QQQ"]
 ODTE_RISK_PCT = _env("ODTE_RISK_PCT", 0.06, float)  # premium per trade, of equity
+ODTE_MAX_PER_DAY = _env("ODTE_MAX_PER_DAY", 1, int)  # SPY and QQQ move together
+ODTE_WITH_REGIME = _env("ODTE_WITH_REGIME", True, bool)  # never trade against the trend
 ODTE_OTM = 0.0015           # strike about 0.15% out of the money
 ODTE_BREAK_BUFFER = 0.0005  # price must clear the range by 0.05%
 ODTE_STOP = -0.50
