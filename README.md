@@ -7,7 +7,8 @@ is hard-coded.
 
 **Start here: [STRATEGY_LOG.md](STRATEGY_LOG.md).** It explains the strategy
 in plain English, lists every change to it with the date and reason, and has
-a row for each trading day's results.
+a row for each trading day's results. A scheduled job on GitHub adds the row
+automatically after each market close.
 
 ## Strategy
 
