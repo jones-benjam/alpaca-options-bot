@@ -110,7 +110,7 @@ trending, not on skill.
   daily record, profit is shown in dollars so it reads the same before and
   after this change.
 
-### Tue Nov 10, 2026, 5:10 pm: Step aside for earnings reports
+### Tue Nov 10, 2026, 5:06 pm: Step aside for earnings reports
 - **What:** (1) The bot will not open a new bet on a stock in the five days
   before that company reports its quarterly results. (2) If it already holds
   a bet on that stock, it sells in the last half hour before the report.
@@ -125,7 +125,7 @@ trending, not on skill.
   Nov 17 if it has not been sold earlier. New Nvidia bets are blocked from
   Nov 12 and allowed again from Nov 18.
 
-### Tue Nov 10, 2026, 5:10 pm: What a five-year test of the rules showed (no rule change)
+### Tue Nov 10, 2026, 5:06 pm: What a five-year test of the rules showed (no rule change)
 - **What we did:** Replayed the bot's rules on daily prices from July 2021 to
   November 2026 (`python3 backtest_signal.py`). Stock prices are real. Option
   prices are estimated with a standard formula, because historical option
