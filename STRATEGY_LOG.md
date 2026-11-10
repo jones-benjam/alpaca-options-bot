@@ -82,7 +82,7 @@ trending, not on skill.
   The price feed we use is free and only approximate, so it can occasionally
   show a wrong price.
 
-### Tue Nov 10, 2026, 4:30 pm: Same-day bets must agree with the market's mood
+### Tue Nov 10, 2026, 4:24 pm: Same-day bets must agree with the market's mood
 - **What:** (1) Same-day bets are only allowed in the direction of the
   market's mood: puts only when the market is falling, calls only when it is
   rising. (2) One same-day bet a day instead of two. In effect from Wed Nov 11.
