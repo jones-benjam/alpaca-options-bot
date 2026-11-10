@@ -234,6 +234,27 @@ def test_default_sizing():
     assert b.sleeve(led, f.option_snapshots(led.pos))[1] >= 0, "the sleeve must never overspend"
 
 
+def test_earnings_guard():
+    saved = dict(C.EARNINGS_EXIT_BY)
+    C.EARNINGS_EXIT_BY.clear()
+    C.EARNINGS_EXIT_BY.update({"NVDA": "2026-11-13", "COIN": "2026-11-25"})  # the fake "today" is Nov 10
+    b, f, step = harness(trend=1)
+
+    led, _ = step("NVDA reports in 3 days, COIN in 15: expect NVDA skipped, COIN allowed")
+    assert "NVDA" not in unds(led), "no new bet inside the earnings blackout"
+    assert "COIN" in unds(led) and "TSLA" in unds(led), "names outside the blackout still trade"
+
+    C.EARNINGS_EXIT_BY["TSLA"] = "2026-11-10"  # TSLA now reports tonight
+    led, _ = step("TSLA reports tonight, mid-morning: expect it is still held")
+    assert "TSLA" in unds(led), "the earnings exit waits for the last half hour"
+    f.now = f.now.replace(hour=15, minute=34)
+    led, _ = step("TSLA reports tonight, 3:35 pm: expect it sold and not re-bought")
+    assert "TSLA" not in unds(led), "sold before the report"
+
+    C.EARNINGS_EXIT_BY.clear()
+    C.EARNINGS_EXIT_BY.update(saved)
+
+
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
     test_default_sizing()
@@ -241,6 +262,7 @@ def main():
     C.SLEEVE_START, C.CORE_SLOTS, C.CORE_SLOT_PCT = 25_000.0, 3, 0.28
     test_lifecycle()
     test_odte_follows_regime()
+    test_earnings_guard()
     print("\nALL SIMULATION CHECKS PASSED")
 
 

@@ -39,6 +39,9 @@ two positions per direction).
 - Kill switch: if the sleeve falls to 30% of its size the bot closes
   everything and stops opening trades. (The floor is $15,000 on the $50,000 sleeve.)
 - `END_DATE`: no new trades on that day, flat by 15:00 ET.
+- Earnings: no new position in a stock in the five days before its earnings
+  report, and a held position is sold in the last half hour before the report
+  (`EARNINGS_EXIT_BY` in `config.py`; currently NVDA on Nov 17).
 - Bad quotes: a stop or trailing exit must show on two passes in a row, and
   the kill switch on three, before the bot sells. Quotes with no bid or an
   absurd spread are ignored for exits and for valuing the sleeve.
@@ -62,6 +65,7 @@ python3 bot.py run                       # trade until stopped (Ctrl+C)
 python3 bot.py status                    # sleeve P&L, positions, recent trades
 python3 sim_test.py                      # offline test with a fake broker, no keys
 python3 bot.py journal                   # add today's row to STRATEGY_LOG.md
+python3 backtest_signal.py               # replay the rules on five years of prices
 ```
 
 `STRATEGY_LOG.md` is the project's plain-English record: what the strategy is,
@@ -101,7 +105,9 @@ Alpaca's order history, so restarts and redeploys are safe.
   fills are somewhat optimistic, most of all for 0DTE trades.
 - Sleeve cash is tracked by the bot, but buying power is shared with the whole
   account. If teammates use it all, the bot skips entries.
-- Earnings dates are ignored. A held name can gap on earnings in either
-  direction.
+- Earnings dates are entered by hand in `config.py`; a report that is not
+  listed there is not guarded against.
 - Buying short-dated options loses money on average unless the momentum signal
-  has an edge. Results over a few weeks are dominated by luck and trend.
+  has an edge, and `backtest_signal.py` found none: over five years the picks
+  were right about half the time, no better than random names. Results over a
+  few weeks are dominated by luck and trend. See STRATEGY_LOG.md.

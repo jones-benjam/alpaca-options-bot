@@ -100,6 +100,16 @@ def quote_ok(q):
     return bool(q) and q[0] > 0 and (q[1] - q[0] <= 0.05 or (q[1] - q[0]) / q[2] <= C.MAX_TRIGGER_SPREAD)
 
 
+def earnings_days(underlying, today):
+    """Days until the last safe session before this stock's earnings report,
+    if that is within the blackout window; otherwise None. 0 means the report
+    comes out after today's close."""
+    if C.HOLD_THROUGH_EARNINGS or underlying not in C.EARNINGS_EXIT_BY:
+        return None
+    days = (dt.date.fromisoformat(C.EARNINGS_EXIT_BY[underlying]) - today).days
+    return days if 0 <= days <= C.EARNINGS_BLACKOUT_DAYS else None
+
+
 def tick_for(underlying, price):
     return 0.01 if underlying in C.PENNY_ALL or price < 3 else 0.05
 
@@ -490,6 +500,12 @@ class Bot:
                 reason = "expiry-day time exit"
             elif not odte and dte <= C.CORE_MIN_DTE_EXIT:
                 reason = "time stop"
+            elif (
+                not odte
+                and earnings_days(p.und, today) == 0
+                and (hhmm >= C.FLIP_CHECK_FROM or self.to_close <= C.FLIP_MIN_TO_CLOSE)
+            ):
+                reason = "earnings report tonight"  # do not hold through the report
             elif sane:
                 peak = max(peaks.get(symbol, p.avg), mid)
                 peaks[symbol] = peak
@@ -554,6 +570,8 @@ class Bot:
             if und in held or ("core", und) in led.today or self.attempts[key] >= C.MAX_ENTRY_ATTEMPTS:
                 continue
             if regime == "mixed" and count[kind] >= max(2, C.CORE_SLOTS * 2 // 3):
+                continue
+            if earnings_days(und, today) is not None:  # too close to an earnings report
                 continue
             pick = self.pick_core(und, kind, view[und], today)
             if not pick:

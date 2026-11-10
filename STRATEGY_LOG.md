@@ -110,6 +110,54 @@ trending, not on skill.
   daily record, profit is shown in dollars so it reads the same before and
   after this change.
 
+### Tue Nov 10, 2026, 5:10 pm: Step aside for earnings reports
+- **What:** (1) The bot will not open a new bet on a stock in the five days
+  before that company reports its quarterly results. (2) If it already holds
+  a bet on that stock, it sells in the last half hour before the report.
+  Right now this only affects Nvidia, which reports after the close on
+  Tue Nov 17. No other stock on the list reports before the contest ends.
+- **Why:** Options cost extra just before a report, because everyone expects
+  a big move. The moment the results are out, that extra cost disappears, so
+  an option can lose value even if the stock moves the right way. The stock
+  can also jump sharply in either direction overnight. Holding through a
+  report is closer to a coin flip than to a trend bet.
+- **Effect:** The Nvidia bet opened on Nov 9 will be sold by about 3:30 pm on
+  Nov 17 if it has not been sold earlier. New Nvidia bets are blocked from
+  Nov 12 and allowed again from Nov 18.
+
+### Tue Nov 10, 2026, 5:10 pm: What a five-year test of the rules showed (no rule change)
+- **What we did:** Replayed the bot's rules on daily prices from July 2021 to
+  November 2026 (`python3 backtest_signal.py`). Stock prices are real. Option
+  prices are estimated with a standard formula, because historical option
+  prices cost money, so the dollar results are a rough guide only.
+- **Finding 1: the stock picker has no proven edge.** The stocks it picked
+  moved the right way over the next two weeks about half the time. Picking
+  stocks at random (but still following the market's mood) did the same.
+  Changing how the bot ranks stocks made no meaningful difference, so the
+  ranking was left alone.
+- **Finding 2: the odds are against us, but the wins are big.** Options lose a
+  little value every day, so being right half the time loses money on
+  average: roughly 2% to 5% per bet in the main estimate (anywhere from a 9%
+  loss to a 6% gain under other assumptions). Looking at every possible
+  three-week stretch in those five years:
+  - The sleeve's typical (middle) result was a loss of 15% to 33%.
+  - It lost more than half its value in about 1 stretch out of 4.
+  - It gained more than half in about 1 stretch out of 6.
+  - The whole account beat SPY in roughly 1 stretch out of 3.
+- **Finding 3: longer-lasting options were steadier.** Using options that
+  expire in about six weeks instead of three cut the chance of losing more
+  than half the sleeve from about 1 in 4 to about 1 in 11, and beat SPY a
+  little more often (about 4 stretches in 10). The price is smaller best
+  cases. This has NOT been changed in the bot; it is an open decision.
+- **Finding 4: the "trend reversed, sell" rule earns its keep.** Removing it
+  made every measure worse.
+- **Caveats:** Those five years were a strong period for stocks (SPY rose
+  86%), which makes SPY hard to beat and is unkind to bets on falling prices.
+  The test checks positions once a day; the real bot checks every minute.
+- **What it means:** The bot is a high-risk bet that a big move happens in the
+  next three weeks. It is not a reliable way to beat the market. That was the
+  choice made on day one; this test puts numbers on it.
+
 ## Daily record
 
 How to read the table:

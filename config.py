@@ -49,6 +49,18 @@ CORE_ENTRY_FROM = "09:45"   # Eastern time
 CORE_ENTRY_TO = "15:45"
 FLIP_CHECK_FROM = "15:30"   # trend-flip exits are judged near the close
 
+# ---- Earnings ----------------------------------------------------------------
+# Options get expensive before an earnings report and lose that extra value the
+# moment it is out, and the stock can gap either way. For each stock reporting
+# before END_DATE: the last trading day it is safe to hold (the report comes
+# out after that day's close). Dates must come from the company's own notice.
+#   NVDA: reports Tue 2026-11-17 after the close (Nvidia press release).
+#   AVGO: expected about 2026-12-10, after END_DATE. The other names reported
+#   in late October / early November and next report in 2027.
+EARNINGS_EXIT_BY = {"NVDA": "2026-11-17"}
+EARNINGS_BLACKOUT_DAYS = 5       # no new bet this many calendar days before
+HOLD_THROUGH_EARNINGS = _env("HOLD_THROUGH_EARNINGS", False, bool)
+
 # ---- Satellite: 0DTE opening-range breakout ----------------------------------
 ODTE_ENABLED = _env("ODTE_ENABLED", True, bool)
 ODTE_SYMBOLS = ["SPY", "QQQ"]
