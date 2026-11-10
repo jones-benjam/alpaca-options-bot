@@ -8,8 +8,8 @@ section. All times are US Eastern.
 
 Beat the professor's portfolio, which simply holds SPY (a fund that tracks the
 500 largest US companies). We started with $100,000 of practice money on
-Alpaca. The bot manages $25,000 of it, called "the sleeve". The contest ends
-on December 2, 2026.
+Alpaca. The bot manages $50,000 of it, called "the sleeve" (it was $25,000
+until Nov 10). The contest ends on December 2, 2026.
 
 ## The strategy in plain English
 
@@ -25,7 +25,7 @@ big technology companies) with their average price over the last 20 days.
 - Both below average: the market is falling. The bot only buys puts.
 - One of each: mixed. The bot may buy both kinds.
 
-**Step 2: the main bets (three at a time, about 28% of the sleeve each).**
+**Step 2: the main bets (six at a time, about 14% of the sleeve each).**
 The bot watches 16 heavily traded, fast-moving stocks and funds, such as
 Nvidia, Tesla, Coinbase and Palantir. In a rising market it buys calls on the
 ones climbing fastest. In a falling market it buys puts on the ones dropping
@@ -47,7 +47,7 @@ fast, lottery-style bets and are always closed by 3:00 pm.
   option expires.
 
 **Safety rules.**
-- If the sleeve ever falls to $7,500 (a 70% loss), the bot sells everything
+- If the sleeve ever falls to $15,000 (a 70% loss), the bot sells everything
   and stops trading.
 - On December 2 it opens nothing new and sells everything by 3:00 pm.
 - It only touches bets it placed itself, so teammates can trade the rest of
@@ -94,13 +94,31 @@ trending, not on skill.
 - **Effect:** The most the bot can lose on same-day bets in a day drops from
   about 6% of the sleeve to about 3%.
 
+### Tue Nov 10, 2026, 4:35 pm: Sleeve doubled to $50,000, six main bets
+- **What:** (1) The bot now manages $50,000, half of the starting portfolio,
+  up from $25,000. (2) It holds up to six main bets instead of three, each
+  about 14% of the sleeve (roughly $7,400, the same size as before). In effect
+  from Wed Nov 11, when it will look for three more bets shortly after 9:45 am.
+- **Why:** The team decided to put more of the account behind the bot. Six
+  bets were chosen over three bigger ones so the new money goes to work right
+  away and is spread over more stocks.
+- **Effect:** The bot now drives half the account. A 10% move in the sleeve
+  moves the whole account by about 5%, up from about 2.5%. The stop-everything
+  level rises with it, from $7,500 to $15,000, so the most the bot could lose
+  before shutting itself off is about $35,000, or 35% of the starting account.
+- **Record keeping:** The $25,000 added is not counted as a gain. In the
+  daily record, profit is shown in dollars so it reads the same before and
+  after this change.
+
 ## Daily record
 
 How to read the table:
 - **Whole account** is the full $100,000 practice account, the number the
-  class is graded on. So far the bot's sleeve is the only part invested; the
-  other $75,000 is in cash.
-- **Bot's sleeve** is the $25,000 the bot manages.
+  class is graded on. As of Nov 10 the bot's sleeve is the only part invested;
+  the rest is in cash for teammates to use.
+- **Bot's sleeve** is the money the bot manages: $25,000 through Nov 10 and
+  $50,000 from Nov 11. **Sleeve profit** is what the bot has made or lost in
+  dollars since it started, not counting money added to it.
 - **SPY since start** is measured from SPY's close on Fri Nov 6, the last
   close before the bot started. The professor's own starting point may differ.
 - In **Holding**, "6 NVDA 11/27 180P" means 6 put options on Nvidia that
@@ -108,7 +126,7 @@ How to read the table:
   The percentage is the gain or loss on that bet so far.
 - A new row is added each trading day with `python3 bot.py journal`.
 
-| Date | Whole account | Account day | Bot's sleeve | Sleeve day | Sleeve since start | SPY day | SPY since start | Holding at close | Trades |
+| Date | Whole account | Account day | Bot's sleeve | Sleeve day | Sleeve profit | SPY day | SPY since start | Holding at close | Trades |
 |---|---|---|---|---|---|---|---|---|---|
-| 2026-11-09 | $100,006 | +0.01% | $25,006 | +0.02% | +0.0% | +2.36% | +2.36% | 6 NVDA 11/27 180P (+0%), 8 PLTR 11/27 172.5P (+0%), 7 COIN 11/27 140P (+0%) | Bought 6 NVDA 11/27 180P at $10.90; Bought 8 PLTR 11/27 172.5P at $8.65; Bought 7 COIN 11/27 140P at $9.40. The bot started at 3:31 pm, after most of SPY's gain that day. |
-| 2026-11-10 | $102,578 | +2.57% | $27,580 | +10.29% | +10.3% | -0.37% | +1.98% | 6 NVDA 11/27 180P (+48%), 8 PLTR 11/27 172.5P (+0%), 7 COIN 11/27 140P (+16%) | Bought 10 SPY 11/10 753C at $1.52; Bought 6 QQQ 11/10 681C at $2.50; Sold 10 SPY 11/10 753C at $0.71 (-$810); Sold 6 QQQ 11/10 681C at $1.15 (-$810) |
+| 2026-11-09 | $100,006 | +0.01% | $25,006 | +0.02% | +$6 | +2.36% | +2.36% | 6 NVDA 11/27 180P (+0%), 8 PLTR 11/27 172.5P (+0%), 7 COIN 11/27 140P (+0%) | Bought 6 NVDA 11/27 180P at $10.90; Bought 8 PLTR 11/27 172.5P at $8.65; Bought 7 COIN 11/27 140P at $9.40. The bot started at 3:31 pm, after most of SPY's gain that day. |
+| 2026-11-10 | $102,578 | +2.57% | $27,580 | +10.29% | +$2,580 | -0.37% | +1.98% | 6 NVDA 11/27 180P (+48%), 8 PLTR 11/27 172.5P (+0%), 7 COIN 11/27 140P (+16%) | Bought 10 SPY 11/10 753C at $1.52; Bought 6 QQQ 11/10 681C at $2.50; Sold 10 SPY 11/10 753C at $0.71 (-$810); Sold 6 QQQ 11/10 681C at $1.15 (-$810) |

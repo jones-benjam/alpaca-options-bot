@@ -1,6 +1,6 @@
 # optbot: aggressive options bot for Alpaca paper trading
 
-Trades a $25,000 sleeve of a $100,000 Alpaca **paper** account. The goal is to
+Trades a $50,000 sleeve of a $100,000 Alpaca **paper** account. The goal is to
 beat SPY by as much as possible over a few weeks, accepting a real chance of
 losing most of the sleeve. It cannot reach a live account: the paper endpoint
 is hard-coded.
@@ -11,7 +11,7 @@ is hard-coded.
 only). Both below is a bear market (puts only). Otherwise mixed (both, at most
 two positions per direction).
 
-**Core engine (3 slots, 28% of the sleeve each).**
+**Core engine (6 slots, 14% of the sleeve each).**
 - Rank 16 liquid, high-beta names by blended momentum (60% 5-day return, 40%
   20-day return). Buy calls on the strongest names above their 10-day EMA, or
   puts on the weakest names below it. Minimum 2% momentum.
@@ -31,8 +31,8 @@ two positions per direction).
   of every 60, because same-day options can fall through a stop in seconds.
 
 **Guard rails.**
-- Kill switch: if the sleeve falls to 30% of its start ($7,500) the bot closes
-  everything and stops opening trades.
+- Kill switch: if the sleeve falls to 30% of its size the bot closes
+  everything and stops opening trades. (The floor is $15,000 on the $50,000 sleeve.)
 - `END_DATE`: no new trades on that day, flat by 15:00 ET.
 - Bad quotes: a stop or trailing exit must show on two passes in a row, and
   the kill switch on three, before the bot sells. Quotes with no bid or an

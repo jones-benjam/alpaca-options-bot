@@ -553,7 +553,7 @@ class Bot:
             key = (today, "core", und)
             if und in held or ("core", und) in led.today or self.attempts[key] >= C.MAX_ENTRY_ATTEMPTS:
                 continue
-            if regime == "mixed" and count[kind] >= 2:
+            if regime == "mixed" and count[kind] >= max(2, C.CORE_SLOTS * 2 // 3):
                 continue
             pick = self.pick_core(und, kind, view[und], today)
             if not pick:
@@ -648,7 +648,7 @@ class Bot:
             )
             top = ", ".join(f"{s} {k} {x:+.1%}" for x, s, k in self.candidates(view, regime)[:5])
             log(
-                f"sleeve ${equity:,.0f} ({equity / C.SLEEVE_START - 1:+.1%}) cash ${cash:,.0f} | "
+                f"sleeve ${equity:,.0f} ({equity / C.SLEEVE_START - 1:+.1%} on ${C.SLEEVE_START:,.0f}) cash ${cash:,.0f} | "
                 f"regime {regime} | holding: {book or 'nothing'} | signals: {top or 'none'}"
             )
 
@@ -713,7 +713,7 @@ class Bot:
         led = self.build_ledger(now)
         quotes = self.api.option_snapshots(led.pos) if led.pos else {}
         equity, cash = self.sleeve(led, quotes)
-        print(f"Sleeve equity   ${equity:,.2f}  ({equity / C.SLEEVE_START - 1:+.2%} on ${C.SLEEVE_START:,.0f})")
+        print(f"Sleeve equity   ${equity:,.2f}  (profit ${equity - C.SLEEVE_START:+,.2f} on ${C.SLEEVE_START:,.0f} of capital)")
         print(f"Sleeve cash     ${cash:,.2f}")
         print(f"Realized P&L    ${led.realized:+,.2f} over {len(led.closed)} closing trades")
         start = dt.date.fromisoformat(C.START_DATE)
@@ -734,6 +734,15 @@ class Bot:
             print(f"  {when.astimezone(now.tzinfo):%m/%d %H:%M}  {qty} x {symbol} @ ${px:.2f}  {pnl:+,.0f}")
         if not led.closed:
             print("  none")
+
+
+def capital_on(day):
+    """How much money the sleeve had been given as of a date (YYYY-MM-DD)."""
+    amount = C.SLEEVE_STEPS[0][1]
+    for start, value in C.SLEEVE_STEPS:
+        if start <= day:
+            amount = value
+    return amount
 
 
 def journal(bot):
@@ -761,10 +770,12 @@ def journal(bot):
             px = q[2] if q else p.avg
         value += p.qty * px * 100
         book.append(f"{p.qty} {p.label()} ({px / p.avg - 1:+.0%})")
-    sleeve = C.SLEEVE_START + led.realized - sum(p.cost for p in led.pos.values()) + value
+    profit = led.realized - sum(p.cost for p in led.pos.values()) + value
 
     spy = api.stock_snapshots(["SPY"])["SPY"]
     day = spy["dailyBar"]["t"][:10]  # the latest trading session
+    capital = capital_on(day)        # the sleeve's size has changed over time
+    sleeve = capital + profit
     spy_day = spy["dailyBar"]["c"] / spy["prevDailyBar"]["c"] - 1
     start = dt.date.fromisoformat(C.START_DATE)
     bars = api.daily_bars(["SPY"], (start - dt.timedelta(days=10)).isoformat()).get("SPY", [])
@@ -789,11 +800,14 @@ def journal(bot):
     if earlier:
         m = re.search(r"\$([\d,]+)", earlier[-1].split("|")[4])
         if m:
-            sleeve_day = f"{sleeve / float(m.group(1).replace(',', '')) - 1:+.2%}"
+            # Money added to the sleeve is not a gain: measure the day's
+            # profit against what the sleeve had to work with that morning.
+            before = float(m.group(1).replace(",", "")) + capital - capital_on(earlier[-1][2:12])
+            sleeve_day = f"{sleeve / before - 1:+.2%}"
     label = day + (f" (as of {now:%H:%M} ET)" if clock["is_open"] else "")
     row = (
         f"| {label} | ${equity:,.0f} | {equity / last - 1:+.2%} | ${sleeve:,.0f} | {sleeve_day} | "
-        f"{sleeve / C.SLEEVE_START - 1:+.1%} | {spy_day:+.2%} | {spy_total} | "
+        f"{'+' if profit >= 0 else '-'}${abs(profit):,.0f} | {spy_day:+.2%} | {spy_total} | "
         f"{', '.join(book) or 'Nothing'} | {trades} |"
     )
     same = [i for i in rows if lines[i][2:12] == day]

@@ -225,8 +225,20 @@ def test_odte_follows_regime():
     assert len(odte) == 1 and odte[0].kind == "put", "0DTE put with the regime"
 
 
+def test_default_sizing():
+    b, f, step = harness(trend=1)
+    led, _ = step(f"default settings (${C.SLEEVE_START:,.0f} sleeve): expect {C.CORE_SLOTS} core positions")
+    core = [p for p in led.pos.values() if p.tag == "core"]
+    assert len(core) == C.CORE_SLOTS, "every core slot should fill"
+    assert all(p.cost <= C.CORE_SLOT_PCT * C.SLEEVE_START * 1.01 for p in core), "position size cap"
+    assert b.sleeve(led, f.option_snapshots(led.pos))[1] >= 0, "the sleeve must never overspend"
+
+
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
+    test_default_sizing()
+    # The scenarios below use the original, smaller setup to stay short.
+    C.SLEEVE_START, C.CORE_SLOTS, C.CORE_SLOT_PCT = 25_000.0, 3, 0.28
     test_lifecycle()
     test_odte_follows_regime()
     print("\nALL SIMULATION CHECKS PASSED")
