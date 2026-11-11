@@ -191,6 +191,31 @@ trending, not on skill.
 - **What it means:** The useful kind of memory for this bot is a record we
   can study and explain, not a self-adjusting one.
 
+### Wed Nov 11, 2026, 2:44 pm: The bot now remembers each bet's best price
+- **What:** When the bot restarts, it now looks up the highest price each of
+  its options has reached since it bought them.
+- **Why:** Two of the selling rules depend on that number: "sell if it falls
+  30% from its best price" and "sell a bet that was up 50% if it slides back
+  to what was paid". The bot kept that number in a file that is erased every
+  time we update the bot, so each update quietly switched those two rules
+  off until prices made new highs. No money was lost to this, but the Nvidia
+  bet spent a day unprotected after being up more than 50%.
+- **Effect:** Those rules now survive updates. On this restart the bot
+  recovered the best prices of all six bets, including Nvidia's (up 69% at
+  its best). The Nvidia bet is now sold if it falls back to about $11.45.
+
+### Wed Nov 11, 2026, 2:44 pm: The bot can only spend cash the account really has
+- **What:** Before buying, the bot now checks the account's actual cash and
+  never spends more than that.
+- **Why:** The account is shared. On Nov 11 teammates invested about $58,700
+  in stocks. Together with the bot's $50,000 that is more than the account
+  holds. The account had about $3,900 in cash while the bot's own
+  bookkeeping said it still had about $12,800 to spend. The broker would
+  have lent the difference automatically, which is borrowing nobody chose.
+- **Effect:** The bot cannot borrow. It can still reuse the money from its
+  own sales. If teammates want the bot to use its full $50,000, some cash
+  has to be left free for it.
+
 ## Daily record
 
 How to read the table:

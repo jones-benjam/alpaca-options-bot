@@ -42,6 +42,10 @@ two positions per direction).
 - Earnings: no new position in a stock in the five days before its earnings
   report, and a held position is sold in the last half hour before the report
   (`EARNINGS_EXIT_BY` in `config.py`; currently NVDA on Nov 17).
+- Shared account: a new position is limited to the account's real cash, so
+  the bot never borrows on margin when teammates have spent the rest.
+- Restarts: each position's best price is rebuilt from Alpaca's price
+  history, so the trailing and breakeven stops survive a redeploy.
 - Bad quotes: a stop or trailing exit must show on two passes in a row, and
   the kill switch on three, before the bot sells. Quotes with no bid or an
   absurd spread are ignored for exits and for valuing the sleeve.
