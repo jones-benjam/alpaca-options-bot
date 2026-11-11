@@ -166,6 +166,31 @@ trending, not on skill.
   loss stays higher than it would be with six-week options.
 - **Effect:** The bot's rules stay exactly as they were.
 
+### Wed Nov 11, 2026, 2:43 pm: Two more tests: more leverage, and "learning" (no rule change)
+- **What we did:** Used the same five-year replay to test two ideas the team
+  raised. Same caveat as before: stock prices are real, option prices are
+  estimated.
+- **More leverage does not improve the odds.** We tried cheaper, riskier
+  options (ones that only pay off after a bigger move) and options that
+  expire in 10 days instead of 21. The rare big wins got bigger, but the
+  chance of beating SPY did not go up, and the chance of losing more than
+  half the sleeve in three weeks rose from about 1 in 4 to as much as 1 in 2
+  or worse. With a stock picker that is right half the time, leverage only
+  stretches the range of outcomes in both directions.
+- **Simple "learning" does not improve the odds either.** We tried having
+  the bot react to its own recent results: avoiding a stock for a week or
+  two after losing on it, betting more after a winning streak, betting more
+  after a losing streak. None changed the chance of beating SPY. Recent wins
+  and losses did not predict the next ones, because results are driven
+  mostly by where the market goes next.
+- **One rule did reduce big losses:** halving the bet size after a losing
+  streak cut the chance of losing more than half the sleeve from about 1 in
+  3 to about 1 in 8. It works by betting less during bad stretches, not by
+  predicting anything, and it did not make beating SPY more likely. It has
+  not been added to the bot.
+- **What it means:** The useful kind of memory for this bot is a record we
+  can study and explain, not a self-adjusting one.
+
 ## Daily record
 
 How to read the table:

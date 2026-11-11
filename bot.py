@@ -159,6 +159,7 @@ class Bot:
         self.exit_hits = defaultdict(int)  # consecutive passes a price exit was seen
         self.halt_hits = 0                 # consecutive passes under the kill floor
         self.marks = {}                    # last believable price per held option
+        self.peak_tried = set()            # positions whose best price was looked up
         self.qnow = None      # set while the market is open, to age-check quotes
         self.state = {"peaks": {}, "synthetic": []}
         if STATE_PATH.exists():
@@ -465,6 +466,27 @@ class Bot:
                 self.api.cancel(o["id"])
 
     # ---- position management ---------------------------------------------------
+    def restore_peaks(self, led):
+        """Recover each position's best price since entry from Alpaca's price
+        history. The trailing and breakeven stops depend on it, and the local
+        copy is lost whenever the bot is redeployed (the host's disk is not
+        kept), so without this a restart would quietly disarm those stops."""
+        peaks = self.state["peaks"]
+        for symbol, p in led.pos.items():
+            if symbol in peaks or symbol in self.peak_tried:
+                continue
+            self.peak_tried.add(symbol)
+            try:
+                since = p.last_buy.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+                bars = self.api.option_bars(symbol, since)
+            except ApiError as err:
+                log(f"could not restore best price for {symbol}: {err}")
+                continue
+            best = max([p.avg] + [float(b["c"]) for b in bars])
+            peaks[symbol] = best
+            if best > p.avg * 1.01:
+                log(f"restored best price for {p.label()}: ${best:.2f} ({best / p.avg - 1:+.0%} vs entry)")
+
     def manage(self, now, led, quotes, view, flatten):
         """Apply exit rules to every position the bot holds. True if it traded."""
         if not led.pos:
@@ -474,6 +496,7 @@ class Bot:
             return False
         today, hhmm = now.date(), now.strftime("%H:%M")
         held = {x["symbol"]: int(float(x["qty"])) for x in self.api.positions()}
+        self.restore_peaks(led)
         peaks, acted = self.state["peaks"], False
         for symbol, p in list(led.pos.items()):
             q = read_quote(quotes.get(symbol))
@@ -551,8 +574,13 @@ class Bot:
 
     # ---- entries -------------------------------------------------------------
     def budget(self, pct, equity, cash):
-        power = float(self.api.account().get("options_buying_power") or 0)
-        return max(0.0, min(pct * equity, cash * 0.98, power))
+        """Dollars available for one new position. Never more than the account's
+        real cash: the account is shared, and if teammates have spent it the
+        broker would otherwise lend the difference on margin without asking."""
+        acct = self.api.account()
+        power = float(acct.get("options_buying_power") or 0)
+        real_cash = float(acct.get("cash") or 0)
+        return max(0.0, min(pct * equity, cash * 0.98, power, real_cash * 0.98))
 
     def core_entries(self, now, led, view, regime, equity, cash):
         hhmm, today = now.strftime("%H:%M"), now.date()

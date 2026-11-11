@@ -133,14 +133,22 @@ def candidates(feats, i, reg, w5, w20, no_chase, rng):
 
 
 def simulate(feats, days, w5=0.6, w20=0.4, no_chase=0.0, seed=None, iv_mult=IV_MULT,
-             dte=DTE, itm=0.0, puts=True, flip=True, slot_pct=SLOT_PCT, stop_exact=False):
+             dte=DTE, itm=0.0, puts=True, flip=True, slot_pct=SLOT_PCT, stop_exact=False,
+             cooldown=0, recent_n=0, after_losses=1.0, after_wins=1.0):
     """dte: days to expiry at entry. itm: how far in the money to buy (0.05 = 5%).
     puts: allow puts at all. flip: use the trend-flip exit. slot_pct: size per slot.
     stop_exact: assume a stop sells at exactly the stop level (the live bot checks
-    every minute) instead of at that day's close. The truth lies in between."""
+    every minute) instead of at that day's close. The truth lies in between.
+
+    "Learning" rules, which react to the bot's own recent results:
+    cooldown: after a losing trade in a stock, skip that stock for this many trading days.
+    recent_n / after_losses / after_wins: look at the last recent_n closed trades; if
+    they lost money on average, multiply the next position's size by after_losses,
+    otherwise by after_wins."""
     rng = random.Random(seed) if seed is not None else None
     dates = [dt.date.fromisoformat(d) for d in days]
     cash, book, trades, curve, hits = 1.0, {}, [], [], []
+    blocked = {}  # symbol -> first day index it may be traded again
     for i in range(len(days)):
         # -- manage open positions at today's close --------------------------
         for sym in list(book):
@@ -178,6 +186,8 @@ def simulate(feats, days, w5=0.6, w20=0.4, no_chase=0.0, seed=None, iv_mult=IV_M
                 cash += got
                 trades.append({"ret": (p["got"] + got) / p["paid"] - 1, "kind": p["kind"],
                                "why": reason, "i": p["i"], "held": i - p["i"]})
+                if cooldown and trades[-1]["ret"] < 0:
+                    blocked[sym] = i + cooldown
                 del book[sym]
         equity = cash + sum(p["units"] * p["mark"] for p in book.values())
         curve.append(equity)
@@ -194,11 +204,17 @@ def simulate(feats, days, w5=0.6, w20=0.4, no_chase=0.0, seed=None, iv_mult=IV_M
                 continue
             if kind == "put" and not puts:
                 continue
+            if blocked.get(sym, 0) > i:
+                continue
             v = feats[sym][i]
             sigma = max(0.12, v["rv"] * iv_mult)
             strike = v["px"] * (1 - itm) if kind == "call" else v["px"] * (1 + itm)
             cost = bs(v["px"], strike, dte, sigma, kind) * (1 + SLIP)
-            spend = min(slot_pct * equity, cash * 0.98)
+            size = slot_pct
+            if recent_n and len(trades) >= recent_n:
+                losing = statistics.mean(t["ret"] for t in trades[-recent_n:]) < 0
+                size *= after_losses if losing else after_wins
+            spend = min(size * equity, cash * 0.98)
             if spend <= 0 or cost <= 0:
                 continue
             cash -= spend
@@ -328,6 +344,9 @@ def main():
         ("45-day and 5% in the money", dict(dte=45, itm=0.05)),
         ("No trend-flip exit", dict(flip=False)),
         ("Half-size positions (7% each)", dict(slot_pct=SLOT_PCT / 2)),
+        ("More leverage: 5% out of the money", dict(itm=-0.05)),
+        ("More leverage: 10-day options", dict(dte=10)),
+        ("More leverage: 10-day, 5% out", dict(dte=10, itm=-0.05)),
     ]
     for label, kw in shapes:
         t, cv, _ = simulate(feats, days, **kw)
@@ -336,6 +355,26 @@ def main():
         print(f"{label:<34}{c['p10']:>8.0%}{c['med']:>8.0%}{c['p90']:>8.0%}{c['mean']:>8.1%}"
               f"{c['bust']:>10.0%}{c['boom']:>10.0%}{c['beat_cash']:>10.0%}{c['beat_spy']:>10.0%}"
               f"   avg/trade {avg:+.1%}")
+
+    print("\nCan the bot 'learn' from its own recent results? (15-trading-day windows)")
+    print(head2 + "\n" + sub2 + "\n" + "-" * len(head2))
+    learners = [
+        ("Current rules (no learning)", {}),
+        ("Skip a stock 5 days after a loss", dict(cooldown=5)),
+        ("Skip a stock 10 days after a loss", dict(cooldown=10)),
+        ("Halve size after a losing streak", dict(recent_n=8, after_losses=0.5)),
+        ("Quarter size after a losing streak", dict(recent_n=8, after_losses=0.25)),
+        ("Bigger size after a winning streak", dict(recent_n=8, after_wins=1.15)),
+        ("Bigger size after a LOSING streak", dict(recent_n=8, after_losses=1.15)),
+    ]
+    for label, kw in learners:
+        t, cv, _ = simulate(feats, days, **kw)
+        c = contest(cv, spy_px)
+        t2, cv2, _ = simulate(feats, days, iv_mult=1.0, stop_exact=True, **kw)
+        c2 = contest(cv2, spy_px)
+        print(f"{label:<34}{c['p10']:>8.0%}{c['med']:>8.0%}{c['p90']:>8.0%}{c['mean']:>8.1%}"
+              f"{c['bust']:>10.0%}{c['boom']:>10.0%}{c['beat_cash']:>10.0%}{c['beat_spy']:>10.0%}"
+              f"   optimistic: median {c2['med']:+.0%}, lose>50% {c2['bust']:.0%}, beat {c2['beat_cash']:.0%}")
 
     print("\nHow much the answer depends on the two big assumptions (current rules)")
     print(f"{'Assumption':<52}{'avg/trade':>10}{'median 15d':>12}{'lose>50%':>10}{'beat SPY':>10}")
