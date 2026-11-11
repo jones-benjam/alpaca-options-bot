@@ -81,6 +81,19 @@ class Alpaca:
     def positions(self):
         return self._req("GET", f"{PAPER}/v2/positions")
 
+    def official_closes(self):
+        """Alpaca's own end-of-day account values, {YYYY-MM-DD: equity}. Each
+        point is stamped at midnight Eastern at the END of its trading day."""
+        import datetime as dt
+
+        h = self._req("GET", f"{PAPER}/v2/account/portfolio/history", {"period": "1M", "timeframe": "1D"})
+        out = {}
+        for ts, equity in zip(h.get("timestamp") or [], h.get("equity") or []):
+            if equity:
+                day = (dt.datetime.fromtimestamp(ts, dt.timezone.utc) - dt.timedelta(hours=12)).date()
+                out[day.isoformat()] = float(equity)
+        return out
+
     def orders(self, status="all", after=None, limit=500, direction="asc"):
         return self._req(
             "GET",

@@ -110,6 +110,62 @@ trending, not on skill.
   daily record, profit is shown in dollars so it reads the same before and
   after this change.
 
+### Tue Nov 10, 2026, 5:06 pm: Step aside for earnings reports
+- **What:** (1) The bot will not open a new bet on a stock in the five days
+  before that company reports its quarterly results. (2) If it already holds
+  a bet on that stock, it sells in the last half hour before the report.
+  Right now this only affects Nvidia, which reports after the close on
+  Tue Nov 17. No other stock on the list reports before the contest ends.
+- **Why:** Options cost extra just before a report, because everyone expects
+  a big move. The moment the results are out, that extra cost disappears, so
+  an option can lose value even if the stock moves the right way. The stock
+  can also jump sharply in either direction overnight. Holding through a
+  report is closer to a coin flip than to a trend bet.
+- **Effect:** The Nvidia bet opened on Nov 9 will be sold by about 3:30 pm on
+  Nov 17 if it has not been sold earlier. New Nvidia bets are blocked from
+  Nov 12 and allowed again from Nov 18.
+
+### Tue Nov 10, 2026, 5:06 pm: What a five-year test of the rules showed (no rule change)
+- **What we did:** Replayed the bot's rules on daily prices from July 2021 to
+  November 2026 (`python3 backtest_signal.py`). Stock prices are real. Option
+  prices are estimated with a standard formula, because historical option
+  prices cost money, so the dollar results are a rough guide only.
+- **Finding 1: the stock picker has no proven edge.** The stocks it picked
+  moved the right way over the next two weeks about half the time. Picking
+  stocks at random (but still following the market's mood) did the same.
+  Changing how the bot ranks stocks made no meaningful difference, so the
+  ranking was left alone.
+- **Finding 2: the odds are against us, but the wins are big.** Options lose a
+  little value every day, so being right half the time loses money on
+  average: roughly 2% to 5% per bet in the main estimate (anywhere from a 9%
+  loss to a 6% gain under other assumptions). Looking at every possible
+  three-week stretch in those five years:
+  - The sleeve's typical (middle) result was a loss of 15% to 33%.
+  - It lost more than half its value in about 1 stretch out of 4.
+  - It gained more than half in about 1 stretch out of 6.
+  - The whole account beat SPY in roughly 1 stretch out of 3.
+- **Finding 3: longer-lasting options were steadier.** Using options that
+  expire in about six weeks instead of three cut the chance of losing more
+  than half the sleeve from about 1 in 4 to about 1 in 11, and beat SPY a
+  little more often (about 4 stretches in 10). The price is smaller best
+  cases. This has not been changed in the bot (see the next entry).
+- **Finding 4: the "trend reversed, sell" rule earns its keep.** Removing it
+  made every measure worse.
+- **Caveats:** Those five years were a strong period for stocks (SPY rose
+  86%), which makes SPY hard to beat and is unkind to bets on falling prices.
+  The test checks positions once a day; the real bot checks every minute.
+- **What it means:** The bot is a high-risk bet that a big move happens in the
+  next three weeks. It is not a reliable way to beat the market. That was the
+  choice made on day one; this test puts numbers on it.
+
+### Tue Nov 10, 2026, 5:08 pm: Decision to keep three-week options
+- **What:** No change. The team looked at the test result above and chose to
+  keep buying options that expire in about three weeks, not six.
+- **The trade-off accepted:** Three-week options move more for the same
+  money, so the best outcomes are bigger. In return, the chance of a large
+  loss stays higher than it would be with six-week options.
+- **Effect:** The bot's rules stay exactly as they were.
+
 ## Daily record
 
 How to read the table:
@@ -124,9 +180,13 @@ How to read the table:
 - In **Holding**, "6 NVDA 11/27 180P" means 6 put options on Nvidia that
   expire Nov 27 and pay off if Nvidia is below $180. P is a put, C is a call.
   The percentage is the gain or loss on that bet so far.
-- A new row is added each trading day with `python3 bot.py journal`.
+- A new row is added automatically after each market close. A date marked
+  **(preliminary)** or **(as of ...)** uses prices from that moment. It is
+  replaced the next morning with Alpaca's official end-of-day values, which
+  are the numbers the class is graded on.
 
 | Date | Whole account | Account day | Bot's sleeve | Sleeve day | Sleeve profit | SPY day | SPY since start | Holding at close | Trades |
 |---|---|---|---|---|---|---|---|---|---|
 | 2026-11-09 | $100,006 | +0.01% | $25,006 | +0.02% | +$6 | +2.36% | +2.36% | 6 NVDA 11/27 180P (+0%), 8 PLTR 11/27 172.5P (+0%), 7 COIN 11/27 140P (+0%) | Bought 6 NVDA 11/27 180P at $10.90; Bought 8 PLTR 11/27 172.5P at $8.65; Bought 7 COIN 11/27 140P at $9.40. The bot started at 3:31 pm, after most of SPY's gain that day. |
-| 2026-11-10 | $102,578 | +2.57% | $27,580 | +10.29% | +$2,580 | -0.37% | +1.98% | 6 NVDA 11/27 180P (+48%), 8 PLTR 11/27 172.5P (+0%), 7 COIN 11/27 140P (+16%) | Bought 10 SPY 11/10 753C at $1.52; Bought 6 QQQ 11/10 681C at $2.50; Sold 10 SPY 11/10 753C at $0.71 (-$810); Sold 6 QQQ 11/10 681C at $1.15 (-$810) |
+| 2026-11-10 | $106,493 | +6.49% | $31,495 | +25.95% | +$6,495 | -0.37% | +1.98% | 6 NVDA 11/27 180P (+54%), 8 PLTR 11/27 172.5P (+35%), 7 COIN 11/27 140P (+32%) | Bought 10 SPY 11/10 753C at $1.52; Bought 6 QQQ 11/10 681C at $2.50; Sold 10 SPY 11/10 753C at $0.71 (-$810); Sold 6 QQQ 11/10 681C at $1.15 (-$810) |
+| 2026-11-11 (as of 14:37 ET) | $98,751 | -7.27% | $48,910 | -13.43% | -$1,090 | +1.42% | +3.43% | 6 NVDA 11/27 180P (+7%), 8 PLTR 11/27 172.5P (-29%), 7 COIN 11/27 140P (-15%), 6 MSTR 12/04 125P (-6%), 28 NFLX 12/04 64P (-23%), 3 MSFT 12/04 540P (+21%) | Bought 6 MSTR 12/04 125P at $10.90; Bought 28 NFLX 12/04 64P at $2.41; Bought 3 MSFT 12/04 540P at $20.00; Bought 35 SPY 11/11 759C at $0.78; Sold 17 SPY 11/11 759C at $1.55 (+$1,309); Sold 18 SPY 11/11 759C at $2.15 (+$2,466) |
