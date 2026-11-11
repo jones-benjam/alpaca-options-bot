@@ -166,6 +166,97 @@ trending, not on skill.
   loss stays higher than it would be with six-week options.
 - **Effect:** The bot's rules stay exactly as they were.
 
+### Wed Nov 11, 2026, 2:43 pm: Two more tests: more leverage, and "learning" (no rule change)
+- **What we did:** Used the same five-year replay to test two ideas the team
+  raised. Same caveat as before: stock prices are real, option prices are
+  estimated.
+- **More leverage does not improve the odds.** We tried cheaper, riskier
+  options (ones that only pay off after a bigger move) and options that
+  expire in 10 days instead of 21. The rare big wins got bigger, but the
+  chance of beating SPY did not go up, and the chance of losing more than
+  half the sleeve in three weeks rose from about 1 in 4 to as much as 1 in 2
+  or worse. With a stock picker that is right half the time, leverage only
+  stretches the range of outcomes in both directions.
+- **Simple "learning" does not improve the odds either.** We tried having
+  the bot react to its own recent results: avoiding a stock for a week or
+  two after losing on it, betting more after a winning streak, betting more
+  after a losing streak. None changed the chance of beating SPY. Recent wins
+  and losses did not predict the next ones, because results are driven
+  mostly by where the market goes next.
+- **One rule did reduce big losses:** halving the bet size after a losing
+  streak cut the chance of losing more than half the sleeve from about 1 in
+  3 to about 1 in 8. It works by betting less during bad stretches, not by
+  predicting anything, and it did not make beating SPY more likely. It has
+  not been added to the bot.
+- **What it means:** The useful kind of memory for this bot is a record we
+  can study and explain, not a self-adjusting one.
+
+### Wed Nov 11, 2026, 2:44 pm: The bot now remembers each bet's best price
+- **What:** When the bot restarts, it now looks up the highest price each of
+  its options has reached since it bought them.
+- **Why:** Two of the selling rules depend on that number: "sell if it falls
+  30% from its best price" and "sell a bet that was up 50% if it slides back
+  to what was paid". The bot kept that number in a file that is erased every
+  time we update the bot, so each update quietly switched those two rules
+  off until prices made new highs. No money was lost to this, but the Nvidia
+  bet spent a day unprotected after being up more than 50%.
+- **Effect:** Those rules now survive updates. On this restart the bot
+  recovered the best prices of all six bets, including Nvidia's (up 69% at
+  its best). The Nvidia bet is now sold if it falls back to about $11.45.
+
+### Wed Nov 11, 2026, 2:44 pm: The bot can only spend cash the account really has
+- **What:** Before buying, the bot now checks the account's actual cash and
+  never spends more than that.
+- **Why:** The account is shared. On Nov 11 teammates invested about $58,700
+  in stocks. Together with the bot's $50,000 that is more than the account
+  holds. The account had about $3,900 in cash while the bot's own
+  bookkeeping said it still had about $12,800 to spend. The broker would
+  have lent the difference automatically, which is borrowing nobody chose.
+- **Effect:** The bot cannot borrow. It can still reuse the money from its
+  own sales. If teammates want the bot to use its full $50,000, some cash
+  has to be left free for it.
+
+### Wed Nov 11, 2026, 2:55 pm: Real option prices: a correction, and buying versus selling (no rule change)
+- **What we did:** Until now our five-year test had to guess how expensive
+  options are. This time we measured it. Alpaca keeps real prices of expired
+  options back to February 2024, so we priced 505 real three-week bets (a
+  call and a put bought together, on each of the 16 names, every month) and
+  checked what each one actually paid out (`python3 measure_option_cost.py`).
+- **Correction to the Nov 10 entry.** We had assumed options cost about 20%
+  more than the stock's recent swings justify, and said that being right
+  half the time therefore loses 2% to 5% per bet. The real prices say
+  otherwise for individual stocks: their options were priced almost exactly
+  in line with recent swings, and buyers of those 505 bets came out roughly
+  even (+4% on average, give or take 4%). Options on the index funds (SPY,
+  QQQ, IWM) were the exception: about 9% more expensive than recent swings,
+  and their buyers lost about 9% on average.
+- **What that changes.** With real price levels the bot's average bet is
+  slightly positive (about +2%), not negative. What does not change: the
+  typical bet still loses (3 bets in 4 lose, the middle result is about
+  -37%), the stock picker is still no better than chance, and over five
+  years every version still ends with the sleeve near zero. The reason is
+  bet size. Putting 84% of the sleeve into bets that usually lose means a
+  normal losing streak wipes out most of the money before the occasional
+  big winner arrives. Three-week odds are about the same as before: the
+  account beats SPY about 4 times in 10, and the sleeve loses more than half
+  about 3 times in 10.
+- **Selling instead of buying.** We tested the opposite trade: selling
+  options with a capped loss, using the same stock picker. It was much
+  steadier (it never lost more than half the sleeve in any three-week
+  stretch) but it also lost money: about 1% of the amount at risk per trade.
+  It beat SPY no more often than buying did.
+- **Trading costs decide the sign.** With our standard cost assumption
+  everything loses. With very low costs, small-sized versions of both
+  buying and selling make a little. Even with zero costs, none of them
+  matched simply holding SPY over the same five years (+85%).
+- **What it means:** Neither side of the options market makes this stock
+  picker profitable. The missing piece is a way of choosing stocks or timing
+  that is right more often than chance. Without that, the only real choices
+  are how big the swings are and how much is lost to costs.
+- **Caveat:** 505 bets over 32 months is a modest sample from an unusually
+  eventful market, and bets made in the same month tend to win or lose
+  together, so the true uncertainty is wider than "give or take 4%".
+
 ## Daily record
 
 How to read the table:

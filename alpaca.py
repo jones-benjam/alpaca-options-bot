@@ -182,6 +182,20 @@ class Alpaca:
             out.update(page.get("snapshots") or {})
         return out
 
+    def option_bars(self, symbol, start, timeframe="15Min"):
+        """Price history of one option contract since `start` (ISO time)."""
+        out, token = [], None
+        while True:
+            page = self._req(
+                "GET",
+                f"{DATA}/v1beta1/options/bars",
+                {"symbols": symbol, "timeframe": timeframe, "start": start, "limit": 1000, "page_token": token},
+            )
+            out.extend((page.get("bars") or {}).get(symbol, []))
+            token = page.get("next_page_token")
+            if not token:
+                return out
+
     def option_chain(self, underlying, **filters):
         out, token = {}, None
         while True:

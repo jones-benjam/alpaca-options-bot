@@ -30,6 +30,8 @@ class FakeAlpaca:
         self.growth.update(NVDA=0.006 * self.trend, TSLA=0.005 * self.trend, COIN=0.004 * self.trend)
         self.glitch = set()  # underlyings whose option quotes are currently garbage
         self.range = (99.9, 99.0)  # the first 30 minutes' high and low, every symbol
+        self.cash = 100_000.0      # the account's real cash
+        self.history = {}          # underlying -> past option closes, for peak recovery
 
     def iso(self):
         return self.now.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%S.000000Z")
@@ -38,7 +40,10 @@ class FakeAlpaca:
         return {"timestamp": self.now.isoformat(), "is_open": True, "next_open": ""}
 
     def account(self):
-        return {"options_buying_power": "100000"}
+        return {"options_buying_power": "100000", "cash": str(self.cash)}
+
+    def option_bars(self, symbol, start, timeframe="15Min"):
+        return [{"c": c} for c in self.history.get(bot.parse_occ(symbol)[0], [])]
 
     def positions(self):
         return [{"symbol": s, "qty": str(q)} for s, q in self.pos.items() if q]
@@ -255,6 +260,36 @@ def test_earnings_guard():
     C.EARNINGS_EXIT_BY.update(saved)
 
 
+def test_cash_cap():
+    b, f, step = harness(trend=1)
+    f.cash = 30.0  # teammates have spent the account's cash
+    led, _ = step("account has only $30 of real cash: expect the bot to buy nothing")
+    assert not led.pos, "the bot must not borrow"
+    f.cash = 300.0
+    led, _ = step("account has $300: expect it to spend no more than that")
+    assert sum(p.cost for p in led.pos.values()) <= 300, "spending stays inside real cash"
+    f.cash = 100_000.0
+    led, _ = step("cash is back: expect it to buy")
+    assert unds(led), "entries resume once real cash is available"
+
+
+def test_peak_survives_restart():
+    b, f, step = harness(trend=1)
+    led, _ = step("open positions, then the bot is redeployed and its disk is wiped")
+    assert "TSLA" in unds(led)
+    bot.STATE_PATH.unlink(missing_ok=True)       # the host does not keep the disk
+    f.history = {"TSLA": [5.0, 8.4, 6.0]}        # TSLA's option was up 68% at its best
+    fresh = bot.Bot(dry=False)
+    fresh.api = f
+    for _ in range(2):                            # price exits need two passes
+        f.now += dt.timedelta(minutes=1)
+        fresh.tick(f.now, True)
+    led = fresh.build_ledger(f.now)
+    print(f"\n--- after restart: {[(p.und, p.qty) for p in led.pos.values() if p.tag == 'core']} ---")
+    assert "TSLA" not in unds(led), "a winner that fell back to entry is sold even after a restart"
+    assert "NVDA" in unds(led) and "COIN" in unds(led), "positions with no big past gain are kept"
+
+
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
     test_default_sizing()
@@ -263,6 +298,8 @@ def main():
     test_lifecycle()
     test_odte_follows_regime()
     test_earnings_guard()
+    test_cash_cap()
+    test_peak_survives_restart()
     print("\nALL SIMULATION CHECKS PASSED")
 
 
