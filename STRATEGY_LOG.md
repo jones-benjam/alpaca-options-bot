@@ -257,6 +257,25 @@ trending, not on skill.
   eventful market, and bets made in the same month tend to win or lose
   together, so the true uncertainty is wider than "give or take 4%".
 
+### Wed Nov 11, 2026, 3:08 pm: The bot now remembers why it made each trade
+- **What:** (1) Every order the bot places is now stamped with the reason:
+  for a purchase, the market's mood and how strong the signal was; for a
+  sale, which rule triggered it. (2) A new `memory` folder holds a table of
+  every trade with those reasons and its result, a daily note of the
+  market's mood, a plain-English review that is rewritten every day, and a
+  hand-written list of lessons. (3) The daily job on GitHub keeps all of it
+  current.
+- **Why:** Until now the bot knew what it had traded but not why, so nobody
+  could say which kinds of trades were working. The stamp is stored with
+  the order at the broker, so the memory cannot be lost when the bot
+  restarts.
+- **What it is not:** The review is written by fixed rules, not by an AI
+  model, and it costs nothing to run. It describes what happened and flags
+  things that look wrong, such as a bet against the market's mood. It does
+  not predict anything and it changes no rules by itself. Rule changes still
+  go through the team and are recorded here.
+- **Effect on trading:** None. The bot buys and sells exactly as before.
+
 ## Daily record
 
 How to read the table:
