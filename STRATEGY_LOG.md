@@ -216,6 +216,47 @@ trending, not on skill.
   own sales. If teammates want the bot to use its full $50,000, some cash
   has to be left free for it.
 
+### Wed Nov 11, 2026, 2:55 pm: Real option prices: a correction, and buying versus selling (no rule change)
+- **What we did:** Until now our five-year test had to guess how expensive
+  options are. This time we measured it. Alpaca keeps real prices of expired
+  options back to February 2024, so we priced 505 real three-week bets (a
+  call and a put bought together, on each of the 16 names, every month) and
+  checked what each one actually paid out (`python3 measure_option_cost.py`).
+- **Correction to the Nov 10 entry.** We had assumed options cost about 20%
+  more than the stock's recent swings justify, and said that being right
+  half the time therefore loses 2% to 5% per bet. The real prices say
+  otherwise for individual stocks: their options were priced almost exactly
+  in line with recent swings, and buyers of those 505 bets came out roughly
+  even (+4% on average, give or take 4%). Options on the index funds (SPY,
+  QQQ, IWM) were the exception: about 9% more expensive than recent swings,
+  and their buyers lost about 9% on average.
+- **What that changes.** With real price levels the bot's average bet is
+  slightly positive (about +2%), not negative. What does not change: the
+  typical bet still loses (3 bets in 4 lose, the middle result is about
+  -37%), the stock picker is still no better than chance, and over five
+  years every version still ends with the sleeve near zero. The reason is
+  bet size. Putting 84% of the sleeve into bets that usually lose means a
+  normal losing streak wipes out most of the money before the occasional
+  big winner arrives. Three-week odds are about the same as before: the
+  account beats SPY about 4 times in 10, and the sleeve loses more than half
+  about 3 times in 10.
+- **Selling instead of buying.** We tested the opposite trade: selling
+  options with a capped loss, using the same stock picker. It was much
+  steadier (it never lost more than half the sleeve in any three-week
+  stretch) but it also lost money: about 1% of the amount at risk per trade.
+  It beat SPY no more often than buying did.
+- **Trading costs decide the sign.** With our standard cost assumption
+  everything loses. With very low costs, small-sized versions of both
+  buying and selling make a little. Even with zero costs, none of them
+  matched simply holding SPY over the same five years (+85%).
+- **What it means:** Neither side of the options market makes this stock
+  picker profitable. The missing piece is a way of choosing stocks or timing
+  that is right more often than chance. Without that, the only real choices
+  are how big the swings are and how much is lost to costs.
+- **Caveat:** 505 bets over 32 months is a modest sample from an unusually
+  eventful market, and bets made in the same month tend to win or lose
+  together, so the true uncertainty is wider than "give or take 4%".
+
 ## Daily record
 
 How to read the table:

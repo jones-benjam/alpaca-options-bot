@@ -8,11 +8,13 @@ What is real and what is modelled
 ---------------------------------
 Real:     daily closing prices of the 16 names (Alpaca, split-adjusted), the
           regime rule, the ranking rule, the slot limits and the exit rules.
-Modelled: option prices. Historical option quotes cost money, so each option
-          is priced with Black-Scholes at an assumed volatility (recent
-          realised volatility times IV_MULT, held constant for the life of the
-          trade) and a fixed trading cost. Positions are checked once a day at
-          the close, not every minute.
+Modelled: option prices. Each option is priced with Black-Scholes at a
+          volatility set from the stock's recent realised volatility, held
+          constant for the life of the trade, plus a fixed trading cost. The
+          level (how expensive options are relative to recent volatility) is
+          not assumed: it was measured from real option prices for 2024-2026
+          by measure_option_cost.py. Positions are checked once a day at the
+          close, not every minute.
 
 So treat the option returns as a rough guide for COMPARING rule variants, not
 as a forecast of what the bot will earn. The "stock moved our way" columns use
@@ -29,8 +31,17 @@ from alpaca import DATA, Alpaca
 
 DTE = C.CORE_DTE_TARGET          # calendar days to expiry at entry
 SLIP = 0.015                     # cost paid on the way in and again on the way out
-IV_MULT = 1.2                    # assumed implied vol = realised vol x this
+IV_MULT = "measured"             # option price level: "measured" (see IV_MEASURED) or a number
 SLOTS, SLOT_PCT = C.CORE_SLOTS, C.CORE_SLOT_PCT
+# Measured with real option prices, Feb 2024 to Oct 2026 (measure_option_cost.py):
+# implied volatility divided by the prior 20 days' realised volatility.
+IV_MEASURED = {"index": 1.09, "stock": 0.99}
+
+
+def sigma_for(sym, v, iv_mult):
+    if iv_mult == "measured":
+        iv_mult = IV_MEASURED["index" if sym in C.PENNY_ALL else "stock"]
+    return max(0.12, v["rv"] * iv_mult)
 
 
 def ncdf(x):
@@ -207,7 +218,7 @@ def simulate(feats, days, w5=0.6, w20=0.4, no_chase=0.0, seed=None, iv_mult=IV_M
             if blocked.get(sym, 0) > i:
                 continue
             v = feats[sym][i]
-            sigma = max(0.12, v["rv"] * iv_mult)
+            sigma = sigma_for(sym, v, iv_mult)
             strike = v["px"] * (1 - itm) if kind == "call" else v["px"] * (1 + itm)
             cost = bs(v["px"], strike, dte, sigma, kind) * (1 + SLIP)
             size = slot_pct
@@ -227,6 +238,79 @@ def simulate(feats, days, w5=0.6, w20=0.4, no_chase=0.0, seed=None, iv_mult=IV_M
                 move = feats[sym][i + 10]["px"] / v["px"] - 1
                 hits.append(move if kind == "call" else -move)
     return trades, curve, hits
+
+
+def simulate_seller(feats, days, dte=30, short_sd=0.6, width_sd=0.6, take=0.5, stop=2.0,
+                    flip=True, slot_pct=SLOT_PCT, iv_mult="measured", names=None):
+    """The other side of the trade: SELL options with a capped loss ("credit spreads").
+
+    Same regime and stock ranking as the bot. Where the bot would buy a call, this
+    sells a put spread below the price (it keeps the premium unless the stock
+    falls); where the bot would buy a put, it sells a call spread above the price.
+    short_sd / width_sd place the two strikes in units of the expected move.
+    Each position risks slot_pct of the sleeve at most. Exits: buy back after
+    keeping `take` of the premium, or when the spread costs `stop` times the
+    premium, or on a trend flip, or four days before expiry."""
+    dates = [dt.date.fromisoformat(d) for d in days]
+    cash, book, trades, curve = 1.0, {}, [], []
+    for i in range(len(days)):
+        for sym in list(book):
+            p, v = book[sym], feats[sym][i]
+            if v is None:
+                continue
+            left = dte - (dates[i] - p["date"]).days
+            cost = (bs(v["px"], p["ks"], left, p["sigma"], p["opt"]) * (1 + SLIP)
+                    - bs(v["px"], p["kl"], left, p["sigma"], p["opt"]) * (1 - SLIP))
+            cost = max(0.0, min(p["width"], cost))
+            p["mark"] = cost
+            reason = None
+            if left <= C.CORE_MIN_DTE_EXIT:
+                reason = "time"
+            elif cost <= (1 - take) * p["credit"]:
+                reason = "target"
+            elif cost >= stop * p["credit"]:
+                reason = "stop"
+            elif flip and ((p["view"] == "up" and v["px"] < v["ema10"]) or (p["view"] == "down" and v["px"] > v["ema10"])):
+                reason = "flip"
+            if reason:
+                cash += p["units"] * (p["width"] - cost)
+                trades.append({"ret": (p["credit"] - cost) / (p["width"] - p["credit"]), "kind": p["opt"],
+                               "why": reason, "i": p["i"], "held": i - p["i"]})
+                del book[sym]
+        equity = cash + sum(p["units"] * (p["width"] - p["mark"]) for p in book.values())
+        curve.append(equity)
+
+        reg = regime(feats, i)
+        count = {"up": 0, "down": 0}
+        for p in book.values():
+            count[p["view"]] += 1
+        for strength, sym, kind in candidates(feats, i, reg, 0.6, 0.4, 0.0, None):
+            if len(book) >= SLOTS:
+                break
+            view = "up" if kind == "call" else "down"
+            if sym in book or (names and sym not in names):
+                continue
+            if reg == "mixed" and count[view] >= max(2, SLOTS * 2 // 3):
+                continue
+            v = feats[sym][i]
+            sigma = sigma_for(sym, v, iv_mult)
+            sd = sigma * math.sqrt(dte / 365)
+            sign, opt = (-1, "put") if view == "up" else (1, "call")
+            ks = v["px"] * math.exp(sign * short_sd * sd)
+            kl = v["px"] * math.exp(sign * (short_sd + width_sd) * sd)
+            credit = bs(v["px"], ks, dte, sigma, opt) * (1 - SLIP) - bs(v["px"], kl, dte, sigma, opt) * (1 + SLIP)
+            width = abs(ks - kl)
+            if credit <= 0 or width - credit <= 0:
+                continue
+            spend = min(slot_pct * equity, cash * 0.98)
+            if spend <= 0:
+                continue
+            cash -= spend
+            book[sym] = {"opt": opt, "view": view, "ks": ks, "kl": kl, "sigma": sigma, "credit": credit,
+                         "width": width, "mark": credit, "units": spend / (width - credit),
+                         "date": dates[i], "i": i}
+            count[view] += 1
+    return trades, curve, []
 
 
 def drawdown(curve):
@@ -283,7 +367,8 @@ def main():
     spy = prices["SPY"][days[-1]] / prices["SPY"][days[0]] - 1
     print(f"Period {days[0]} to {days[-1]} ({len(days)} trading days). SPY buy-and-hold: {spy:+.0%}")
     print(f"Sleeve of {SLOTS} slots at {SLOT_PCT:.0%} each, {DTE}-day at-the-money options, "
-          f"IV = {IV_MULT} x realised vol, {SLIP:.1%} cost each way.\n")
+          f"option prices at the measured level (IV = {IV_MEASURED['stock']} x recent vol for stocks, "
+          f"{IV_MEASURED['index']} x for index funds), {SLIP:.1%} cost each way.\n")
     head = (f"{'Variant':<34}{'trades':>6}{'win%':>7}{'avg':>8}{'median':>8}"
             f"{'stock':>8}{'10d':>8}{'sleeve':>10}{'worst':>8}")
     sub = (f"{'':<34}{'':>6}{'':>7}{'/trade':>8}{'/trade':>8}"
@@ -356,6 +441,33 @@ def main():
               f"{c['bust']:>10.0%}{c['boom']:>10.0%}{c['beat_cash']:>10.0%}{c['beat_spy']:>10.0%}"
               f"   avg/trade {avg:+.1%}")
 
+    print("\nBuying options vs selling them, with options priced at the level we measured")
+    print(f"(implied vol = {IV_MEASURED['stock']} x recent vol for stocks, {IV_MEASURED['index']} x for index funds)")
+    head3 = (f"{'Variant':<40}{'trades':>7}{'win%':>6}{'avg/':>8}{'15-day':>8}{'15-day':>8}"
+             f"{'lose':>7}{'beat':>7}{'5-yr':>9}{'worst':>7}")
+    sub3 = (f"{'':<40}{'':>7}{'':>6}{'trade':>8}{'median':>8}{'10th':>8}{'>50%':>7}{'SPY':>7}{'total':>9}{'drop':>7}")
+    print(head3 + "\n" + sub3 + "\n" + "-" * len(head3))
+    index = set(C.PENNY_ALL)
+    sides = [
+        ("BUY  current rules (6 x 14%)", lambda: simulate(feats, days, iv_mult="measured")),
+        ("BUY  smaller bets (6 x 7%)", lambda: simulate(feats, days, iv_mult="measured", slot_pct=0.07)),
+        ("BUY  small bets (6 x 4%)", lambda: simulate(feats, days, iv_mult="measured", slot_pct=0.04)),
+        ("BUY  tiny bets (6 x 2%)", lambda: simulate(feats, days, iv_mult="measured", slot_pct=0.02)),
+        ("SELL spreads, all names, 21-day", lambda: simulate_seller(feats, days, dte=21)),
+        ("SELL spreads, all names, 45-day", lambda: simulate_seller(feats, days, dte=45)),
+        ("SELL spreads, index funds only, 45-day", lambda: simulate_seller(feats, days, dte=45, names=index)),
+        ("SELL index only, 45-day, small (4%)", lambda: simulate_seller(feats, days, dte=45, names=index, slot_pct=0.04)),
+        ("SELL all names, 45-day, small (4%)", lambda: simulate_seller(feats, days, dte=45, slot_pct=0.04)),
+    ]
+    for label, run in sides:
+        t, cv, _ = run()
+        c = contest(cv, spy_px)
+        r = [x["ret"] for x in t]
+        print(f"{label:<40}{len(r):>7}{sum(x > 0 for x in r) / len(r):>6.0%}{statistics.mean(r):>8.1%}"
+              f"{c['med']:>8.0%}{c['p10']:>8.0%}{c['bust']:>7.0%}{c['beat_cash']:>7.0%}"
+              f"{cv[-1] / cv[0] - 1:>9.0%}{drawdown(cv):>7.0%}")
+    print("For sellers, avg/trade is profit as a share of the most the trade could lose.")
+
     print("\nCan the bot 'learn' from its own recent results? (15-trading-day windows)")
     print(head2 + "\n" + sub2 + "\n" + "-" * len(head2))
     learners = [
@@ -381,9 +493,11 @@ def main():
     for label, kw in (
         ("Cheap options (IV = 1.0x), stops fill at -50%", dict(iv_mult=1.0, stop_exact=True)),
         ("Cheap options (IV = 1.0x), stops fill at the close", dict(iv_mult=1.0)),
-        ("Base case (IV = 1.2x), stops fill at -50%", dict(stop_exact=True)),
-        ("Base case (IV = 1.2x), stops fill at the close", dict()),
-        ("Dear options (IV = 1.4x), stops fill at the close", dict(iv_mult=1.4)),
+        ("Dear options (IV = 1.2x), stops fill at -50%", dict(iv_mult=1.2, stop_exact=True)),
+        ("Measured prices, stops fill at -50%", dict(stop_exact=True)),
+        ("Measured prices, stops fill at the close", dict()),
+        ("Dear options (IV = 1.2x), stops fill at the close", dict(iv_mult=1.2)),
+        ("Very dear options (IV = 1.4x), stops fill at the close", dict(iv_mult=1.4)),
     ):
         t, cv, _ = simulate(feats, days, **kw)
         c = contest(cv, spy_px)
@@ -393,8 +507,8 @@ def main():
     print("\nSame check for 45-day options")
     for label, kw in (
         ("Cheap options (IV = 1.0x), stops fill at -50%", dict(iv_mult=1.0, stop_exact=True, dte=45)),
-        ("Base case (IV = 1.2x), stops fill at -50%", dict(stop_exact=True, dte=45)),
-        ("Base case (IV = 1.2x), stops fill at the close", dict(dte=45)),
+        ("Measured prices, stops fill at -50%", dict(stop_exact=True, dte=45)),
+        ("Measured prices, stops fill at the close", dict(dte=45)),
         ("Dear options (IV = 1.4x), stops fill at the close", dict(iv_mult=1.4, dte=45)),
     ):
         t, cv, _ = simulate(feats, days, **kw)

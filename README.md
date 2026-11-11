@@ -70,6 +70,7 @@ python3 bot.py status                    # sleeve P&L, positions, recent trades
 python3 sim_test.py                      # offline test with a fake broker, no keys
 python3 bot.py journal                   # add today's row to STRATEGY_LOG.md
 python3 backtest_signal.py               # replay the rules on five years of prices
+python3 measure_option_cost.py --cached  # were options overpriced? (real prices)
 ```
 
 `STRATEGY_LOG.md` is the project's plain-English record: what the strategy is,
