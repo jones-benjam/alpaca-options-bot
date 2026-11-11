@@ -1,5 +1,7 @@
 # Adds the day's row to STRATEGY_LOG.md after each market close and commits it,
-# so the log on GitHub stays current without anyone running a command.
+# so the log on GitHub stays current without anyone running a command. Option
+# prices are stale right after the close, so the first row is preliminary and a
+# second run the next morning replaces it with Alpaca's official figures.
 #
 # Needs two repository secrets: ALPACA_API_KEY and ALPACA_SECRET_KEY (the PAPER
 # keys). It only reads the account; it never places orders.
@@ -7,7 +9,9 @@ name: Daily journal
 
 on:
   schedule:
-    - cron: "20 21 * * 1-5"  # 4:20 pm Eastern (standard time), Monday to Friday
+    # Times are UTC and assume Eastern standard time.
+    - cron: "20 21 * * 1-5"  # 4:20 pm Mon-Fri: a preliminary row right after the close
+    - cron: "0 13 * * 2-6"   # 8:00 am Tue-Sat: replace it with Alpaca's official close
   workflow_dispatch:          # also runnable by hand from the Actions tab
 
 permissions:

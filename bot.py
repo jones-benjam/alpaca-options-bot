@@ -189,8 +189,9 @@ class Bot:
                 return list(found.values())
             after = page[-1]["submitted_at"]
 
-    def build_ledger(self, now):
-        """Rebuild the bot's positions and realized P&L from its own fills."""
+    def build_ledger(self, now, until=None):
+        """Rebuild the bot's positions and realized P&L from its own fills.
+        `until` (YYYY-MM-DD) rebuilds the book as it stood at that day's close."""
         fills = []
         for o in self.bot_orders():
             qty = int(float(o.get("filled_qty") or 0))
@@ -203,6 +204,9 @@ class Bot:
         fills.sort(key=lambda f: f[0])
 
         led, today = Ledger(), now.date()
+        if until:
+            today = dt.date.fromisoformat(until)
+            fills = [f for f in fills if f[0].astimezone(now.tzinfo).date() <= today]
         for when, symbol, side, qty, px, tag in fills:
             if side == "buy":
                 p = led.pos.setdefault(symbol, Pos(symbol, tag))
@@ -763,42 +767,65 @@ def capital_on(day):
     return amount
 
 
-def journal(bot):
-    """Add or refresh the latest trading day's row in STRATEGY_LOG.md.
+def journal(bot, day=None):
+    """Add or refresh a trading day's row in STRATEGY_LOG.md.
 
-    Values come from Alpaca's own prices so the sleeve adds up with the account
-    balance the class is graded on. Safe to run more than once a day: the row
-    for that date is replaced, not duplicated."""
+    Right after the close Alpaca's option prices are stale, so a row written
+    then is marked "preliminary". Once Alpaca has published its official
+    end-of-day account value (that evening, and certainly by the next morning)
+    running this again replaces the row with the official figures, which are
+    the ones the class is graded on. `day` rewrites the previous session's row.
+    Safe to run any number of times: a day's row is replaced, never duplicated."""
     api = bot.api
     if not LOG_PATH.exists():
         raise SystemExit(f"{LOG_PATH.name} not found next to bot.py")
     clock = api.clock()
     now = parse_ts(clock["timestamp"])
-    led = bot.build_ledger(now)
-    acct = api.account()
-    equity, last = float(acct["equity"]), float(acct["last_equity"])
-    prices = {x["symbol"]: float(x.get("current_price") or 0) for x in api.positions()}
-    quotes = api.option_snapshots(led.pos) if led.pos else {}
+    start = dt.date.fromisoformat(C.START_DATE)
+    bars = api.daily_bars(["SPY"], (start - dt.timedelta(days=10)).isoformat()).get("SPY", [])
+    closes = {b["t"][:10]: b["c"] for b in bars}
+    sessions = sorted(closes)
+    latest = sessions[-1]
+    past = day is not None and day != latest
+    day = day or latest
+    if day not in closes or sessions.index(day) == 0:
+        raise SystemExit(f"{day} is not a trading day on record")
+    before = sessions[sessions.index(day) - 1]
+    if past and day != sessions[-2]:
+        raise SystemExit("only the latest or the previous session can be rewritten")
+    spy_day = closes[day] / closes[before] - 1
+    base = [closes[d] for d in sessions if d < C.START_DATE]
+    spy_total = f"{closes[day] / base[-1] - 1:+.2%}" if base else "n/a"
+
+    official = api.official_closes()
+    final = day in official
+    if past and not final:
+        raise SystemExit(f"Alpaca has no official close for {day} yet")
+    led = bot.build_ledger(now, until=day if past else None)
+    held = {x["symbol"]: x for x in api.positions()}
+    quotes = api.option_snapshots(led.pos) if led.pos and not final else {}
+    if final:
+        equity = official[day]
+        account_day = f"{equity / official[before] - 1:+.2%}" if before in official else "n/a"
+    else:
+        acct = api.account()
+        equity = float(acct["equity"])
+        account_day = f"{equity / float(acct['last_equity']) - 1:+.2%}"
 
     value, book = 0.0, []
     for symbol, p in led.pos.items():
-        px = prices.get(symbol)
+        # Official rows use Alpaca's closing mark; preliminary rows use live prices.
+        px = float((held.get(symbol) or {}).get("lastday_price" if final else "current_price") or 0)
         if not px:
             q = read_quote(quotes.get(symbol))
             px = q[2] if q else p.avg
+            if final:
+                print(f"note: no closing mark for {symbol}; valued at cost")
         value += p.qty * px * 100
         book.append(f"{p.qty} {p.label()} ({px / p.avg - 1:+.0%})")
     profit = led.realized - sum(p.cost for p in led.pos.values()) + value
-
-    spy = api.stock_snapshots(["SPY"])["SPY"]
-    day = spy["dailyBar"]["t"][:10]  # the latest trading session
     capital = capital_on(day)        # the sleeve's size has changed over time
     sleeve = capital + profit
-    spy_day = spy["dailyBar"]["c"] / spy["prevDailyBar"]["c"] - 1
-    start = dt.date.fromisoformat(C.START_DATE)
-    bars = api.daily_bars(["SPY"], (start - dt.timedelta(days=10)).isoformat()).get("SPY", [])
-    base = [b["c"] for b in bars if b["t"][:10] < C.START_DATE]
-    spy_total = f"{spy['dailyBar']['c'] / base[-1] - 1:+.2%}" if base else "n/a"
 
     def on_day(when):
         return when.astimezone(now.tzinfo).date().isoformat() == day
@@ -820,11 +847,14 @@ def journal(bot):
         if m:
             # Money added to the sleeve is not a gain: measure the day's
             # profit against what the sleeve had to work with that morning.
-            before = float(m.group(1).replace(",", "")) + capital - capital_on(earlier[-1][2:12])
-            sleeve_day = f"{sleeve / before - 1:+.2%}"
-    label = day + (f" (as of {now:%H:%M} ET)" if clock["is_open"] else "")
+            opening = float(m.group(1).replace(",", "")) + capital - capital_on(earlier[-1][2:12])
+            sleeve_day = f"{sleeve / opening - 1:+.2%}"
+    if final:
+        label = day
+    else:
+        label = day + (f" (as of {now:%H:%M} ET)" if clock["is_open"] else " (preliminary)")
     row = (
-        f"| {label} | ${equity:,.0f} | {equity / last - 1:+.2%} | ${sleeve:,.0f} | {sleeve_day} | "
+        f"| {label} | ${equity:,.0f} | {account_day} | ${sleeve:,.0f} | {sleeve_day} | "
         f"{'+' if profit >= 0 else '-'}${abs(profit):,.0f} | {spy_day:+.2%} | {spy_total} | "
         f"{', '.join(book) or 'Nothing'} | {trades} |"
     )
@@ -832,7 +862,8 @@ def journal(bot):
     if same:
         lines[same[0]] = row
     else:
-        lines.append(row)
+        later = [i for i in rows if lines[i][2:12] > day]
+        lines.insert(later[0], row) if later else lines.append(row)
     LOG_PATH.write_text("\n".join(lines) + "\n")
     print(row)
 
@@ -844,12 +875,13 @@ def main():
     run.add_argument("--dry-run", action="store_true", help="log decisions, send no orders")
     run.add_argument("--once", action="store_true", help="one pass, then exit")
     sub.add_parser("status", help="print the sleeve's P&L and positions")
-    sub.add_parser("journal", help="record the day's results in STRATEGY_LOG.md")
+    jr = sub.add_parser("journal", help="record the day's results in STRATEGY_LOG.md")
+    jr.add_argument("--date", help="rewrite the previous session's row (YYYY-MM-DD)")
     args = parser.parse_args()
     if args.cmd == "status":
         Bot(dry=True).status()
     elif args.cmd == "journal":
-        journal(Bot(dry=True))
+        journal(Bot(dry=True), args.date)
     else:
         dry = args.dry_run or C._env("DRY_RUN", False, bool)
         Bot(dry=dry).run(args.once)

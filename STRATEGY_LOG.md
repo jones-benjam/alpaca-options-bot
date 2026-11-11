@@ -180,9 +180,13 @@ How to read the table:
 - In **Holding**, "6 NVDA 11/27 180P" means 6 put options on Nvidia that
   expire Nov 27 and pay off if Nvidia is below $180. P is a put, C is a call.
   The percentage is the gain or loss on that bet so far.
-- A new row is added each trading day with `python3 bot.py journal`.
+- A new row is added automatically after each market close. A date marked
+  **(preliminary)** or **(as of ...)** uses prices from that moment. It is
+  replaced the next morning with Alpaca's official end-of-day values, which
+  are the numbers the class is graded on.
 
 | Date | Whole account | Account day | Bot's sleeve | Sleeve day | Sleeve profit | SPY day | SPY since start | Holding at close | Trades |
 |---|---|---|---|---|---|---|---|---|---|
 | 2026-11-09 | $100,006 | +0.01% | $25,006 | +0.02% | +$6 | +2.36% | +2.36% | 6 NVDA 11/27 180P (+0%), 8 PLTR 11/27 172.5P (+0%), 7 COIN 11/27 140P (+0%) | Bought 6 NVDA 11/27 180P at $10.90; Bought 8 PLTR 11/27 172.5P at $8.65; Bought 7 COIN 11/27 140P at $9.40. The bot started at 3:31 pm, after most of SPY's gain that day. |
-| 2026-11-10 | $102,578 | +2.57% | $27,580 | +10.29% | +$2,580 | -0.37% | +1.98% | 6 NVDA 11/27 180P (+48%), 8 PLTR 11/27 172.5P (+0%), 7 COIN 11/27 140P (+16%) | Bought 10 SPY 11/10 753C at $1.52; Bought 6 QQQ 11/10 681C at $2.50; Sold 10 SPY 11/10 753C at $0.71 (-$810); Sold 6 QQQ 11/10 681C at $1.15 (-$810) |
+| 2026-11-10 | $106,493 | +6.49% | $31,495 | +25.95% | +$6,495 | -0.37% | +1.98% | 6 NVDA 11/27 180P (+54%), 8 PLTR 11/27 172.5P (+35%), 7 COIN 11/27 140P (+32%) | Bought 10 SPY 11/10 753C at $1.52; Bought 6 QQQ 11/10 681C at $2.50; Sold 10 SPY 11/10 753C at $0.71 (-$810); Sold 6 QQQ 11/10 681C at $1.15 (-$810) |
+| 2026-11-11 (as of 14:37 ET) | $98,751 | -7.27% | $48,910 | -13.43% | -$1,090 | +1.42% | +3.43% | 6 NVDA 11/27 180P (+7%), 8 PLTR 11/27 172.5P (-29%), 7 COIN 11/27 140P (-15%), 6 MSTR 12/04 125P (-6%), 28 NFLX 12/04 64P (-23%), 3 MSFT 12/04 540P (+21%) | Bought 6 MSTR 12/04 125P at $10.90; Bought 28 NFLX 12/04 64P at $2.41; Bought 3 MSFT 12/04 540P at $20.00; Bought 35 SPY 11/11 759C at $0.78; Sold 17 SPY 11/11 759C at $1.55 (+$1,309); Sold 18 SPY 11/11 759C at $2.15 (+$2,466) |
