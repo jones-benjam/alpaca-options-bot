@@ -834,9 +834,10 @@ def journal(bot, day=None):
 
     Right after the close Alpaca's option prices are stale, so a row written
     then is marked "preliminary". Once Alpaca has published its official
-    end-of-day account value (that evening, and certainly by the next morning)
-    running this again replaces the row with the official figures, which are
-    the ones the class is graded on. `day` rewrites the previous session's row.
+    end-of-day account value, any later run replaces the row with the official
+    figures, which are the ones the class is graded on. It does not matter when
+    that later run happens: every earlier row still marked preliminary is
+    finalised first. `day` rewrites one past day's row from official figures.
     Safe to run any number of times: a day's row is replaced, never duplicated."""
     api = bot.api
     if not LOG_PATH.exists():
@@ -853,17 +854,26 @@ def journal(bot, day=None):
     if day not in closes or sessions.index(day) == 0:
         raise SystemExit(f"{day} is not a trading day on record")
     before = sessions[sessions.index(day) - 1]
-    if past and day != sessions[-2]:
-        raise SystemExit("only the latest or the previous session can be rewritten")
-    spy_day = closes[day] / closes[before] - 1
-    base = [closes[d] for d in sessions if d < C.START_DATE]
-    spy_total = f"{closes[day] / base[-1] - 1:+.2%}" if base else "n/a"
-
     official = api.official_closes()
     final = day in official
     if past and not final:
         raise SystemExit(f"Alpaca has no official close for {day} yet")
-    led = bot.build_ledger(now, until=day if past else None)
+
+    if not past:  # first bring every earlier unfinished row up to official figures
+        text = LOG_PATH.read_text().splitlines()
+        unfinished = sorted({
+            line[2:12] for line in text
+            if re.match(r"^\| \d{4}-\d{2}-\d{2} \(", line) and line[2:12] < day and line[2:12] in official
+        })
+        for earlier_day in unfinished:
+            journal(bot, earlier_day)
+
+    spy_day = closes[day] / closes[before] - 1
+    base = [closes[d] for d in sessions if d < C.START_DATE]
+    spy_total = f"{closes[day] / base[-1] - 1:+.2%}" if base else "n/a"
+
+    # An official row describes the book as it stood at that day's close.
+    led = bot.build_ledger(now, until=day if final else None)
     held = {x["symbol"]: x for x in api.positions()}
     quotes = api.option_snapshots(led.pos) if led.pos and not final else {}
     if final:
@@ -874,15 +884,24 @@ def journal(bot, day=None):
         equity = float(acct["equity"])
         account_day = f"{equity / float(acct['last_equity']) - 1:+.2%}"
 
-    value, book = 0.0, []
-    for symbol, p in led.pos.items():
-        # Official rows use Alpaca's closing mark; preliminary rows use live prices.
-        px = float((held.get(symbol) or {}).get("lastday_price" if final else "current_price") or 0)
+    def mark(symbol, p):
+        if final:
+            # Alpaca values an option at its last traded price of the day,
+            # which is the close of the option's own daily bar.
+            daily = [b for b in api.option_bars(symbol, f"{C.START_DATE}T00:00:00Z", "1Day") if b["t"][:10] <= day]
+            if daily:
+                return float(daily[-1]["c"])
+            print(f"note: no closing price for {symbol} on {day}; valued at cost")
+            return p.avg
+        px = float((held.get(symbol) or {}).get("current_price") or 0)
         if not px:
             q = read_quote(quotes.get(symbol))
             px = q[2] if q else p.avg
-            if final:
-                print(f"note: no closing mark for {symbol}; valued at cost")
+        return px
+
+    value, book = 0.0, []
+    for symbol, p in led.pos.items():
+        px = mark(symbol, p)
         value += p.qty * px * 100
         book.append(f"{p.qty} {p.label()} ({px / p.avg - 1:+.0%})")
     profit = led.realized - sum(p.cost for p in led.pos.values()) + value
@@ -938,7 +957,7 @@ def main():
     run.add_argument("--once", action="store_true", help="one pass, then exit")
     sub.add_parser("status", help="print the sleeve's P&L and positions")
     jr = sub.add_parser("journal", help="record the day's results in STRATEGY_LOG.md")
-    jr.add_argument("--date", help="rewrite the previous session's row (YYYY-MM-DD)")
+    jr.add_argument("--date", help="rewrite one past day's row from official figures (YYYY-MM-DD)")
     sub.add_parser("memory", help="refresh memory/: the trade table, market snapshot and review")
     args = parser.parse_args()
     if args.cmd == "status":

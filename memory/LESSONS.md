@@ -43,6 +43,10 @@ each lesson are in `STRATEGY_LOG.md`.
   only spend cash the account really has. (Nov 11)
 - **Company results are a coin flip for an option holder.** Rule changed:
   no new bet in the five days before a report, and sell before it. (Nov 10)
+- **Do not build on a job running at a set time.** GitHub ran our scheduled
+  job up to seven hours late, so two daily rows were never upgraded from
+  preliminary to official. Rule changed: the record now finalises every
+  unfinished row whenever it runs, whatever the time. (Nov 13)
 - **Check a claim against real data before repeating it.** We said option
   buyers overpay; real prices showed that was only true for index funds.
   (Nov 11)
