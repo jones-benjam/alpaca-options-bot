@@ -7,6 +7,8 @@
     python3 trader.py reflect    # add to his long-term notes (run weekly)
     python3 trader.py nightly    # diary + picks, and reflect on Fridays
     python3 trader.py chat       # talk to him about the bot's trades
+    python3 trader.py compare A B  # try several models on today's diary, side by side
+    python3 trader.py modelfile  # write mac_mini/Modelfile, to chat with him in the Ollama app
     python3 trader.py selftest   # test the plumbing with a stand-in for the model
 
 This runs on a Mac that has Ollama installed (see MAC_MINI_SETUP.md). It costs
@@ -33,7 +35,10 @@ any dollar amount or percentage he writes that is not in the facts is flagged.
 
 Settings (environment variables, or mac_mini/config.env):
     TRADER_NAME   his name                      (default: Midas)
-    MODEL         the Ollama model to use       (default: qwen3.5:9b)
+    MODEL         the Ollama model to use       (default: gpt-oss:20b)
+    PERSONA_FILE  personality file in memory/   (default: PERSONA.md)
+    THINK         how hard the model reasons before answering, for models that
+                  support it: low, medium, high, true or false (default: the model's own)
     OLLAMA_URL    where Ollama is listening     (default: http://localhost:11434)
 """
 import csv
@@ -65,8 +70,10 @@ def settings():
                 os.environ.setdefault(key.strip(), value.strip().strip("'\""))
     return {
         "name": os.environ.get("TRADER_NAME", "Midas"),
-        "model": os.environ.get("MODEL", "qwen3.5:9b"),
+        "model": os.environ.get("MODEL", "gpt-oss:20b"),
         "url": os.environ.get("OLLAMA_URL", "http://localhost:11434").rstrip("/"),
+        "persona": os.environ.get("PERSONA_FILE", "PERSONA.md"),
+        "think": os.environ.get("THINK", ""),
     }
 
 
@@ -91,7 +98,13 @@ def ask(cfg, messages, temperature=0.8, schema=None):
     }
     if schema:
         body["format"] = schema  # Ollama constrains the reply to this JSON shape
+    think = str(cfg.get("think") or "").strip().lower()
+    if think:  # only sent when asked for: the accepted values differ by model
+        body["think"] = {"true": True, "false": False}.get(think, think)
     reply = ollama(cfg, "/api/chat", body)
+    if reply.get("eval_count") and reply.get("eval_duration"):
+        cfg["_speed"] = reply["eval_count"] / (reply["eval_duration"] / 1e9)   # tokens per second
+        cfg["_seconds"] = (reply.get("total_duration") or 0) / 1e9
     text = (reply.get("message") or {}).get("content", "")
     return re.sub(r"<think>.*?</think>", "", text, flags=re.S).strip()  # drop any reasoning notes
 
@@ -206,7 +219,8 @@ def unsupported_numbers(text, fact_text):
 
 
 def persona(cfg):
-    text = PERSONA.read_text() if PERSONA.exists() else "You are {name}, an obsessive options trader."
+    path = MEMORY / cfg.get("persona", "PERSONA.md")
+    text = path.read_text() if path.exists() else "You are {name}, an obsessive options trader."
     text = text.replace("{name}", cfg["name"])
     notes = recent_notes()
     if notes:
@@ -405,6 +419,70 @@ def nightly(cfg):
         reflect(cfg)
 
 
+def diary_prompt(cfg, day=None):
+    """The same request `diary` makes, without writing anything."""
+    day, label, fact_text = facts(day)
+    task = (
+        f"Write your diary entry for {label}. About 150 words, in your own voice, as plain "
+        "paragraphs with no headings or bullet points. Cover what you did today and why, how "
+        "you feel about the result, and how you stand against the benchmark. Then finish with "
+        "exactly two short lines, each on its own line:\n"
+        "Tomorrow I want: <what you are itching to do>\n"
+        "The risk desk says: <the limit or warning standing in your way>\n\n"
+        "Use only the facts below. Every number you write must appear in them.\n\n"
+        f"FACTS\n{fact_text}"
+    )
+    return label, fact_text, [{"role": "system", "content": persona(cfg)}, {"role": "user", "content": task}]
+
+
+def compare(cfg, models):
+    """Run today's diary request through several models and save the results
+    side by side in memory/MODEL_TRYOUT.md. Nothing else is changed."""
+    have = [m.get("name", "") for m in ollama(cfg, "/api/tags", timeout=10).get("models", [])]
+    models = models or have
+    if not models:
+        sys.exit("No models to compare. Download one first, for example: ollama pull gpt-oss:20b")
+    label, fact_text, _ = diary_prompt(cfg)
+    out = [f"# Model try-out, {label}", "",
+           "The same diary request given to each model (`python3 trader.py compare`). Speed is "
+           "in tokens per second (a token is roughly three-quarters of a word). 'Figures not in "
+           "the records' should say none: anything listed there was invented by the model.", ""]
+    for model in models:
+        if not any(n == model or n.split(":")[0] == model for n in have):
+            print(f"{model}: not downloaded (ollama pull {model}); skipped")
+            continue
+        trial = dict(cfg, model=model)
+        _, _, messages = diary_prompt(trial)
+        print(f"{model}: writing...", flush=True)
+        text = ask(trial, messages)
+        bad = unsupported_numbers(text, fact_text)
+        words = len(text.split())
+        speed = f"{trial.get('_speed', 0):.0f} tokens/s, {trial.get('_seconds', 0):.0f}s in all"
+        closing = "Tomorrow I want" in text and "The risk desk says" in text
+        print(f"   {words} words, {speed}, invented figures: {', '.join(bad) or 'none'}, "
+              f"followed the format: {'yes' if closing else 'no'}")
+        out += [f"## {model}", "",
+                f"- **Speed:** {speed}", f"- **Length:** {words} words (asked for about 150)",
+                f"- **Figures not in the records:** {', '.join(bad) or 'none'}",
+                f"- **Followed the closing format:** {'yes' if closing else 'no'}", "", text, ""]
+    (MEMORY / "MODEL_TRYOUT.md").write_text("\n".join(out))
+    print("\nSaved to memory/MODEL_TRYOUT.md. Set the winner as MODEL= in mac_mini/config.env.")
+
+
+def modelfile(cfg):
+    """Write an Ollama Modelfile that bakes in the personality, so he shows up
+    as his own model in the Ollama app's chat window. He will be in character
+    there but will NOT know the day's trades; use `trader.py chat` for that."""
+    name = re.sub(r"[^a-z0-9]", "", cfg["name"].lower()) or "trader"
+    quote = chr(34) * 3
+    text = persona(cfg).replace(quote, chr(39) * 3)
+    path = ROOT / "mac_mini" / "Modelfile"
+    path.write_text(f"FROM {cfg['model']}\nPARAMETER temperature 0.8\nSYSTEM {quote}{text}{quote}\n")
+    print(f"Wrote {path.relative_to(ROOT)}. Create him with:\n  ollama create {name} -f {path}\n"
+          f"Then pick '{name}' in the Ollama app, or run:  ollama run {name}")
+    return name
+
+
 def chat(cfg):
     _, label, fact_text = facts()
     context = (
@@ -475,7 +553,8 @@ def selftest():
                 text = "- I cut losers fast and it worked.\n- I made $888,888 once.\n- I want more size than is wise."
             else:
                 text = next(diary_replies)
-            self._send({"message": {"role": "assistant", "content": text}})
+            self._send({"message": {"role": "assistant", "content": text},
+                        "eval_count": 120, "eval_duration": 4_000_000_000, "total_duration": 5_000_000_000})
 
     server = HTTPServer(("127.0.0.1", 0), Stub)
     threading.Thread(target=server.serve_forever, daemon=True).start()
@@ -504,6 +583,7 @@ def selftest():
     bullets = reflect(cfg)
     assert len(bullets) == 2 and not any("888,888" in b for b in bullets), "notes with invented figures are dropped"
     assert "cut losers fast" in persona(cfg), "his notes are read back to him next time"
+    assert cfg.get("_speed") == 30.0, "speed is measured from the model's own report"
     server.shutdown()
     print(f"\nSELFTEST PASSED for {label}: invented figures caught, made-up picks rejected, "
           "notes carried forward")
@@ -522,6 +602,10 @@ def main():
         reflect(cfg)
     elif cmd == "nightly":
         nightly(cfg)
+    elif cmd == "compare":
+        compare(cfg, sys.argv[2:])
+    elif cmd == "modelfile":
+        modelfile(cfg)
     elif cmd == "chat":
         chat(cfg)
     elif cmd == "selftest":

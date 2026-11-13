@@ -309,6 +309,38 @@ def test_trade_memory():
     print(f"\n--- trade memory: {len(rows)} trades rebuilt from order ids alone ---")
 
 
+def test_shadow_scoring():
+    """The persona's picks and the rules' top picks are scored on later days only."""
+    import csv
+    import tempfile
+
+    import memory
+
+    b, f, step = harness(trend=1)
+    tmp = Path(tempfile.mkdtemp())
+    memory.PICKS, memory.CANDIDATES, memory.SCORES = tmp / "p.csv", tmp / "c.csv", tmp / "s.csv"
+    day, last = "2026-09-10", "2026-10-30"   # dates inside the fake price history
+    memory.write_csv(memory.PICKS, ["date", "symbol", "direction", "conviction", "why"], [
+        {"date": day, "symbol": "NVDA", "direction": "call", "conviction": 5, "why": "rising"},
+        {"date": day, "symbol": "TSLA", "direction": "put", "conviction": 2, "why": "contrarian"},
+        {"date": last, "symbol": "NVDA", "direction": "call", "conviction": 3, "why": "too new to score"},
+    ])
+    memory.write_csv(memory.CANDIDATE_FIELDS and memory.CANDIDATES, memory.CANDIDATE_FIELDS, [
+        {"date": day, "rank": r, "symbol": sym, "direction": "call", "strength_pct": 5, "price": 100}
+        for r, sym in enumerate(["NVDA", "TSLA", "COIN", "SPY"], 1)
+    ])
+    rows = memory.score_shadow(b)
+    get = lambda who, sym, d=day: next(r for r in rows if (r["who"], r["symbol"], r["date"]) == (who, sym, d))
+    assert get("trader", "NVDA")["move_1d_pct"] > 0, "a call on a rising stock scores positive"
+    assert get("trader", "TSLA")["move_1d_pct"] < 0, "a put on a rising stock scores negative"
+    assert get("trader", "NVDA")["move_5d_pct"] > get("trader", "NVDA")["move_1d_pct"], "longer horizon, bigger move"
+    assert get("trader", "NVDA", last)["move_1d_pct"] == "", "a pick with no later day is not scored yet"
+    assert {r["symbol"] for r in rows if r["who"] == "rules"} == {"NVDA", "TSLA", "COIN"}, "rules = top three only"
+    text = "\n".join(memory.shadow_section(rows))
+    assert "The trader persona | 2 | 1 of 2" in text, "the review counts only scored picks"
+    print("\n--- shadow picks scored: persona 1 of 2 right, rules judged on their top three ---")
+
+
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
     test_default_sizing()
@@ -320,6 +352,7 @@ def main():
     test_cash_cap()
     test_peak_survives_restart()
     test_trade_memory()
+    test_shadow_scoring()
     print("\nALL SIMULATION CHECKS PASSED")
 
 
