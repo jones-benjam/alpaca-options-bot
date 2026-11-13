@@ -18,6 +18,52 @@ Command-Space, type "Terminal", press Return). Paste one line at a time.
 
 ---
 
+## The short version (three pastes)
+
+For our Mac mini (Apple M4 Pro, 24 GB memory, 512 GB disk) the setup script
+does almost everything. It picks `gpt-oss:20b`, a 14 GB download that leaves
+about 10 GB of memory free while it runs.
+
+1. Install Homebrew. It asks for the Mac's password, installs Apple's
+   command-line tools along the way, and prints two "Next steps" lines at the
+   end: paste those too.
+
+   ```bash
+   /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)"
+   ```
+
+2. Download the project (it is public, so no sign-in is needed yet):
+
+   ```bash
+   git clone https://github.com/jones-benjam/alpaca-options-bot.git ~/alpaca-options-bot
+   ```
+
+3. Run the setup. It takes 15 to 40 minutes, mostly the model download, and
+   stops once to sign you in to GitHub in the browser:
+
+   ```bash
+   ~/alpaca-options-bot/mac_mini/setup.sh
+   ```
+
+When it prints DONE, do the two **Energy** settings in Part 2 below, and the
+optional keys in Part 6. That is the whole setup. To see what the script would
+do without changing anything, add `--dry-run`.
+
+**Then experiment:**
+
+| Try this | Command (from `~/alpaca-options-bot`) |
+|---|---|
+| Talk to him about today's trades | `python3 trader.py chat` |
+| Compare models on the same diary request | `ollama pull gemma4:12b`, then `python3 trader.py compare` |
+| Try a different personality | Copy `memory/PERSONA.md` to a new name, edit it, set `PERSONA_FILE=` in `mac_mini/config.env`, then `python3 trader.py diary` |
+| Chat with him in the Ollama app | `python3 trader.py modelfile`, then follow what it prints |
+| Make him think harder or faster | Set `THINK=high` or `THINK=low` in `mac_mini/config.env` |
+
+The rest of this page is the same setup done by hand, for reference and for
+fixing problems.
+
+---
+
 ## Part 1. Check what the Mac mini can run (5 minutes)
 
 1. Apple menu > **About This Mac**. Write down the **Chip** and **Memory**.
@@ -29,9 +75,13 @@ Command-Space, type "Terminal", press Return). Paste one line at a time.
 |---|---|---|
 | 8 GB | `qwen3.5:4b` | 3.3 GB |
 | 16 GB | `qwen3.5:9b` | 6.6 GB |
-| 24 GB | `gemma4:12b` | 7.7 GB |
+| 24 GB (ours) | `gpt-oss:20b` | 14 GB |
 | 32 GB | `qwen3.5:27b` | 17 GB |
 | 48 GB or more | `qwen3.5:35b` | 22 GB |
+
+Two more worth trying on 24 GB: `gemma4:12b` (7.7 GB), smaller and quicker,
+and `gemma4:26b-a4b-it-qat` (16 GB), larger but a tight fit, so close every
+other app first. `python3 trader.py compare` runs them side by side.
 
 Sizes are from Ollama's model library on Nov 13, 2026. None of these has been
 run against this project yet, so treat the first evening as a test. Any model
@@ -79,16 +129,16 @@ In **System Settings**:
 
 ## Part 4. Download the model (10 to 40 minutes, mostly waiting)
 
-Use the model you picked in Part 1. For a 16 GB Mac mini:
+Use the model you picked in Part 1. For our 24 GB Mac mini:
 
 ```bash
-ollama pull qwen3.5:9b
+ollama pull gpt-oss:20b
 ```
 
 Check that it talks:
 
 ```bash
-ollama run qwen3.5:9b "In one sentence, what is a put option?"
+ollama run gpt-oss:20b "In one sentence, what is a put option?"
 ```
 
 ## Part 5. Get the project (10 minutes)

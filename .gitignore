@@ -4,3 +4,4 @@ state.tmp
 __pycache__/
 mac_mini/config.env
 mac_mini/nightly.log
+mac_mini/Modelfile
