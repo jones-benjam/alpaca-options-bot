@@ -1,11 +1,11 @@
 # Review of the bot's trades
 
-Generated Fri Nov 13, 2026, 12:19 PM ET by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Fri Nov 13, 2026, 3:07 PM ET by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
 
-- **Sleeve:** $77,196 on $50,000 of capital (+$27,196).
+- **Sleeve:** $74,122 on $50,000 of capital (+$24,122).
 - **Closed trades:** 8, of which 4 made money (50%).
 - **Banked profit or loss:** +$16,423.
 - **Typical winner and loser:** +$4,915 against -$810.
@@ -21,11 +21,11 @@ This report is produced by fixed rules, not by an AI model. It describes what ha
 
 | Bet | Paid | Now | Result so far |
 |---|---|---|---|
-| 8 PLTR 11/27 172.5P | $8.65 | $9.07 | +5% |
-| 7 COIN 11/27 140P | $9.40 | $14.81 | +58% |
-| 6 MSTR 12/04 125P | $10.90 | $18.09 | +66% |
-| 3 MSFT 12/04 540P | $20.00 | $22.78 | +14% |
-| 46 NFLX 12/04 63P | $1.96 | $2.29 | +17% |
+| 8 PLTR 11/27 172.5P | $8.65 | $8.26 | -4% |
+| 7 COIN 11/27 140P | $9.40 | $14.11 | +50% |
+| 6 MSTR 12/04 125P | $10.90 | $15.78 | +45% |
+| 3 MSFT 12/04 540P | $20.00 | $22.18 | +11% |
+| 46 NFLX 12/04 63P | $1.96 | $2.21 | +12% |
 
 ## Where the profit and loss came from
 
