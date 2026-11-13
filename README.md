@@ -90,6 +90,27 @@ buy, `x_<reason>` on a sell), so the history can always be rebuilt from Alpaca.
 
 The daily GitHub job refreshes all of these and commits them.
 
+### The trader persona (optional, runs on a Mac mini)
+
+`trader.py` gives the bot a voice: a local AI model, run with Ollama on a Mac
+mini, plays a trader character. He writes `memory/DIARY.md`, records the picks
+he would make in `memory/shadow_picks.csv` (never placed, scored in
+`REVIEW.md` against the rules' own top picks) and keeps
+`memory/TRADER_NOTES.md`, notes to himself that are read back to him later. He
+never contacts the broker and cannot change a rule. Setup:
+[MAC_MINI_SETUP.md](MAC_MINI_SETUP.md). Test the plumbing anywhere, without a
+model: `python3 trader.py selftest`.
+
+Ideas borrowed from open-source projects (designs only; none of their code is
+included): layered memory with a character, from
+[FinMem](https://github.com/pipiku915/FinMem-LLM-StockTrading); a risk desk the
+persona cannot overrule, from
+[ai-hedge-fund](https://github.com/virattt/ai-hedge-fund); keeping the exact
+facts behind each output, from [LLM_trader](https://github.com/qrak/LLM_trader);
+scoring picks only on days after they were made, from
+[agent-backtest-lab](https://github.com/bettyguo/agent-backtest-lab); and news
+as an input, from [FinGPT](https://github.com/AI4Finance-Foundation/FinGPT).
+
 `STRATEGY_LOG.md` is the project's plain-English record: what the strategy is,
 every change to it with the date and reason, and a row per trading day. Run
 `journal` after each close, and add an entry under "Changes to the strategy"

@@ -182,6 +182,12 @@ class Alpaca:
             out.update(page.get("snapshots") or {})
         return out
 
+    def news(self, symbols, start, limit=50):
+        """Recent news headlines for these symbols (included in Alpaca's free plan)."""
+        page = self._req("GET", f"{DATA}/v1beta1/news", {
+            "symbols": ",".join(symbols), "start": start, "limit": limit, "sort": "desc"})
+        return page.get("news") or []
+
     def option_bars(self, symbol, start, timeframe="15Min"):
         """Price history of one option contract since `start` (ISO time)."""
         out, token = [], None

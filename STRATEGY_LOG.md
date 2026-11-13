@@ -276,6 +276,23 @@ trending, not on skill.
   go through the team and are recorded here.
 - **Effect on trading:** None. The bot buys and sells exactly as before.
 
+### Fri Nov 13, 2026, 12:22 pm: Groundwork for a trader with a personality (not switched on yet)
+- **What:** The project can now give the bot a voice: a free AI model that
+  runs on our own Mac mini and plays a trader character, a brilliant,
+  obsessive trader who always wants a bigger stake. Each day he will write a
+  diary about the bot's trades, choose the trades he would make from the
+  same signals the rules saw, and once a week write notes to himself that he
+  reads back later. The setup steps are in `MAC_MINI_SETUP.md`. None of this
+  runs until the Mac mini is set up.
+- **Why:** To have the bot explain itself in plain words, and to test, at
+  no cost, whether an AI model picks better than the fixed rules.
+- **What he cannot do:** He does not trade and cannot change a rule or a
+  limit. His picks are only recorded and scored. Every number he writes is
+  checked against the bot's records, and a made-up figure is flagged.
+- **Also new in the bot's memory:** each day's full list of signals and the
+  day's news headlines for our stocks, both free from Alpaca.
+- **Effect on trading:** None.
+
 ## Daily record
 
 How to read the table:

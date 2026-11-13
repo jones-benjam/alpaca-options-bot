@@ -2,3 +2,5 @@
 state.json
 state.tmp
 __pycache__/
+mac_mini/config.env
+mac_mini/nightly.log

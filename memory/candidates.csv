@@ -1,0 +1,5 @@
+date,rank,symbol,direction,strength_pct,price
+2026-11-13,1,NVDA,put,18.29,160.79
+2026-11-13,2,MSTR,put,17.11,109.39
+2026-11-13,3,COIN,put,13.66,127.65
+2026-11-13,4,NFLX,put,5.68,62.32

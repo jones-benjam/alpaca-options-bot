@@ -1,11 +1,11 @@
 # Review of the bot's trades
 
-Generated Fri Nov 13, 2026, 12:09 PM ET by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Fri Nov 13, 2026, 12:19 PM ET by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
 
-- **Sleeve:** $76,530 on $50,000 of capital (+$26,530).
+- **Sleeve:** $77,196 on $50,000 of capital (+$27,196).
 - **Closed trades:** 8, of which 4 made money (50%).
 - **Banked profit or loss:** +$16,423.
 - **Typical winner and loser:** +$4,915 against -$810.
@@ -21,11 +21,11 @@ This report is produced by fixed rules, not by an AI model. It describes what ha
 
 | Bet | Paid | Now | Result so far |
 |---|---|---|---|
-| 8 PLTR 11/27 172.5P | $8.65 | $8.81 | +2% |
-| 7 COIN 11/27 140P | $9.40 | $14.48 | +54% |
-| 6 MSTR 12/04 125P | $10.90 | $17.52 | +61% |
-| 3 MSFT 12/04 540P | $20.00 | $23.57 | +18% |
-| 46 NFLX 12/04 63P | $1.96 | $2.26 | +15% |
+| 8 PLTR 11/27 172.5P | $8.65 | $9.07 | +5% |
+| 7 COIN 11/27 140P | $9.40 | $14.81 | +58% |
+| 6 MSTR 12/04 125P | $10.90 | $18.09 | +66% |
+| 3 MSFT 12/04 540P | $20.00 | $22.78 | +14% |
+| 46 NFLX 12/04 63P | $1.96 | $2.29 | +17% |
 
 ## Where the profit and loss came from
 
@@ -61,9 +61,17 @@ Closed trades only. With this few trades these tables show what happened, not wh
 | trend flipped | 1 | 0 of 1 | -$1,568 |
 | stop loss | 2 | 0 of 2 | -$1,620 |
 
+## The trader's own picks, scored against the rules
+
+Neither set is traded. Each pick is judged on what the stock did afterwards, in the direction of the pick. With only a handful of picks this is a scoreboard, not proof of skill.
+
+No pick is old enough to score yet.
+
 ## Where the rest of the memory lives
 
 - `memory/trades.csv`: every trade, one row each.
 - `memory/market.csv`: the market's mood and strongest signals, one row a day.
 - `memory/LESSONS.md`: what the team has learned so far, written by hand.
+- `memory/candidates.csv`, `memory/news.csv`: each day's signals and headlines.
+- `memory/DIARY.md`, `memory/TRADER_NOTES.md`, `memory/shadow_picks.csv`: written by the trader persona, a local AI model (see `trader.py`).
 - `STRATEGY_LOG.md`: every rule change with its date and reason, and the daily record.
