@@ -26,6 +26,8 @@ from bot import earnings_days, parse_occ, read_quote
 
 DIR = Path(__file__).with_name("memory")
 TRADES, MARKET, REVIEW = DIR / "trades.csv", DIR / "market.csv", DIR / "REVIEW.md"
+CANDIDATES, NEWS = DIR / "candidates.csv", DIR / "news.csv"
+PICKS, SCORES = DIR / "shadow_picks.csv", DIR / "shadow_scores.csv"
 
 EXIT_WORDS = {
     "stop": "stop loss", "trail": "trailing stop", "be": "breakeven stop",
@@ -40,6 +42,10 @@ TRADE_FIELDS = ["id", "engine", "underlying", "direction", "contract", "opened",
                 "profit", "profit_pct", "days_held", "status"]
 MARKET_FIELDS = ["date", "as_of", "regime", "spy", "spy_vs_avg_pct", "qqq", "qqq_vs_avg_pct",
                  "strongest_signals"]
+CANDIDATE_FIELDS = ["date", "rank", "symbol", "direction", "strength_pct", "price"]
+NEWS_FIELDS = ["time", "symbols", "headline", "source"]
+SCORE_FIELDS = ["date", "who", "symbol", "direction", "move_1d_pct", "move_3d_pct", "move_5d_pct"]
+HORIZONS = (1, 3, 5)
 
 
 def build_trades(led, tz):
@@ -115,7 +121,7 @@ def market_row(bot, now, is_open):
         "spy": round(view["SPY"]["px"], 2) if "SPY" in view else "", "spy_vs_avg_pct": gap("SPY"),
         "qqq": round(view["QQQ"]["px"], 2) if "QQQ" in view else "", "qqq_vs_avg_pct": gap("QQQ"),
         "strongest_signals": top or "none",
-    }, view, regime
+    }, view, regime, bot.candidates(view, regime)
 
 
 def upsert_market(row):
@@ -126,6 +132,110 @@ def upsert_market(row):
     rows.append(row)
     rows.sort(key=lambda r: r["date"])
     write_csv(MARKET, MARKET_FIELDS, rows)
+
+
+def upsert_by_date(path, fields, day, new_rows):
+    """Replace one day's rows in a CSV that keeps a row (or several) per day."""
+    rows = []
+    if path.exists():
+        with path.open() as f:
+            rows = [r for r in csv.DictReader(f) if r["date"] != day]
+    rows += new_rows
+    rows.sort(key=lambda r: (r["date"], int(r.get("rank") or 0)))
+    write_csv(path, fields, rows)
+
+
+def write_candidates(day, view, ranked):
+    """Every signal the rules saw that day, strongest first. The trader persona
+    chooses his own picks from this list, and both sets are scored later."""
+    upsert_by_date(CANDIDATES, CANDIDATE_FIELDS, day, [
+        {"date": day, "rank": i, "symbol": sym, "direction": kind,
+         "strength_pct": round(strength * 100, 2), "price": round(view[sym]["px"], 2)}
+        for i, (strength, sym, kind) in enumerate(ranked, 1)
+    ])
+
+
+def write_news(bot, now):
+    """The last day's headlines for the bot's stocks. Only the headline is kept,
+    and the file is replaced each day; it is context for the reviewer, not a signal."""
+    since = (now - dt.timedelta(hours=24)).astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    try:
+        items = bot.api.news(C.UNIVERSE, since)
+    except Exception as err:  # news is optional; never let it break the daily job
+        print(f"news skipped: {err}")
+        return 0
+    universe, rows, seen = set(C.UNIVERSE), [], set()
+    for n in items:
+        syms = [x for x in n.get("symbols", []) if x in universe]
+        headline = "".join(ch for ch in (n.get("headline") or "") if ch.isprintable()).strip()[:160]
+        if not syms or not headline or headline in seen:
+            continue
+        seen.add(headline)
+        when = dt.datetime.fromisoformat(n["created_at"].replace("Z", "+00:00")).astimezone(now.tzinfo)
+        rows.append({"time": when.strftime("%Y-%m-%d %H:%M"), "symbols": " ".join(syms[:4]),
+                     "headline": headline, "source": n.get("source", "")})
+        if len(rows) >= 20:
+            break
+    write_csv(NEWS, NEWS_FIELDS, rows)
+    return len(rows)
+
+
+def score_shadow(bot):
+    """Score the trader persona's picks against the rules' own top picks.
+
+    Neither set is traded. A pick is judged on what the STOCK did over the next
+    1, 3 and 5 trading days, in the direction of the pick. Only days after a
+    pick was made are used, so the model cannot be flattered by anything it
+    might have memorised about the past."""
+    picks = []
+    if PICKS.exists():
+        with PICKS.open() as f:
+            picks = [dict(r, who="trader") for r in csv.DictReader(f)]
+    if CANDIDATES.exists():
+        with CANDIDATES.open() as f:
+            picks += [dict(r, who="rules") for r in csv.DictReader(f) if int(r["rank"]) <= 3]
+    if not picks:
+        return []
+    start = min(p["date"] for p in picks)
+    bars = bot.api.daily_bars(sorted({p["symbol"] for p in picks}), start)
+    closes = {s: {b["t"][:10]: b["c"] for b in bs} for s, bs in bars.items()}
+    rows = []
+    for p in picks:
+        series = closes.get(p["symbol"], {})
+        days = sorted(series)
+        if p["date"] not in series:
+            continue
+        i, sign = days.index(p["date"]), 1 if p["direction"] == "call" else -1
+        row = {"date": p["date"], "who": p["who"], "symbol": p["symbol"], "direction": p["direction"]}
+        for h in HORIZONS:
+            later = days[i + h] if i + h < len(days) else None
+            row[f"move_{h}d_pct"] = round(sign * (series[later] / series[p["date"]] - 1) * 100, 2) if later else ""
+        rows.append(row)
+    rows.sort(key=lambda r: (r["date"], r["who"], r["symbol"]))
+    write_csv(SCORES, SCORE_FIELDS, rows)
+    return rows
+
+
+def shadow_section(scores):
+    lines = ["## The trader's own picks, scored against the rules", "",
+             "Neither set is traded. Each pick is judged on what the stock did afterwards, in the "
+             "direction of the pick. With only a handful of picks this is a scoreboard, not proof "
+             "of skill.", ""]
+    judged = [r for r in scores if r["move_1d_pct"] != ""]
+    if not judged:
+        return lines + ["No pick is old enough to score yet.", ""]
+    lines += ["| | Picks scored | Right after 1 day | Average 1-day move | Average 5-day move |",
+              "|---|---|---|---|---|"]
+    for who, label in (("trader", "The trader persona"), ("rules", "The rules' top three")):
+        mine = [r for r in judged if r["who"] == who]
+        if not mine:
+            continue
+        one = [r["move_1d_pct"] for r in mine]
+        five = [r["move_5d_pct"] for r in mine if r["move_5d_pct"] != ""]
+        lines.append(f"| {label} | {len(mine)} | {sum(x > 0 for x in one)} of {len(one)} | "
+                     f"{statistics.mean(one):+.2f}% | "
+                     + (f"{statistics.mean(five):+.2f}% |" if five else "too early |"))
+    return lines + [""]
 
 
 def money(x):
@@ -180,7 +290,7 @@ def flags(trades, closed, led, bot, now, equity):
     return out
 
 
-def write_review(trades, led, bot, now, regime, is_open):
+def write_review(trades, led, bot, now, regime, is_open, scores=()):
     closed = [t for t in trades if t["status"] == "closed"]
     quotes = bot.api.option_snapshots(led.pos) if led.pos else {}
     equity, cash = bot.sleeve(led, quotes)
@@ -236,10 +346,15 @@ def write_review(trades, led, bot, now, regime, is_open):
         lines += breakdown("By the reason it was sold", closed, lambda t: t["exit"],
                            {k: v for k, v in EXIT_WORDS.items()} | {
                                "half+trail": "took profit on half, then trailing stop"})
+    if scores:
+        lines += shadow_section(scores)
     lines += ["## Where the rest of the memory lives", "",
               "- `memory/trades.csv`: every trade, one row each.",
               "- `memory/market.csv`: the market's mood and strongest signals, one row a day.",
               "- `memory/LESSONS.md`: what the team has learned so far, written by hand.",
+              "- `memory/candidates.csv`, `memory/news.csv`: each day's signals and headlines.",
+              "- `memory/DIARY.md`, `memory/TRADER_NOTES.md`, `memory/shadow_picks.csv`: written by "
+              "the trader persona, a local AI model (see `trader.py`).",
               "- `STRATEGY_LOG.md`: every rule change with its date and reason, and the daily record.", ""]
     REVIEW.write_text("\n".join(lines))
     return found
@@ -251,9 +366,13 @@ def update(bot):
     led = bot.build_ledger(now)
     trades = build_trades(led, now.tzinfo)
     write_csv(TRADES, TRADE_FIELDS, trades)
-    row, _, regime = market_row(bot, now, clock["is_open"])
+    row, view, regime, ranked = market_row(bot, now, clock["is_open"])
     upsert_market(row)
-    found = write_review(trades, led, bot, now, regime, clock["is_open"])
+    write_candidates(row["date"], view, ranked)
+    headlines = write_news(bot, now)
+    scores = score_shadow(bot)
+    found = write_review(trades, led, bot, now, regime, clock["is_open"], scores)
     closed = sum(t["status"] == "closed" for t in trades)
     print(f"memory updated: {len(trades)} trades ({closed} closed), market row for {row['date']} "
-          f"({row['regime']}), {len(found)} flag(s) in {REVIEW.name}")
+          f"({row['regime']}), {len(ranked)} candidates, {headlines} headlines, "
+          f"{len(scores)} scored picks, {len(found)} flag(s) in {REVIEW.name}")
