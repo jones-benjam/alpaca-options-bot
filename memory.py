@@ -190,7 +190,7 @@ def score_shadow(bot):
     picks = []
     if PICKS.exists():
         with PICKS.open() as f:
-            picks = [dict(r, who="trader") for r in csv.DictReader(f)]
+            picks = [dict(r, who=r.get("name") or "trader") for r in csv.DictReader(f) if r.get("symbol")]
     if CANDIDATES.exists():
         with CANDIDATES.open() as f:
             picks += [dict(r, who="rules") for r in csv.DictReader(f) if int(r["rank"]) <= 3]
@@ -226,7 +226,8 @@ def shadow_section(scores):
         return lines + ["No pick is old enough to score yet.", ""]
     lines += ["| | Picks scored | Right after 1 day | Average 1-day move | Average 5-day move |",
               "|---|---|---|---|---|"]
-    for who, label in (("trader", "The trader persona"), ("rules", "The rules' top three")):
+    people = sorted({r["who"] for r in judged if r["who"] != "rules"})
+    for who, label in [(w, f"{w} (AI persona)") for w in people] + [("rules", "The rules' top three")]:
         mine = [r for r in judged if r["who"] == who]
         if not mine:
             continue

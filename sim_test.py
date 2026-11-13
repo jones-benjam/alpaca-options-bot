@@ -337,7 +337,7 @@ def test_shadow_scoring():
     assert get("trader", "NVDA", last)["move_1d_pct"] == "", "a pick with no later day is not scored yet"
     assert {r["symbol"] for r in rows if r["who"] == "rules"} == {"NVDA", "TSLA", "COIN"}, "rules = top three only"
     text = "\n".join(memory.shadow_section(rows))
-    assert "The trader persona | 2 | 1 of 2" in text, "the review counts only scored picks"
+    assert "| trader (AI persona) | 2 | 1 of 2" in text, "the review counts only scored picks"
     print("\n--- shadow picks scored: persona 1 of 2 right, rules judged on their top three ---")
 
 

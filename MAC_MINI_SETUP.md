@@ -58,6 +58,8 @@ do without changing anything, add `--dry-run`.
 | Try a different personality | Copy `memory/PERSONA.md` to a new name, edit it, set `PERSONA_FILE=` in `mac_mini/config.env`, then `python3 trader.py diary` |
 | Chat with him in the Ollama app | `python3 trader.py modelfile`, then follow what it prints |
 | Make him think harder or faster | Set `THINK=high` or `THINK=low` in `mac_mini/config.env` |
+| See whether personality changes the picks | On by default: two rivals, cautious Prudence and Quill the quant, pick from the same signals each day. Scores appear in `memory/REVIEW.md`. Edit `RIVALS=` in `mac_mini/config.env` to change or remove them. |
+| Check that everything is healthy | `mac_mini/doctor.sh` (changes nothing; tells you what to fix) |
 
 The rest of this page is the same setup done by hand, for reference and for
 fixing problems.
@@ -266,6 +268,8 @@ version. To try a change straight away: `python3 trader.py diary`.
   a silly diary entry.
 
 ## If something goes wrong
+
+First run `mac_mini/doctor.sh`. It checks every part and tells you what to fix.
 
 | Symptom | Fix |
 |---|---|

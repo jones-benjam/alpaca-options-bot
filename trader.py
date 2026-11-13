@@ -39,6 +39,9 @@ Settings (environment variables, or mac_mini/config.env):
     PERSONA_FILE  personality file in memory/   (default: PERSONA.md)
     THINK         how hard the model reasons before answering, for models that
                   support it: low, medium, high, true or false (default: the model's own)
+    RIVALS        other characters who also make picks each day, as
+                  "Name:file Name:file" (default: none). Their picks are scored
+                  side by side with his, to see whether personality matters.
     OLLAMA_URL    where Ollama is listening     (default: http://localhost:11434)
 """
 import csv
@@ -55,7 +58,7 @@ MEMORY = ROOT / "memory"
 DIARY, PERSONA = MEMORY / "DIARY.md", MEMORY / "PERSONA.md"
 NOTES, PICKS, LAST = MEMORY / "TRADER_NOTES.md", MEMORY / "shadow_picks.csv", MEMORY / "last_facts.txt"
 CANDIDATES, NEWS = MEMORY / "candidates.csv", MEMORY / "news.csv"
-PICK_FIELDS = ["date", "symbol", "direction", "conviction", "why"]
+PICK_FIELDS = ["date", "name", "symbol", "direction", "conviction", "why"]
 LOG, REVIEW = ROOT / "STRATEGY_LOG.md", MEMORY / "REVIEW.md"
 TRADES, MARKET, LESSONS = MEMORY / "trades.csv", MEMORY / "market.csv", MEMORY / "LESSONS.md"
 
@@ -74,6 +77,7 @@ def settings():
         "url": os.environ.get("OLLAMA_URL", "http://localhost:11434").rstrip("/"),
         "persona": os.environ.get("PERSONA_FILE", "PERSONA.md"),
         "think": os.environ.get("THINK", ""),
+        "rivals": [tuple(r.split(":", 1)) for r in os.environ.get("RIVALS", "").split() if ":" in r],
     }
 
 
@@ -278,6 +282,11 @@ def diary(cfg, day=None):
     if bad:
         text += ("\n\n*Checked automatically: these figures are not in the bot's records and "
                  f"should not be trusted: {', '.join(bad)}.*")
+    warnings = [re.sub(r"\*\*", "", w[2:]).strip() for w in section(REVIEW, "Things to look at first").splitlines()
+                if w.startswith("- ")]
+    warnings = [w for w in warnings if not w.startswith("Bets against the market's mood")]  # old news
+    text += ("\n\n> **The risk desk replies** (fixed rules, not the AI): "
+             + (" ".join(warnings) if warnings and warnings != ["Nothing flagged."] else "Nothing to flag today."))
     heading = f"## {label}"
     body = DIARY.read_text() if DIARY.exists() else (
         f"# {cfg['name']}'s diary\n\n"
@@ -345,15 +354,18 @@ def picks(cfg, day=None):
         key = (str(c.get("symbol", "")).upper(), c.get("direction"))
         if key in menu and key not in {(r["symbol"], r["direction"]) for r in rows}:
             why = "".join(ch for ch in str(c.get("why", "")) if ch.isprintable())[:200]
-            rows.append({"date": day, "symbol": key[0], "direction": key[1],
+            rows.append({"date": day, "name": cfg["name"], "symbol": key[0], "direction": key[1],
                          "conviction": max(1, min(5, int(c.get("conviction", 3)))), "why": why})
         else:
             dropped.append(f"{key[0]} {key[1]}")
-    kept = [r for r in read_csv(PICKS) if r["date"] != day] + rows
+    mine = lambda r: r["date"] == day and (r.get("name") or cfg["name"]) == cfg["name"]
+    kept = [dict(r, name=r.get("name") or cfg["name"]) for r in read_csv(PICKS) if not mine(r)] + rows
+    if not rows:  # remember that he looked and passed, so the job does not ask again
+        kept.append({"date": day, "name": cfg["name"], "symbol": "", "direction": "", "conviction": "", "why": "passed"})
     with PICKS.open("w", newline="") as f:
         w = csv.DictWriter(f, fieldnames=PICK_FIELDS)
         w.writeheader()
-        w.writerows(sorted(kept, key=lambda r: r["date"]))
+        w.writerows(sorted(kept, key=lambda r: (r["date"], r["name"])))
     for r in rows:
         print(f"{cfg['name']} would trade: {r['symbol']} {r['direction']} (conviction {r['conviction']}/5): {r['why']}")
     if not rows:
@@ -408,11 +420,13 @@ def nightly(cfg):
         print(f"Diary for {label} is already written.")
     else:  # also rewrites a preliminary entry once the day's official figures are in
         diary(cfg)
-    if any(r["date"] == day for r in read_csv(PICKS)):
-        print(f"Picks for {day} are already recorded.")
-    else:
-        print()
-        picks(cfg)
+    done = {(r["date"], r.get("name") or cfg["name"]) for r in read_csv(PICKS)}
+    for who in [cfg] + [dict(cfg, name=n, persona=f) for n, f in cfg.get("rivals", [])]:
+        if (day, who["name"]) in done:
+            print(f"{who['name']}'s picks for {day} are already recorded.")
+        else:
+            print()
+            picks(who)
     noted = NOTES.read_text() if NOTES.exists() else ""
     if dt.date.fromisoformat(day).weekday() == 4 and f"## {day}" not in noted:
         print()  # Friday: look back over the week, once
