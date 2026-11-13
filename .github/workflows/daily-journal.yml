@@ -39,15 +39,16 @@ jobs:
             exit 0
           fi
           python3 bot.py journal
+          python3 bot.py memory
 
-      - name: Commit the updated log
+      - name: Commit the updated log and memory
         run: |
-          if git diff --quiet -- STRATEGY_LOG.md; then
-            echo "No change to the log (market holiday or already recorded)."
+          git add STRATEGY_LOG.md memory
+          if git diff --cached --quiet; then
+            echo "No change (market holiday or already recorded)."
             exit 0
           fi
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add STRATEGY_LOG.md
           git commit -m "Daily journal: $(TZ=America/New_York date +%Y-%m-%d)"
           git push

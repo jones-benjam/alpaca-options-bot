@@ -70,8 +70,25 @@ python3 bot.py status                    # sleeve P&L, positions, recent trades
 python3 sim_test.py                      # offline test with a fake broker, no keys
 python3 bot.py journal                   # add today's row to STRATEGY_LOG.md
 python3 backtest_signal.py               # replay the rules on five years of prices
+python3 bot.py memory                    # refresh the trade table and review
 python3 measure_option_cost.py --cached  # were options overpriced? (real prices)
 ```
+
+### The bot's memory
+
+Every order id records why the order was placed (`e_<regime>_<signal>` on a
+buy, `x_<reason>` on a sell), so the history can always be rebuilt from Alpaca.
+`python3 bot.py memory` turns it into the files in `memory/`:
+
+- `trades.csv`: one row per trade with the regime and signal at entry, the exit
+  reason, days held and profit. `signal_pct` is the momentum score for
+  three-week bets and the distance past the opening range for same-day bets.
+- `market.csv`: one row per trading day with the regime and strongest signals.
+- `REVIEW.md`: a plain-English review written by fixed rules (no AI model, no
+  cost), including flags such as a bet against the regime.
+- `LESSONS.md`: what the team has learned, written by hand.
+
+The daily GitHub job refreshes all of these and commits them.
 
 `STRATEGY_LOG.md` is the project's plain-English record: what the strategy is,
 every change to it with the date and reason, and a row per trading day. Run

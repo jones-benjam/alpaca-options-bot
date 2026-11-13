@@ -18,6 +18,7 @@ loop, which means it survives restarts with no local database.
     python3 bot.py run                    # trade (paper) until stopped
     python3 bot.py status                 # sleeve P&L, positions, recent trades
     python3 bot.py journal                # record the day in STRATEGY_LOG.md
+    python3 bot.py memory                 # refresh the trade table and review in memory/
 """
 import argparse
 import datetime as dt
@@ -36,6 +37,26 @@ from alpaca import Alpaca, ApiError
 OCC = re.compile(r"^([A-Z]+)(\d{2})(\d{2})(\d{2})([CP])(\d{8})$")
 STATE_PATH = Path(C.STATE_FILE) if C.STATE_FILE else Path(__file__).with_name("state.json")
 LOG_PATH = Path(__file__).with_name("STRATEGY_LOG.md")
+LEGACY_PATH = Path(__file__).with_name("memory") / "legacy_tags.json"
+# Why an order was placed is written into its id, so the record lives at the
+# broker and survives restarts. Entries: e_<regime>_<signal in 1/100 of a %>.
+# Exits: x_<one of the codes below>.
+EXIT_CODES = {
+    "stop loss": "stop", "trailing stop": "trail", "breakeven stop": "be",
+    "trend flipped": "flip", "time stop": "time", "earnings report tonight": "earn",
+    "take profit on half": "half", "expiry-day time exit": "exp", "flatten": "flat",
+}
+try:  # reasons for orders placed before ids carried them, reconstructed from the logs
+    LEGACY = json.loads(LEGACY_PATH.read_text()) if LEGACY_PATH.exists() else {}
+except (ValueError, OSError):
+    LEGACY = {}
+
+
+def order_meta(client_order_id):
+    parts = client_order_id.split("-")
+    if len(parts) >= 4 and parts[2][:2] in ("e_", "x_"):
+        return parts[2]
+    return LEGACY.get(client_order_id, "")
 TERMINAL = {"filled", "canceled", "expired", "rejected", "done_for_day", "replaced"}
 
 
@@ -144,6 +165,7 @@ class Ledger:
         self.today = set()    # (tag, underlying) pairs with a fill today
         self.closed = []      # (time, symbol, qty, price, pnl dollars)
         self.opened = []      # (time, symbol, qty, price)
+        self.events = []      # every fill, with the reason it was placed (the trade memory)
 
 
 class Bot:
@@ -176,8 +198,9 @@ class Bot:
         tmp.write_text(json.dumps(self.state))
         tmp.replace(STATE_PATH)
 
-    def cid(self, tag):
-        return f"{C.BOT_TAG}-{tag}-{uuid.uuid4().hex[:16]}"
+    def cid(self, tag, meta=""):
+        """Order id. `meta` records why the order exists (see EXIT_CODES)."""
+        return f"{C.BOT_TAG}-{tag}-{meta + '-' if meta else ''}{uuid.uuid4().hex[:16]}"
 
     def bot_orders(self):
         found, after = {}, f"{C.START_DATE}T00:00:00Z"
@@ -199,22 +222,25 @@ class Bot:
             if qty > 0 and o.get("filled_avg_price") and parse_occ(o["symbol"]):
                 when = parse_ts(o.get("filled_at") or o.get("updated_at") or o["submitted_at"])
                 tag = o["client_order_id"].split("-")[1]
-                fills.append((when, o["symbol"], o["side"], qty, float(o["filled_avg_price"]), tag))
+                meta = order_meta(o["client_order_id"])
+                fills.append((when, o["symbol"], o["side"], qty, float(o["filled_avg_price"]), tag, meta))
         for s in self.state["synthetic"]:
-            fills.append((parse_ts(s["at"]), s["symbol"], "sell", s["qty"], s["px"], "writeoff"))
+            fills.append((parse_ts(s["at"]), s["symbol"], "sell", s["qty"], s["px"], "writeoff", "x_writeoff"))
         fills.sort(key=lambda f: f[0])
 
         led, today = Ledger(), now.date()
         if until:
             today = dt.date.fromisoformat(until)
             fills = [f for f in fills if f[0].astimezone(now.tzinfo).date() <= today]
-        for when, symbol, side, qty, px, tag in fills:
+        for when, symbol, side, qty, px, tag, meta in fills:
             if side == "buy":
                 p = led.pos.setdefault(symbol, Pos(symbol, tag))
                 p.qty += qty
                 p.cost += qty * px * 100
                 p.last_buy = when
                 led.opened.append((when, symbol, qty, px))
+                led.events.append({"when": when, "symbol": symbol, "side": "buy", "qty": qty,
+                                   "px": px, "tag": tag, "meta": meta})
                 if when.astimezone(now.tzinfo).date() == today:
                     led.today.add((tag, p.und))
             else:
@@ -226,6 +252,8 @@ class Bot:
                 pnl = qty * (px * 100 - per)
                 led.realized += pnl
                 led.closed.append((when, symbol, qty, px, pnl))
+                led.events.append({"when": when, "symbol": symbol, "side": "sell", "qty": qty,
+                                   "px": px, "tag": p.tag, "meta": meta, "pnl": pnl})
                 p.cost -= per * qty
                 p.qty -= qty
                 p.sold += qty
@@ -236,6 +264,8 @@ class Bot:
                 log(f"WARNING {symbol} expired while held; booking it as a total loss")
                 led.realized -= p.cost
                 led.closed.append((now, symbol, p.qty, 0.0, -p.cost))
+                led.events.append({"when": now, "symbol": symbol, "side": "sell", "qty": p.qty,
+                                   "px": 0.0, "tag": p.tag, "meta": "x_expired", "pnl": -p.cost})
                 del led.pos[symbol]
         return led
 
@@ -402,7 +432,7 @@ class Bot:
                 time.sleep(1)
         return int(float(o.get("filled_qty") or 0)), float(o.get("filled_avg_price") or 0)
 
-    def buy(self, und, symbol, qty, tag, note):
+    def buy(self, und, symbol, qty, tag, note, meta=""):
         log(f"BUY  {qty} x {symbol} [{tag}] {note}" + (" (dry run, not sent)" if self.dry else ""))
         if self.dry:
             return qty
@@ -414,7 +444,7 @@ class Bot:
             bid, ask, mid = q
             price = round_to(mid + frac * (ask - mid), tick_for(und, ask), up=True)
             try:
-                order = self.api.submit(symbol, left, "buy", self.cid(tag), limit_price=price)
+                order = self.api.submit(symbol, left, "buy", self.cid(tag, meta), limit_price=price)
             except ApiError as err:
                 log(f"     buy rejected: {err}")
                 break
@@ -436,6 +466,7 @@ class Bot:
         )
         if self.dry or qty <= 0:
             return 0
+        why = "x_" + EXIT_CODES.get(reason, "other")
         done, left = 0, qty
         for attempt in range(3):  # at the bid, one tick lower, then market
             q = read_quote(self.api.option_snapshots([p.symbol]).get(p.symbol))
@@ -444,9 +475,9 @@ class Bot:
             try:
                 if attempt < 2 and bid > 0:
                     price = round_to(bid - attempt * tick, tick, up=False)
-                    order = self.api.submit(p.symbol, left, "sell", self.cid(p.tag), limit_price=price)
+                    order = self.api.submit(p.symbol, left, "sell", self.cid(p.tag, why), limit_price=price)
                 else:
-                    order = self.api.submit(p.symbol, left, "sell", self.cid(p.tag))
+                    order = self.api.submit(p.symbol, left, "sell", self.cid(p.tag, why))
             except ApiError as err:
                 log(f"     sell rejected: {err}")
                 break
@@ -616,7 +647,8 @@ class Bot:
                 f"{kind} on {und}, momentum {strength:+.1%}, delta {pick['delta']:+.2f}, "
                 f"{pick['dte']} DTE, ask ${pick['ask']:.2f}, about ${qty * pick['ask'] * 100:,.0f}"
             )
-            if self.buy(und, pick["symbol"], qty, "core", note):
+            meta = f"e_{regime}_{int(round(strength * 10000))}"
+            if self.buy(und, pick["symbol"], qty, "core", note, meta):
                 free -= 1
                 held.add(und)
                 count[kind] += 1
@@ -667,7 +699,9 @@ class Bot:
                 f"0DTE {kind} on {und}: ${px:.2f} broke the opening range "
                 f"${low:.2f}-${high:.2f}, strike {pick['strike']:g}, ask ${pick['ask']:.2f}"
             )
-            if self.buy(und, pick["symbol"], qty, "odte", note):
+            edge = px / high - 1 if kind == "call" else 1 - px / low  # how far past the range
+            meta = f"e_{regime}_{int(round(edge * 10000))}"
+            if self.buy(und, pick["symbol"], qty, "odte", note, meta):
                 taken += 1
                 if not self.dry:
                     led = self.build_ledger(now)
@@ -905,11 +939,16 @@ def main():
     sub.add_parser("status", help="print the sleeve's P&L and positions")
     jr = sub.add_parser("journal", help="record the day's results in STRATEGY_LOG.md")
     jr.add_argument("--date", help="rewrite the previous session's row (YYYY-MM-DD)")
+    sub.add_parser("memory", help="refresh memory/: the trade table, market snapshot and review")
     args = parser.parse_args()
     if args.cmd == "status":
         Bot(dry=True).status()
     elif args.cmd == "journal":
         journal(Bot(dry=True), args.date)
+    elif args.cmd == "memory":
+        import memory
+
+        memory.update(Bot(dry=True))
     else:
         dry = args.dry_run or C._env("DRY_RUN", False, bool)
         Bot(dry=dry).run(args.once)

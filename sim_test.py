@@ -290,6 +290,25 @@ def test_peak_survives_restart():
     assert "NVDA" in unds(led) and "COIN" in unds(led), "positions with no big past gain are kept"
 
 
+def test_trade_memory():
+    import memory
+
+    b, f, step = harness(trend=1)
+    step("open positions")
+    led, _ = step("NVDA option -60% for two passes: stop loss", ticks=2, NVDA=0.4)
+    rows = memory.build_trades(led, TZ)
+    nvda = next(r for r in rows if r["underlying"] == "NVDA" and r["engine"] == "core")
+    assert nvda["status"] == "closed" and nvda["exit"] == "stop", "exit reason is remembered"
+    assert nvda["regime"] == "bull" and nvda["signal_pct"] > 0, "entry reason is remembered"
+    assert nvda["profit"] < 0 and nvda["profit_pct"] < -50, "result is remembered"
+    still = [r for r in rows if r["status"] == "open"]
+    assert still and all(r["regime"] == "bull" for r in still), "open trades carry their entry reason"
+    fresh = bot.Bot(dry=False)   # a restart must not lose any of it
+    fresh.api = f
+    assert memory.build_trades(fresh.build_ledger(f.now), TZ) == rows, "memory survives a restart"
+    print(f"\n--- trade memory: {len(rows)} trades rebuilt from order ids alone ---")
+
+
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
     test_default_sizing()
@@ -300,6 +319,7 @@ def main():
     test_earnings_guard()
     test_cash_cap()
     test_peak_survives_restart()
+    test_trade_memory()
     print("\nALL SIMULATION CHECKS PASSED")
 
 
