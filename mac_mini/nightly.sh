@@ -24,7 +24,9 @@ else
   echo "The model is not ready, so the trader wrote nothing today."
 fi
 
-git add STRATEGY_LOG.md memory
+python3 dashboard.py || echo "dashboard failed; carrying on"
+
+git add STRATEGY_LOG.md memory docs
 if git diff --cached --quiet; then
   echo "Nothing new to save."
   exit 0

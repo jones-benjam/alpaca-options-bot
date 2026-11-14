@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Options bot dashboard</title><style>
+:root { color-scheme: light;
+  --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,0.10);
+  --account:#2a78d6; --spy:#eb6834; --gain:#2a78d6; --loss:#e34948; --up:#006300; --down:#d03b3b; }
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
+  --account:#3987e5; --spy:#d95926; --gain:#3987e5; --loss:#e66767; --up:#0ca30c; --down:#e66767; } }
+:root[data-theme="dark"] { color-scheme: dark;
+  --page:#0d0d0d; --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
+  --account:#3987e5; --spy:#d95926; --gain:#3987e5; --loss:#e66767; --up:#0ca30c; --down:#e66767; }
+* { box-sizing: border-box; }
+body { margin:0; background:var(--page); color:var(--ink);
+  font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
+main { max-width:980px; margin:0 auto; padding:24px 16px 48px; }
+h1 { font-size:26px; margin:0 0 4px; } h2 { font-size:18px; margin:0 0 4px; }
+p { margin:0 0 12px; } .sub { color:var(--ink2); margin-bottom:20px; } .small { color:var(--muted); font-size:13px; }
+.card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:16px; }
+.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-bottom:16px; }
+.tile { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
+.tile .k { color:var(--ink2); font-size:13px; } .tile .v { font-size:28px; font-weight:650; line-height:1.2; }
+.tile .d { font-size:13px; color:var(--ink2); } .up { color:var(--up); } .down { color:var(--down); }
+.legend { display:flex; gap:18px; flex-wrap:wrap; color:var(--ink2); font-size:14px; margin:6px 0 4px; }
+.key { display:inline-block; width:18px; height:0; border-top:2px solid; vertical-align:middle; margin-right:6px; }
+.sw { display:inline-block; width:10px; height:10px; border-radius:2px; vertical-align:middle; margin-right:6px; }
+.chartwrap { position:relative; } svg.chart { width:100%; height:auto; display:block; overflow:visible; }
+.grid { stroke:var(--grid); stroke-width:1; } .axis { stroke:var(--axis); stroke-width:1; }
+.tick { fill:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
+.line { fill:none; stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+.line.s-account, .dot.s-account { stroke:var(--account); } .line.s-spy { stroke:var(--spy); }
+.dot { stroke:var(--surface); stroke-width:2; } .dot.s-account { fill:var(--account); } .dot.s-spy { fill:var(--spy); stroke:var(--surface); }
+.endlabel { fill:var(--ink2); font-size:13px; } .endlabel .strong { fill:var(--ink); font-weight:650; }
+.barlabel { fill:var(--ink); font-size:12px; font-weight:600; }
+.bar.gain { fill:var(--gain); } .bar.loss { fill:var(--loss); }
+.bar:hover, .bar:focus { opacity:.78; outline:none; } .hit { fill:transparent; outline:none; }
+.crosshair { stroke:var(--axis); stroke-width:1; }
+.tip { position:absolute; pointer-events:none; background:var(--surface); border:1px solid var(--border);
+  border-radius:8px; padding:8px 10px; font-size:13px; box-shadow:0 4px 14px rgba(0,0,0,.12); white-space:nowrap; display:none; z-index:2; }
+.tip b { font-size:15px; } .tip .row { color:var(--ink2); }
+table { border-collapse:collapse; width:100%; font-size:14px; } th, td { text-align:left; padding:6px 10px 6px 0; border-bottom:1px solid var(--grid); }
+th { color:var(--ink2); font-weight:600; } td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; }
+.scroll { overflow-x:auto; } details { margin-top:10px; } summary { cursor:pointer; color:var(--ink2); font-size:14px; }
+blockquote { margin:0; padding:0 0 0 14px; border-left:3px solid var(--axis); color:var(--ink2); white-space:pre-wrap; }
+ul { margin:0; padding-left:20px; } li { margin-bottom:6px; }
+</style></head><body><main>
+<h1>Options bot: how we stand against SPY</h1>
+<p class="sub">A class project on practice money. The goal is to finish ahead of a portfolio that simply holds SPY.
+As of 2026-11-13 (preliminary).</p>
+<div class="tiles"><div class="tile"><div class="k">Whole account</div><div class="v">$120,568</div><div class="d up">▲ +20.6% since the start</div></div><div class="tile"><div class="k">SPY, the benchmark</div><div class="v">+2.6%</div><div class="d ">since the contest began</div></div><div class="tile"><div class="k">Lead over SPY</div><div class="v">+18.0 pts</div><div class="d up">▲ ahead of the professor</div></div><div class="tile"><div class="k">The bot&#x27;s profit</div><div class="v">+$22,523</div><div class="d ">on a sleeve now worth $72,523</div></div><div class="tile"><div class="k">Closed trades</div><div class="v">4 of 8</div><div class="d ">made money</div></div></div>
+
+<section class="card">
+  <h2>The account against SPY</h2>
+  <p class="sub">Percent change since the start, on one scale. The account started at $100,000.</p>
+  <div class="legend"><span><span class="key" style="border-color:var(--account)"></span>Account</span>
+    <span><span class="key" style="border-color:var(--spy)"></span>SPY</span></div>
+  <div class="chartwrap" id="line-wrap"><svg viewBox="0 0 720 300" role="img" aria-labelledby="lc-title lc-desc" class="chart" id="line-chart">
+<title id="lc-title">Account and SPY, percent change since the start</title>
+<desc id="lc-desc">The account is at +20.6% and SPY at +2.6% as of Nov 13*.</desc>
+<line class="axis" x1="46" x2="608" y1="270.0" y2="270.0"/>
+<text class="tick" x="38" y="274.0" text-anchor="end">0%</text>
+<line class="grid" x1="46" x2="608" y1="218.8" y2="218.8"/>
+<text class="tick" x="38" y="222.8" text-anchor="end">5%</text>
+<line class="grid" x1="46" x2="608" y1="167.6" y2="167.6"/>
+<text class="tick" x="38" y="171.6" text-anchor="end">10%</text>
+<line class="grid" x1="46" x2="608" y1="116.4" y2="116.4"/>
+<text class="tick" x="38" y="120.4" text-anchor="end">15%</text>
+<line class="grid" x1="46" x2="608" y1="65.2" y2="65.2"/>
+<text class="tick" x="38" y="69.2" text-anchor="end">20%</text>
+<line class="grid" x1="46" x2="608" y1="14.0" y2="14.0"/>
+<text class="tick" x="38" y="18.0" text-anchor="end">25%</text>
+<text class="tick" x="46.0" y="292" text-anchor="middle">Start</text>
+<text class="tick" x="158.4" y="292" text-anchor="middle">Nov 9</text>
+<text class="tick" x="270.8" y="292" text-anchor="middle">Nov 10</text>
+<text class="tick" x="383.2" y="292" text-anchor="middle">Nov 11</text>
+<text class="tick" x="495.6" y="292" text-anchor="middle">Nov 12</text>
+<text class="tick" x="608.0" y="292" text-anchor="middle">Nov 13*</text>
+<path class="line s-spy" d="M46.0,270.0 L158.4,245.8 L270.8,249.7 L383.2,236.0 L495.6,239.7 L608.0,243.7"/>
+<path class="line s-account" d="M46.0,270.0 L158.4,269.9 L270.8,203.5 L383.2,269.4 L495.6,74.5 L608.0,59.4"/>
+<circle class="dot s-account" cx="608.0" cy="59.4" r="4.5"/>
+<text class="endlabel" x="618.0" y="63.4"><tspan class="strong">+20.6%</tspan> Account</text>
+<circle class="dot s-spy" cx="608.0" cy="243.7" r="4.5"/>
+<text class="endlabel" x="618.0" y="247.7"><tspan class="strong">+2.6%</tspan> SPY</text>
+<line class="crosshair" id="crosshair" x1="0" x2="0" y1="14" y2="270" visibility="hidden"/>
+<rect class="hit" data-i="0" data-x="46.0" x="46.0" y="14" width="56.2" height="256" tabindex="0" aria-label="Start: account +0.0%, SPY +0.0%"/>
+<rect class="hit" data-i="1" data-x="158.4" x="102.2" y="14" width="112.4" height="256" tabindex="0" aria-label="Nov 9: account +0.0%, SPY +2.4%"/>
+<rect class="hit" data-i="2" data-x="270.8" x="214.6" y="14" width="112.4" height="256" tabindex="0" aria-label="Nov 10: account +6.5%, SPY +2.0%"/>
+<rect class="hit" data-i="3" data-x="383.2" x="327.0" y="14" width="112.4" height="256" tabindex="0" aria-label="Nov 11: account +0.1%, SPY +3.3%"/>
+<rect class="hit" data-i="4" data-x="495.6" x="439.4" y="14" width="112.4" height="256" tabindex="0" aria-label="Nov 12: account +19.1%, SPY +3.0%"/>
+<rect class="hit" data-i="5" data-x="608.0" x="551.8" y="14" width="56.2" height="256" tabindex="0" aria-label="Nov 13*: account +20.6%, SPY +2.6%"/>
+</svg><div class="tip" id="line-tip"></div></div>
+  <p class="small">* The latest day uses prices from when the page was built. It is replaced with Alpaca's official close afterwards.</p>
+  <details><summary>Show the numbers</summary><div class="scroll"><table>
+    <tr><th>Day</th><th class="n">Account</th><th class="n">Account change</th><th class="n">SPY change</th></tr>
+    <tr><td>Start</td><td class='n'>$100,000</td><td class='n'>+0.0%</td><td class='n'>+0.0%</td></tr><tr><td>Nov 9</td><td class='n'>$100,006</td><td class='n'>+0.0%</td><td class='n'>+2.4%</td></tr><tr><td>Nov 10</td><td class='n'>$106,493</td><td class='n'>+6.5%</td><td class='n'>+2.0%</td></tr><tr><td>Nov 11</td><td class='n'>$100,054</td><td class='n'>+0.1%</td><td class='n'>+3.3%</td></tr><tr><td>Nov 12</td><td class='n'>$119,090</td><td class='n'>+19.1%</td><td class='n'>+3.0%</td></tr><tr><td>Nov 13*</td><td class='n'>$120,568</td><td class='n'>+20.6%</td><td class='n'>+2.6%</td></tr></table></div></details>
+</section>
+
+<section class="card">
+  <h2>Every closed trade</h2>
+  <p class="sub">Profit or loss in dollars, in the order the trades were opened. A few large winners carry the result.</p>
+  <div class="legend"><span><span class="sw" style="background:var(--gain)"></span>Made money (above the line)</span>
+    <span><span class="sw" style="background:var(--loss)"></span>Lost money (below the line)</span></div>
+  <div class="chartwrap" id="bar-wrap"><svg viewBox="0 0 720 260" role="img" aria-labelledby="bc-title bc-desc" class="chart" id="bar-chart">
+<title id="bc-title">Profit or loss of each closed trade</title>
+<desc id="bc-desc">4 of 8 closed trades made money. Best +$8,460, worst −$1,568.</desc>
+<line class="grid" x1="56" x2="704" y1="226.0" y2="226.0"/>
+<text class="tick" x="48" y="230.0" text-anchor="end">−$5K</text>
+<line class="axis" x1="56" x2="704" y1="158.0" y2="158.0"/>
+<text class="tick" x="48" y="162.0" text-anchor="end">$0</text>
+<line class="grid" x1="56" x2="704" y1="90.0" y2="90.0"/>
+<text class="tick" x="48" y="94.0" text-anchor="end">$5K</text>
+<line class="grid" x1="56" x2="704" y1="22.0" y2="22.0"/>
+<text class="tick" x="48" y="26.0" text-anchor="end">$10K</text>
+<path class="bar gain" d="M84.5,158.0 V46.9 Q84.5,42.9 88.5,42.9 H104.5 Q108.5,42.9 108.5,46.9 V158.0 Z" tabindex="0" data-tip="#1 NVDA put: +$8,460 (half sold at double then trailing stop)" aria-label="#1 NVDA put: +$8,460 (half sold at double then trailing stop)"/>
+<text class="barlabel" x="96.5" y="36.9" text-anchor="middle">+$8,460</text>
+<text class="tick" x="96.5" y="250" text-anchor="middle">#1</text>
+<path class="bar loss" d="M165.5,158.0 V165.0 Q165.5,169.0 169.5,169.0 H185.5 Q189.5,169.0 189.5,165.0 V158.0 Z" tabindex="0" data-tip="#4 SPY call: −$810 (stop loss)" aria-label="#4 SPY call: −$810 (stop loss)"/>
+<text class="tick" x="177.5" y="250" text-anchor="middle">#4</text>
+<path class="bar loss" d="M246.5,158.0 V165.0 Q246.5,169.0 250.5,169.0 H266.5 Q270.5,169.0 270.5,165.0 V158.0 Z" tabindex="0" data-tip="#5 QQQ call: −$810 (stop loss)" aria-label="#5 QQQ call: −$810 (stop loss)"/>
+<text class="tick" x="258.5" y="250" text-anchor="middle">#5</text>
+<path class="bar loss" d="M327.5,158.0 V175.3 Q327.5,179.3 331.5,179.3 H347.5 Q351.5,179.3 351.5,175.3 V158.0 Z" tabindex="0" data-tip="#7 NFLX put: −$1,568 (trend reversed)" aria-label="#7 NFLX put: −$1,568 (trend reversed)"/>
+<text class="barlabel" x="339.5" y="193.3" text-anchor="middle">−$1,568</text>
+<text class="tick" x="339.5" y="250" text-anchor="middle">#7</text>
+<path class="bar gain" d="M408.5,158.0 V110.7 Q408.5,106.7 412.5,106.7 H428.5 Q432.5,106.7 432.5,110.7 V158.0 Z" tabindex="0" data-tip="#9 SPY call: +$3,775 (half sold at double then trailing stop)" aria-label="#9 SPY call: +$3,775 (half sold at double then trailing stop)"/>
+<text class="tick" x="420.5" y="250" text-anchor="middle">#9</text>
+<path class="bar loss" d="M489.5,158.0 V158.0 Q489.5,159.5 491.0,159.5 H512.0 Q513.5,159.5 513.5,158.0 V158.0 Z" tabindex="0" data-tip="#10 AMD call: −$50 (back to break-even)" aria-label="#10 AMD call: −$50 (back to break-even)"/>
+<text class="tick" x="501.5" y="250" text-anchor="middle">#10</text>
+<path class="bar gain" d="M570.5,158.0 V115.1 Q570.5,111.1 574.5,111.1 H590.5 Q594.5,111.1 594.5,115.1 V158.0 Z" tabindex="0" data-tip="#12 QQQ call: +$3,450 (half sold at double then trailing stop)" aria-label="#12 QQQ call: +$3,450 (half sold at double then trailing stop)"/>
+<text class="tick" x="582.5" y="250" text-anchor="middle">#12</text>
+<path class="bar gain" d="M651.5,158.0 V107.9 Q651.5,103.9 655.5,103.9 H671.5 Q675.5,103.9 675.5,107.9 V158.0 Z" tabindex="0" data-tip="#13 QQQ put: +$3,976 (half sold at double then trailing stop)" aria-label="#13 QQQ put: +$3,976 (half sold at double then trailing stop)"/>
+<text class="tick" x="663.5" y="250" text-anchor="middle">#13</text>
+</svg><div class="tip" id="bar-tip"></div></div>
+  <details><summary>Show the numbers</summary><div class="scroll"><table>
+    <tr><th>Trade</th><th>Bet</th><th>Opened</th><th>Market mood</th><th>Why it was sold</th><th class="n">Result</th><th class="n">Return</th></tr>
+    <tr><td>#1</td><td>NVDA put</td><td>2026-11-09</td><td>bear</td><td>half sold at double then trailing stop</td><td class='n'>+$8,460</td><td class='n'>+129%</td></tr><tr><td>#4</td><td>SPY call</td><td>2026-11-10</td><td>bear</td><td>stop loss</td><td class='n'>−$810</td><td class='n'>-53%</td></tr><tr><td>#5</td><td>QQQ call</td><td>2026-11-10</td><td>bear</td><td>stop loss</td><td class='n'>−$810</td><td class='n'>-54%</td></tr><tr><td>#7</td><td>NFLX put</td><td>2026-11-11</td><td>bear</td><td>trend reversed</td><td class='n'>−$1,568</td><td class='n'>-23%</td></tr><tr><td>#9</td><td>SPY call</td><td>2026-11-11</td><td>mixed</td><td>half sold at double then trailing stop</td><td class='n'>+$3,775</td><td class='n'>+138%</td></tr><tr><td>#10</td><td>AMD call</td><td>2026-11-11</td><td>mixed</td><td>back to break-even</td><td class='n'>−$50</td><td class='n'>-1%</td></tr><tr><td>#12</td><td>QQQ call</td><td>2026-11-12</td><td>mixed</td><td>half sold at double then trailing stop</td><td class='n'>+$3,450</td><td class='n'>+86%</td></tr><tr><td>#13</td><td>QQQ put</td><td>2026-11-13</td><td>bear</td><td>half sold at double then trailing stop</td><td class='n'>+$3,976</td><td class='n'>+94%</td></tr></table></div></details>
+</section>
+<section class="card">
+  <h2>What the bot holds now</h2>
+  <p class="sub">"P" is a put, a bet that the price falls. "C" is a call, a bet that it rises. The percentage is the result so far.</p>
+  <ul><li>8 PLTR 11/27 172.5P (+2%)</li><li>7 COIN 11/27 140P (+34%)</li><li>6 MSTR 12/04 125P (+46%)</li><li>3 MSFT 12/04 540P (+8%)</li><li>46 NFLX 12/04 63P (+3%)</li></ul>
+</section>
+
+<section class="card">
+  <h2>Things to look at first</h2>
+  <p class="sub">Warnings from the bot's rule-based review.</p>
+  <ul><li>Bets against the market&#x27;s mood: #4 SPY call (2026-11-10), #5 QQQ call (2026-11-10). The rules have blocked these for same-day bets since Nov 11; any after that date would be a bug.</li><li>One-way book: all 5 open bets are puts. A sharp move the other way would hit every one of them together.</li></ul>
+</section>
+
+<p class="small">Built Nov 13, 2026 at 7:49 PM from the project's own records by <code>python3 dashboard.py</code>.
+Full history: STRATEGY_LOG.md and the memory folder.</p>
+</main>
+<script type="application/json" id="line-data">[{"name": "Start", "accountText": "+0.0%", "accountValue": "$100,000", "spyText": "+0.0%"}, {"name": "Nov 9", "accountText": "+0.0%", "accountValue": "$100,006", "spyText": "+2.4%"}, {"name": "Nov 10", "accountText": "+6.5%", "accountValue": "$106,493", "spyText": "+2.0%"}, {"name": "Nov 11", "accountText": "+0.1%", "accountValue": "$100,054", "spyText": "+3.3%"}, {"name": "Nov 12", "accountText": "+19.1%", "accountValue": "$119,090", "spyText": "+3.0%"}, {"name": "Nov 13*", "accountText": "+20.6%", "accountValue": "$120,568", "spyText": "+2.6%"}]</script>
+<script>
+(function () {
+  var data = JSON.parse(document.getElementById('line-data').textContent);
+  var wrap = document.getElementById('line-wrap'), svg = document.getElementById('line-chart');
+  var tip = document.getElementById('line-tip'), cross = document.getElementById('crosshair');
+  function row(cls, value, name) {
+    var d = document.createElement('div'); d.className = 'row';
+    var k = document.createElement('span'); k.className = 'key'; k.style.borderColor = 'var(--' + cls + ')';
+    var b = document.createElement('b'); b.textContent = value + ' ';
+    d.appendChild(k); d.appendChild(b); d.appendChild(document.createTextNode(name)); return d;
+  }
+  function show(rect) {
+    var p = data[+rect.dataset.i], x = +rect.dataset.x;
+    cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
+    tip.textContent = '';
+    var h = document.createElement('div'); h.textContent = p.name; tip.appendChild(h);
+    tip.appendChild(row('account', p.accountText + ' (' + p.accountValue + ')', 'Account'));
+    tip.appendChild(row('spy', p.spyText, 'SPY'));
+    tip.style.display = 'block';
+    var box = svg.getBoundingClientRect(), scale = box.width / 720, left = x * scale + 12;
+    if (left + tip.offsetWidth > box.width) left = x * scale - tip.offsetWidth - 12;
+    tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '8px';
+  }
+  function hide() { tip.style.display = 'none'; cross.setAttribute('visibility', 'hidden'); }
+  svg.querySelectorAll('.hit').forEach(function (r) {
+    r.addEventListener('pointermove', function () { show(r); });
+    r.addEventListener('focus', function () { show(r); });
+    r.addEventListener('blur', hide);
+  });
+  svg.addEventListener('pointerleave', hide);
+
+  var bwrap = document.getElementById('bar-wrap'), btip = document.getElementById('bar-tip');
+  if (bwrap) bwrap.querySelectorAll('.bar').forEach(function (b) {
+    function on() {
+      btip.textContent = b.dataset.tip; btip.style.display = 'block';
+      var w = bwrap.getBoundingClientRect(), r = b.getBoundingClientRect();
+      var left = r.left - w.left + r.width / 2 - btip.offsetWidth / 2;
+      btip.style.left = Math.max(0, Math.min(left, w.width - btip.offsetWidth)) + 'px';
+      btip.style.top = Math.max(0, r.top - w.top - btip.offsetHeight - 8) + 'px';
+    }
+    function off() { btip.style.display = 'none'; }
+    b.addEventListener('pointermove', on); b.addEventListener('focus', on);
+    b.addEventListener('pointerleave', off); b.addEventListener('blur', off);
+  });
+})();
+</script></body></html>
