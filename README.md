@@ -71,6 +71,7 @@ python3 sim_test.py                      # offline test with a fake broker, no k
 python3 bot.py journal                   # add today's row to STRATEGY_LOG.md
 python3 backtest_signal.py               # replay the rules on five years of prices
 python3 bot.py memory                    # refresh the trade table and review
+python3 dashboard.py                     # build the one-page dashboard, docs/index.html
 python3 measure_option_cost.py --cached  # were options overpriced? (real prices)
 ```
 

@@ -40,10 +40,11 @@ jobs:
           fi
           python3 bot.py journal
           python3 bot.py memory
+          python3 dashboard.py
 
       - name: Commit the updated log and memory
         run: |
-          git add STRATEGY_LOG.md memory
+          git add STRATEGY_LOG.md memory docs
           if git diff --cached --quiet; then
             echo "No change (market holiday or already recorded)."
             exit 0
