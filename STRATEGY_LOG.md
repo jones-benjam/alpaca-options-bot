@@ -293,14 +293,15 @@ trending, not on skill.
   day's news headlines for our stocks, both free from Alpaca.
 - **Effect on trading:** None.
 
-### Tue Nov 17, 2026, 3:42 pm: Profits go back into the engine
+### Tue Nov 17, 2026, 3:43 pm: Profits go back into the engine
 - **What:** (1) The bot can now hold up to ten main bets instead of six. It
   keeps opening new bets, each about 14% of the sleeve as it stands that day,
   for as long as it has the cash, so money freed by profitable sales goes
   straight back to work. (2) It always keeps enough cash back for one
   same-day bet. (3) It skips a new bet smaller than half the normal size,
-  rather than dribbling leftover cash into tiny ones. Takes effect from the
-  next trading morning.
+  rather than dribbling leftover cash into tiny ones. It went live at
+  3:43 pm, inside the day's buying window, and immediately opened three new
+  bets with the idle cash: puts on Google, Meta and AMD, about $46,000 in all.
 - **Why:** The team's instruction: every dollar of profit that comes back
   as cash should keep the engine going, to make as much as possible. Bets
   already grew with the sleeve, but once all six slots were filled, cash
