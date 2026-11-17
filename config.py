@@ -32,7 +32,10 @@ UNIVERSE = [
 PENNY_ALL = {"SPY", "QQQ", "IWM"}  # options quoted in $0.01 at every price
 
 # ---- Core: short-dated momentum options --------------------------------------
-CORE_SLOTS = _env("CORE_SLOTS", 6, int)
+# Profits are reinvested: each bet is a share of the sleeve as it stands now, and
+# cash freed by sales funds new bets for as long as it lasts, up to this many.
+CORE_SLOTS = _env("CORE_SLOTS", 10, int)
+CORE_MIN_BET_SHARE = 0.5         # skip a new bet smaller than half a full-size one
 CORE_SLOT_PCT = _env("CORE_SLOT_PCT", 0.14, float)  # of sleeve equity, per slot
 CORE_MIN_STRENGTH = 0.02    # skip names with under 2% blended momentum
 CORE_DTE_MIN = 14

@@ -639,7 +639,12 @@ class Bot:
             pick = self.pick_core(und, kind, view[und], today)
             if not pick:
                 continue
-            qty = int(self.budget(C.CORE_SLOT_PCT, equity, cash) // (pick["ask"] * 100))
+            money = self.budget(C.CORE_SLOT_PCT, equity, cash)
+            if C.ODTE_ENABLED:  # always keep enough back for one same-day bet
+                money = min(money, max(0.0, cash - C.ODTE_RISK_PCT * equity))
+            if money < C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * equity:
+                break  # not enough cash left for a proper-size bet
+            qty = int(money // (pick["ask"] * 100))
             if qty < 1:
                 continue
             self.attempts[key] += 1

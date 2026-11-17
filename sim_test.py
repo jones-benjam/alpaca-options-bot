@@ -232,9 +232,12 @@ def test_odte_follows_regime():
 
 def test_default_sizing():
     b, f, step = harness(trend=1)
-    led, _ = step(f"default settings (${C.SLEEVE_START:,.0f} sleeve): expect {C.CORE_SLOTS} core positions")
+    led, _ = step(f"default settings (${C.SLEEVE_START:,.0f} sleeve): expect bets until the cash runs out")
     core = [p for p in led.pos.values() if p.tag == "core"]
-    assert len(core) == C.CORE_SLOTS, "every core slot should fill"
+    assert 6 <= len(core) <= C.CORE_SLOTS, "cash, not a fixed slot count, sets how many bets"
+    assert all(p.cost >= C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * C.SLEEVE_START * 0.9 for p in core), "no dribble bets"
+    odte = [p for p in led.pos.values() if p.tag == "odte"]
+    assert odte and odte[0].cost >= C.ODTE_RISK_PCT * C.SLEEVE_START * 0.9, "cash is kept back for a full same-day bet"
     assert all(p.cost <= C.CORE_SLOT_PCT * C.SLEEVE_START * 1.01 for p in core), "position size cap"
     assert b.sleeve(led, f.option_snapshots(led.pos))[1] >= 0, "the sleeve must never overspend"
 
