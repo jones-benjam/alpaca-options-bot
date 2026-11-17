@@ -1,31 +1,32 @@
 # Review of the bot's trades
 
-Generated Sat Nov 14, 2026, 1:33 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Mon Nov 16, 2026, 10:57 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
 
-- **Sleeve:** $75,497 on $50,000 of capital (+$25,497).
-- **Closed trades:** 8, of which 4 made money (50%).
-- **Banked profit or loss:** +$16,423.
-- **Typical winner and loser:** +$4,915 against -$810.
+- **Sleeve:** $94,216 on $50,000 of capital (+$44,216).
+- **Closed trades:** 9, of which 4 made money (44%).
+- **Banked profit or loss:** +$21,573.
+- **Typical winner and loser:** +$4,915 against -$683.
 - **Best and worst:** #1 NVDA +$8,460, #7 NFLX -$1,568.
 - **Market mood now:** bear.
 
 ## Things to look at first
 
 - **Bets against the market's mood:** #4 SPY call (2026-11-10), #5 QQQ call (2026-11-10). The rules have blocked these for same-day bets since Nov 11; any after that date would be a bug.
-- **One-way book:** all 5 open bets are puts. A sharp move the other way would hit every one of them together.
+- **One-way book:** all 6 open bets are puts. A sharp move the other way would hit every one of them together.
 
 ## Open bets
 
 | Bet | Paid | Now | Result so far |
 |---|---|---|---|
-| 8 PLTR 11/27 172.5P | $8.65 | $9.03 | +4% |
-| 7 COIN 11/27 140P | $9.40 | $14.81 | +58% |
-| 6 MSTR 12/04 125P | $10.90 | $16.23 | +49% |
-| 3 MSFT 12/04 540P | $20.00 | $22.49 | +12% |
-| 46 NFLX 12/04 63P | $1.96 | $2.19 | +11% |
+| 8 PLTR 11/27 172.5P | $8.65 | $14.39 | +66% |
+| 4 COIN 11/27 140P | $9.40 | $19.32 | +106% |
+| 3 MSTR 12/04 125P | $10.90 | $22.91 | +110% |
+| 3 MSFT 12/04 540P | $20.00 | $27.69 | +38% |
+| 46 NFLX 12/04 63P | $1.96 | $3.07 | +57% |
+| 6 QQQ 12/04 673P | $17.37 | $22.48 | +29% |
 
 ## Where the profit and loss came from
 
@@ -35,21 +36,21 @@ Closed trades only. With this few trades these tables show what happened, not wh
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| same-day bet | 5 | 3 of 5 | +$9,581 |
+| same-day bet | 6 | 3 of 6 | +$9,406 |
 | three-week bet | 3 | 1 of 3 | +$6,842 |
 
 ### By direction
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| puts (bets on a fall) | 3 | 2 of 3 | +$10,868 |
+| puts (bets on a fall) | 4 | 2 of 4 | +$10,693 |
 | calls (bets on a rise) | 5 | 2 of 5 | +$5,555 |
 
 ### By the market's mood when the bet was placed
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| falling | 5 | 2 of 5 | +$9,248 |
+| falling | 6 | 2 of 6 | +$9,073 |
 | mixed | 3 | 2 of 3 | +$7,175 |
 
 ### By the reason it was sold
@@ -57,7 +58,7 @@ Closed trades only. With this few trades these tables show what happened, not wh
 | | Trades | Won | Profit |
 |---|---|---|---|
 | took profit on half, then trailing stop | 4 | 4 of 4 | +$19,661 |
-| breakeven stop | 1 | 0 of 1 | -$50 |
+| breakeven stop | 2 | 0 of 2 | -$225 |
 | trend flipped | 1 | 0 of 1 | -$1,568 |
 | stop loss | 2 | 0 of 2 | -$1,620 |
 
@@ -65,7 +66,9 @@ Closed trades only. With this few trades these tables show what happened, not wh
 
 Neither set is traded. Each pick is judged on what the stock did afterwards, in the direction of the pick. With only a handful of picks this is a scoreboard, not proof of skill.
 
-No pick is old enough to score yet.
+| | Picks scored | Right after 1 day | Average 1-day move | Average 5-day move |
+|---|---|---|---|---|
+| The rules' top three | 3 | 3 of 3 | +5.96% | too early |
 
 ## Where the rest of the memory lives
 
