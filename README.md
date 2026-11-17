@@ -16,13 +16,13 @@ automatically after each market close.
 only). Both below is a bear market (puts only). Otherwise mixed (both, at most
 two positions per direction).
 
-**Core engine (up to 10 slots, 14% of the sleeve each; new bets are funded by cash from profitable sales).**
+**Core engine (up to 10 slots, 20% of the sleeve each; new bets are funded by cash from profitable sales).**
 - Rank 16 liquid, high-beta names by blended momentum (60% 5-day return, 40%
   20-day return). Buy calls on the strongest names above their 10-day EMA, or
   puts on the weakest names below it. Minimum 2% momentum.
-- Contract: at the money (about 0.50 delta), about 21 days to expiry.
-- Exits: stop at -50% of premium. At +100% sell half, then trail the rest 30%
-  below its peak. A position that was up 50% is closed if it falls back to
+- Contract: about 5% out of the money (about 0.35 delta), about 21 days to expiry.
+- Exits: stop at -50% of premium. At +200% sell half; once a position has been
+  up 100%, sell if it falls 40% below its peak. A position that was up 50% is closed if it falls back to
   entry. Close if the stock crosses its 10-day EMA near the close, or with 4
   days left to expiry.
 
@@ -36,6 +36,9 @@ two positions per direction).
   of every 60, because same-day options can fall through a stop in seconds.
 
 **Guard rails.**
+- Lead lock: the whole account must stay at least 5 points ahead of SPY. The
+  bot may hold options worth up to twice the account's cushion above that
+  floor; a smaller cushion blocks new bets, and no cushion closes everything.
 - Kill switch: if the sleeve falls to 30% of its size the bot closes
   everything and stops opening trades. (The floor is $15,000 on the $50,000 sleeve.)
 - `END_DATE`: no new trades on that day, flat by 15:00 ET.

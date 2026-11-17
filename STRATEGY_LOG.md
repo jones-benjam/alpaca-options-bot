@@ -314,6 +314,41 @@ trending, not on skill.
   closes everything if the sleeve falls to $15,000, and the bot still cannot
   spend more cash than the account really has.
 
+### Tue Nov 17, 2026, 3:53 pm: Shoot for the moon, with a parachute
+- **What changed, aiming higher:**
+  - **Bigger bets:** each new main bet is 20% of the sleeve, up from 14%.
+  - **Cheaper, longer-shot options:** new bets use options about 5% "out of
+    the money", meaning the stock has to move a little further before they
+    pay. They cost less, so the same money buys more of them, and they pay
+    off much more on a big move. They also expire worthless more often.
+  - **Let winners run:** half of a bet is now sold when it triples (up 200%),
+    instead of when it doubles. Once a bet has doubled, it is sold if it
+    falls 40% from its best price (it was 30%).
+- **What changed, the parachute (a "lead lock"):** the class is graded on
+  whether the whole account beats SPY, and the account is far ahead. The bot
+  now keeps the account at least 5 points ahead of SPY. It may hold options
+  worth up to twice the account's lead above that line. As the lead
+  shrinks, it stops adding bets; if the lead is gone, it closes everything.
+- **Why:** The team's instruction: be aggressive and shoot for the moon. We
+  tested the options on five years of prices, looking at every possible
+  11-trading-day stretch (the time left in the contest):
+
+  | | Typical (middle) result | Average result | Best 1 in 10 | Lose more than half |
+  |---|---|---|---|---|
+  | Before | -23% | +0.5% | +94% or better | about 3 in 10 |
+  | Now | -31% | +19% | +159% or better | about 4 in 10 |
+
+  The average and the best cases rise a lot; the typical result and the
+  chance of a big loss get worse. That is what aiming for the moon means.
+  Letting winners run improved every measure on its own. We rejected options
+  10% out of the money: half of those stretches lost more than half the
+  sleeve, and real prices for those puts run 1% to 9% above what the test
+  assumes.
+- **Effect today:** The lock already limits new bets. The bot holds about
+  $104,000 of options against a lead of about $56,000, so it allows only
+  about $7,000 more. As the lead grows, more money is released for new
+  bets. The open bets follow the new selling rules from now on.
+
 ## Daily record
 
 How to read the table:

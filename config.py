@@ -36,16 +36,17 @@ PENNY_ALL = {"SPY", "QQQ", "IWM"}  # options quoted in $0.01 at every price
 # cash freed by sales funds new bets for as long as it lasts, up to this many.
 CORE_SLOTS = _env("CORE_SLOTS", 10, int)
 CORE_MIN_BET_SHARE = 0.5         # skip a new bet smaller than half a full-size one
-CORE_SLOT_PCT = _env("CORE_SLOT_PCT", 0.14, float)  # of sleeve equity, per slot
+CORE_SLOT_PCT = _env("CORE_SLOT_PCT", 0.20, float)  # of sleeve equity, per slot
 CORE_MIN_STRENGTH = 0.02    # skip names with under 2% blended momentum
 CORE_DTE_MIN = 14
 CORE_DTE_MAX = 35
 CORE_DTE_TARGET = 21
-CORE_DELTA = 0.50           # at the money: the most gamma per dollar
+CORE_DELTA = 0.35           # about 5% out of the money: cheaper, bigger payoff on a big move
 CORE_DELTA_TOL = 0.15
 CORE_STOP = -0.50           # exit at -50% of premium
-CORE_TP1 = 1.00             # at +100% sell half ...
-CORE_TRAIL = 0.30           # ... then exit the rest 30% off its peak
+CORE_TP1 = 2.00             # at +200% sell half (let winners run) ...
+CORE_TRAIL_FROM = 1.00      # ... and once a bet has been up 100% ...
+CORE_TRAIL = 0.40           # ... exit if it falls 40% from its best price
 CORE_MIN_DTE_EXIT = 4       # never hold into the final days
 CORE_MAX_SPREAD = 0.15      # skip contracts with spread > 15% of mid
 CORE_ENTRY_FROM = "09:45"   # Eastern time
@@ -99,3 +100,13 @@ MAX_ENTRY_ATTEMPTS = 3      # per symbol per day
 QUOTE_MAX_AGE_SEC = 900     # ignore option quotes older than this
 MIN_OPTION_ASK = 0.20
 STATE_FILE = _env("STATE_FILE", "")
+
+# ---- Lead lock: protects the win over SPY ----------------------------------------
+# The class is graded on whether the whole account beats SPY. The lock keeps a
+# floor under that: SPY's return since the start, plus a margin. The bot may hold
+# options worth up to LOCK_MULTIPLIER times the account's cushion above the floor.
+# A shrinking cushion stops new bets; if it is gone, the bot closes everything.
+LOCK_ENABLED = _env("LOCK_ENABLED", True, bool)
+LOCK_START_VALUE = 100_000.0     # the whole account at the start
+LOCK_MARGIN_PCT = 0.05           # stay at least 5 points ahead of SPY
+LOCK_MULTIPLIER = _env("LOCK_MULTIPLIER", 2.0, float)
