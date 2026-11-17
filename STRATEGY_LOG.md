@@ -293,6 +293,27 @@ trending, not on skill.
   day's news headlines for our stocks, both free from Alpaca.
 - **Effect on trading:** None.
 
+### Tue Nov 17, 2026, 3:43 pm: Profits go back into the engine
+- **What:** (1) The bot can now hold up to ten main bets instead of six. It
+  keeps opening new bets, each about 14% of the sleeve as it stands that day,
+  for as long as it has the cash, so money freed by profitable sales goes
+  straight back to work. (2) It always keeps enough cash back for one
+  same-day bet. (3) It skips a new bet smaller than half the normal size,
+  rather than dribbling leftover cash into tiny ones. It went live at
+  3:43 pm, inside the day's buying window, and immediately opened three new
+  bets with the idle cash: puts on Google, Meta and AMD, about $46,000 in all.
+- **Why:** The team's instruction: every dollar of profit that comes back
+  as cash should keep the engine going, to make as much as possible. Bets
+  already grew with the sleeve, but once all six slots were filled, cash
+  from sales sat idle: on Nov 17 the sleeve held about $59,000 in cash while
+  every slot was taken.
+- **Effect:** With the sleeve near $117,000, a new bet is about $16,000.
+  Nearly all of the sleeve can now be invested at once, so gains and losses
+  will both be larger. While the market's mood is falling, every new bet is
+  a put, which makes a sharp rally more painful. The kill switch still
+  closes everything if the sleeve falls to $15,000, and the bot still cannot
+  spend more cash than the account really has.
+
 ## Daily record
 
 How to read the table:

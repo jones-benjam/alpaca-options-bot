@@ -16,7 +16,7 @@ automatically after each market close.
 only). Both below is a bear market (puts only). Otherwise mixed (both, at most
 two positions per direction).
 
-**Core engine (6 slots, 14% of the sleeve each).**
+**Core engine (up to 10 slots, 14% of the sleeve each; new bets are funded by cash from profitable sales).**
 - Rank 16 liquid, high-beta names by blended momentum (60% 5-day return, 40%
   20-day return). Buy calls on the strongest names above their 10-day EMA, or
   puts on the weakest names below it. Minimum 2% momentum.
