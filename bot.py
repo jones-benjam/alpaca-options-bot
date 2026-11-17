@@ -182,6 +182,8 @@ class Bot:
         self.halt_hits = 0                 # consecutive passes under the kill floor
         self.marks = {}                    # last believable price per held option
         self.peak_tried = set()            # positions whose best price was looked up
+        self.spy_base = None               # SPY's last close before the contest began
+        self.room = float("inf")           # how much more the lead lock lets the bot invest
         self.qnow = None      # set while the market is open, to age-check quotes
         self.state = {"peaks": {}, "synthetic": []}
         if STATE_PATH.exists():
@@ -291,6 +293,8 @@ class Bot:
             start = (now.date() - dt.timedelta(days=75)).isoformat()
             bars = self.api.daily_bars(symbols, start)
             self.closes = {s: [b["c"] for b in bs if b["t"][:10] < today] for s, bs in bars.items()}
+            before = [b["c"] for b in bars.get("SPY", []) if b["t"][:10] < C.START_DATE]
+            self.spy_base = before[-1] if before else None  # SPY's close before the contest
             self.bars_at, self.bars_day = time.time(), today
         snaps = self.api.stock_snapshots(symbols)
         view = {}
@@ -507,9 +511,13 @@ class Bot:
             if symbol in peaks or symbol in self.peak_tried:
                 continue
             self.peak_tried.add(symbol)
+            until = dt.datetime.now(dt.timezone.utc) - dt.timedelta(minutes=16)  # free-plan delay
+            if p.last_buy.astimezone(dt.timezone.utc) >= until:
+                peaks[symbol] = p.avg  # bought minutes ago: no history yet, and none needed
+                continue
             try:
                 since = p.last_buy.astimezone(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
-                bars = self.api.option_bars(symbol, since)
+                bars = self.api.option_bars(symbol, since, end=until.strftime("%Y-%m-%dT%H:%M:%SZ"))
             except ApiError as err:
                 log(f"could not restore best price for {symbol}: {err}")
                 continue
@@ -572,7 +580,7 @@ class Bot:
                 price_exit = None
                 if pnl <= stop:
                     price_exit = "stop loss"
-                elif peak >= p.avg * (1 + tp1) and mid <= peak * (1 - trail):
+                elif peak >= p.avg * (1 + (tp1 if odte else C.CORE_TRAIL_FROM)) and mid <= peak * (1 - trail):
                     price_exit = "trailing stop"
                 elif peak >= p.avg * 1.5 and mid <= p.avg * 1.05:
                     price_exit = "breakeven stop"
@@ -604,6 +612,28 @@ class Bot:
         return acted
 
     # ---- entries -------------------------------------------------------------
+    def lead_lock(self, view, equity, cash):
+        """Keep the whole account ahead of SPY. Returns (note for the log, breached).
+
+        floor   = the account's start value grown by SPY's return, plus a margin
+        cushion = the account's value above that floor
+        The bot may hold options worth up to LOCK_MULTIPLIER x cushion. Self.room
+        is what is left of that allowance for new bets."""
+        self.room = float("inf")
+        if not C.LOCK_ENABLED or not self.spy_base or "SPY" not in view:
+            return "", False
+        acct = float(self.api.account().get("equity") or 0)
+        if acct <= 0:
+            return "", False
+        spy_ret = view["SPY"]["px"] / self.spy_base - 1
+        floor = C.LOCK_START_VALUE * (1 + spy_ret + C.LOCK_MARGIN_PCT)
+        cushion = acct - floor
+        exposure = max(0.0, equity - cash)  # what the bot's open options are worth
+        self.room = max(0.0, C.LOCK_MULTIPLIER * cushion - exposure)
+        note = (f" | lead lock: account ${acct:,.0f}, floor ${floor:,.0f}, "
+                f"room for new bets ${self.room:,.0f}")
+        return note, cushion <= 0
+
     def budget(self, pct, equity, cash):
         """Dollars available for one new position. Never more than the account's
         real cash: the account is shared, and if teammates have spent it the
@@ -611,7 +641,7 @@ class Bot:
         acct = self.api.account()
         power = float(acct.get("options_buying_power") or 0)
         real_cash = float(acct.get("cash") or 0)
-        return max(0.0, min(pct * equity, cash * 0.98, power, real_cash * 0.98))
+        return max(0.0, min(pct * equity, cash * 0.98, power, real_cash * 0.98, self.room))
 
     def core_entries(self, now, led, view, regime, equity, cash):
         hhmm, today = now.strftime("%H:%M"), now.date()
@@ -727,6 +757,7 @@ class Bot:
         view, regime = self.market_view(now)
         quotes = self.api.option_snapshots(led.pos) if led.pos else {}
         equity, cash = self.sleeve(led, quotes)
+        lock_note, lock_breach = self.lead_lock(view, equity, cash)
 
         if time.time() - self.last_beat >= C.HEARTBEAT_SECONDS:
             self.last_beat = time.time()
@@ -738,12 +769,12 @@ class Bot:
             top = ", ".join(f"{s} {k} {x:+.1%}" for x, s, k in self.candidates(view, regime)[:5])
             log(
                 f"sleeve ${equity:,.0f} ({equity / C.SLEEVE_START - 1:+.1%} on ${C.SLEEVE_START:,.0f}) cash ${cash:,.0f} | "
-                f"regime {regime} | holding: {book or 'nothing'} | signals: {top or 'none'}"
+                f"regime {regime} | holding: {book or 'nothing'} | signals: {top or 'none'}{lock_note}"
             )
 
         # The kill switch needs the breach on consecutive passes before it
         # sells, but new entries stop on the first sign of it.
-        breach = equity <= C.KILL_FLOOR_PCT * C.SLEEVE_START
+        breach = equity <= C.KILL_FLOOR_PCT * C.SLEEVE_START or lock_breach
         self.halt_hits = self.halt_hits + 1 if breach else 0
         halted = self.halt_hits >= C.KILL_CONFIRMATIONS
         last_day = bool(C.END_DATE) and today >= C.END_DATE
@@ -753,7 +784,8 @@ class Bot:
         )
         flatten = halted or end_flat
         if halted and led.pos:
-            log(f"KILL SWITCH: sleeve at ${equity:,.0f}, closing everything and standing down")
+            why = "the lead over SPY is nearly gone" if lock_breach else f"sleeve at ${equity:,.0f}"
+            log(f"KILL SWITCH: {why}, closing everything and standing down")
         if self.manage(now, led, quotes, view, flatten) and not self.dry:
             led = self.build_ledger(now)
             equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos) if led.pos else {})

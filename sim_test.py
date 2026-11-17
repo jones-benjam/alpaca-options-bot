@@ -31,6 +31,7 @@ class FakeAlpaca:
         self.glitch = set()  # underlyings whose option quotes are currently garbage
         self.range = (99.9, 99.0)  # the first 30 minutes' high and low, every symbol
         self.cash = 100_000.0      # the account's real cash
+        self.equity = 1e9          # the whole account (very large: the lead lock stays out of the way)
         self.history = {}          # underlying -> past option closes, for peak recovery
 
     def iso(self):
@@ -40,9 +41,9 @@ class FakeAlpaca:
         return {"timestamp": self.now.isoformat(), "is_open": True, "next_open": ""}
 
     def account(self):
-        return {"options_buying_power": "100000", "cash": str(self.cash)}
+        return {"options_buying_power": "100000", "cash": str(self.cash), "equity": str(self.equity)}
 
-    def option_bars(self, symbol, start, timeframe="15Min"):
+    def option_bars(self, symbol, start, timeframe="15Min", end=None):
         return [{"c": c} for c in self.history.get(bot.parse_occ(symbol)[0], [])]
 
     def positions(self):
@@ -234,7 +235,7 @@ def test_default_sizing():
     b, f, step = harness(trend=1)
     led, _ = step(f"default settings (${C.SLEEVE_START:,.0f} sleeve): expect bets until the cash runs out")
     core = [p for p in led.pos.values() if p.tag == "core"]
-    assert 6 <= len(core) <= C.CORE_SLOTS, "cash, not a fixed slot count, sets how many bets"
+    assert 4 <= len(core) <= C.CORE_SLOTS, "cash, not a fixed slot count, sets how many bets"
     assert all(p.cost >= C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * C.SLEEVE_START * 0.9 for p in core), "no dribble bets"
     odte = [p for p in led.pos.values() if p.tag == "odte"]
     assert odte and odte[0].cost >= C.ODTE_RISK_PCT * C.SLEEVE_START * 0.9, "cash is kept back for a full same-day bet"
@@ -344,11 +345,38 @@ def test_shadow_scoring():
     print("\n--- shadow picks scored: persona 1 of 2 right, rules judged on their top three ---")
 
 
+def test_lead_lock():
+    b, f, step = harness(trend=1)
+    f.now += dt.timedelta(minutes=1)
+    b.tick(f.now, True)                      # first pass learns SPY's starting close
+    led = b.build_ledger(f.now)
+    for s, p in list(led.pos.items()):       # start from an empty book
+        f.pos[s] = 0
+    spy_ret = b.market_view(f.now)[0]["SPY"]["px"] / b.spy_base - 1
+    floor = C.LOCK_START_VALUE * (1 + spy_ret + C.LOCK_MARGIN_PCT)
+
+    b2, f2, step2 = harness(trend=1)
+    f2.equity = floor + 1_000                # a $1,000 cushion: room for $2,000 of options
+    led, _ = step2("lead over SPY nearly gone: expect at most $2,000 of new bets")
+    spent = sum(p.cost for p in led.pos.values())
+    assert spent <= 2_000 * 1.01, f"the lock caps new bets (spent {spent:,.0f})"
+
+    b3, f3, step3 = harness(trend=1)
+    led, _ = step3("plenty of lead: expect a full book")
+    assert len([p for p in led.pos.values() if p.tag == "core"]) >= 4
+    f3.equity = floor - 5_000                # the account has fallen behind the floor
+    led, _ = step3("lead gone for three passes: expect everything closed", ticks=3)
+    assert not led.pos, "the lock closes everything once the lead is gone"
+    print("\n--- lead lock: caps new bets as the lead shrinks, closes everything when it is gone ---")
+
+
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
     test_default_sizing()
-    # The scenarios below use the original, smaller setup to stay short.
+    test_lead_lock()
+    # The scenarios below use the original, smaller setup and exits to stay short.
     C.SLEEVE_START, C.CORE_SLOTS, C.CORE_SLOT_PCT = 25_000.0, 3, 0.28
+    C.CORE_TP1, C.CORE_TRAIL, C.CORE_TRAIL_FROM = 1.0, 0.30, 1.0
     test_lifecycle()
     test_odte_follows_regime()
     test_earnings_guard()

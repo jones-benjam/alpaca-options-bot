@@ -176,7 +176,7 @@ def simulate(feats, days, w5=0.6, w20=0.4, no_chase=0.0, seed=None, iv_mult=IV_M
                 reason = "time"
             elif pnl <= C.CORE_STOP:
                 reason = "stop"
-            elif p["peak"] >= p["cost"] * (1 + C.CORE_TP1) and price <= p["peak"] * (1 - C.CORE_TRAIL):
+            elif p["peak"] >= p["cost"] * (1 + getattr(C, "CORE_TRAIL_FROM", C.CORE_TP1)) and price <= p["peak"] * (1 - C.CORE_TRAIL):
                 reason = "trail"
             elif p["peak"] >= p["cost"] * 1.5 and price <= p["cost"] * 1.05:
                 reason = "breakeven"
