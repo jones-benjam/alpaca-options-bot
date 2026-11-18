@@ -129,7 +129,7 @@ Python 3.9+; no packages to install.
 hosted by GitHub Pages from `docs/`. It reads live data from the bot, which
 also serves the same page itself at https://msbc5220-optbot.fly.dev. The daily
 report is at `docs/report.html`, and the live page links to it when the bot
-can't be reached. It is laid out like a trading terminal and shows the whole
+can't be reached. It is styled in CU Boulder colors as a retro side-scrolling game and shows the whole
 account against SPY, the lead lock, every open position, a blotter of every buy
 and sell (with the reason, holding time and result, filterable to wins or
 losses), the win/loss record, profit by stock, engine and exit reason, and the
