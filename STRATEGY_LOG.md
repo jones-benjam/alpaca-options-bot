@@ -388,6 +388,18 @@ trending, not on skill.
 - **Effect on trading:** None. The page only reads what the bot already
   records.
 
+### Wed Nov 18, 2026, 4:00 pm: The dashboard in CU colors (no rule change)
+- **What:** The live page now uses CU Boulder's gold, black and grays, with
+  a vintage video-game look: a pixel font, pixel frames, faint screen lines,
+  and a side-scrolling scene up top. In the scene a pixel bison runs past the
+  Flatirons and coins, with the day number, wins, losses and the bot's profit
+  shown above it.
+- **What stays the same:** All the figures, the blotter and the filters.
+  Green and red still mean only win and loss, and each result keeps its
+  WIN or LOSS label and arrow. Buys are now cyan and sells gold. Motion stops
+  for anyone whose device asks for reduced motion.
+- **Effect on trading:** None.
+
 ## Daily record
 
 How to read the table:
