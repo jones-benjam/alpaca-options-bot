@@ -3,3 +3,4 @@ date,as_of,regime,spy,spy_vs_avg_pct,qqq,qqq_vs_avg_pct,strongest_signals
 2026-11-13,close,bear,752.09,-0.68,676.95,-2.2,NVDA put 15.8%; MSTR put 13.9%; COIN put 13.4%; NFLX put 6.0%; PLTR put 5.8%
 2026-11-16,close,bear,740.04,-2.12,661.63,-4.21,MSTR put 20.5%; COIN put 18.7%; NVDA put 18.5%; PLTR put 10.0%; NFLX put 8.2%
 2026-11-17,close,bear,733.26,-2.74,657.82,-4.33,MSTR put 23.8%; COIN put 20.8%; NVDA put 14.5%; PLTR put 11.6%; GOOGL put 9.0%
+2026-11-18,13:17 ET,bear,730.93,-2.75,658.62,-3.82,MSTR put 30.3%; COIN put 25.3%; NVDA put 20.3%; PLTR put 15.0%; GOOGL put 8.8%
