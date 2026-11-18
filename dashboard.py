@@ -358,8 +358,8 @@ def build():
     built = dt.datetime.now().strftime("%b %-d, %Y at %-I:%M %p")
     page = f"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Options bot dashboard</title><style>{CSS}</style></head><body><main>
-<h1>Options bot: how we stand against SPY</h1>
+<title>Midas dashboard</title><style>{CSS}</style></head><body><main>
+<h1>Midas: how we stand against SPY</h1>
 <p class="sub">A class project on practice money. The goal is to finish ahead of a portfolio that simply holds SPY.
 As of {esc(last['label'])}.</p>
 <div class="tiles">{tiles}</div>

@@ -407,6 +407,7 @@ def test_live_dashboard():
     assert sells[1]["reason"] == "Took profit on half" and trades[-1]["reason"].startswith("Momentum signal 15.7%")
     assert stats["wins"] == 1 and stats["losses"] == 1 and stats["win_rate"] == 50.0 and stats["profit_factor"] == 4.0
     assert stats["streak"] == {"result": "loss", "n": 1} and stats["realized"] == 600.0
+    assert stats["trades_closed"] == 2 and stats["trades_won"] == 1, "a half sale and the rest count as one trade"
     assert stats["by_ticker"][0]["name"] == "NVDA" and stats["by_ticker"][0]["pnl"] == 600.0
     server = live.start_server(0)
     port = server.server_address[1]
@@ -416,7 +417,7 @@ def test_live_dashboard():
     cors = urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state", timeout=5).headers.get("Access-Control-Allow-Origin")
     assert cors == "*", "the GitHub copy of the page may read the data"
     server.shutdown()
-    assert "<title>Options Bot Live</title>" in page and health == b"ok"
+    assert "<title>Midas Live</title>" in page and health == b"ok"
     assert state["sleeve"]["value"] == snap["sleeve"]["value"], "the JSON is the published snapshot"
     import os as _os
     secrets = [v for k, v in _os.environ.items() if ("KEY" in k or "SECRET" in k) and len(v) >= 8]
