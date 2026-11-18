@@ -129,9 +129,12 @@ Python 3.9+; no packages to install.
 hosted by GitHub Pages from `docs/`. It reads live data from the bot, which
 also serves the same page itself at https://msbc5220-optbot.fly.dev. The daily
 report is at `docs/report.html`, and the live page links to it when the bot
-can't be reached. It shows the whole account against SPY,
-the lead lock, every open position, recent sales and the bot's latest log lines,
-and refreshes itself every 15 seconds (every few minutes while the market is
+can't be reached. It is laid out like a trading terminal and shows the whole
+account against SPY, the lead lock, every open position, a blotter of every buy
+and sell (with the reason, holding time and result, filterable to wins or
+losses), the win/loss record, profit by stock, engine and exit reason, and the
+bot's latest log lines. Green and red mean only win and loss, and every result
+also carries a WIN or LOSS label and an arrow. It refreshes itself every 15 seconds (every few minutes while the market is
 closed). Page requests never call the broker; they read the snapshot the bot
 makes after each pass, so the page cannot slow trading down or place an order.
 The address is public, like this repository. Code: `live.py`.

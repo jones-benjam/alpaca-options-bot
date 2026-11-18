@@ -365,6 +365,29 @@ trending, not on skill.
   shared web address.
 - **Effect on trading:** None.
 
+### Wed Nov 18, 2026, 3:45 pm: The dashboard becomes a trading terminal (no rule change)
+- **What:** The live page now looks like a trading terminal: black screen,
+  amber labels, a price ticker along the top and numbered shortcuts to each
+  section. Its new parts are:
+  - A trade blotter listing every buy and sell the bot has made, grouped by
+    day. Each row shows why the order was placed, the amount, how long the
+    bet was held and its profit or loss. Buttons narrow it to buys, sells,
+    wins or losses, or to one stock.
+  - A win/loss record: wins against losses by count and by dollars, the
+    average win and loss, the best and worst sale, and the current streak.
+  - A bar for each sale, plus profit broken down by stock, by engine and
+    by the reason for selling.
+  - Open positions now show dollar profit, days left and a total row.
+- **Telling wins from losses:** Green and red are used only for wins and
+  losses. Each sale also carries a WIN or LOSS label and an up or down
+  arrow, so the colour is never the only cue. Buys are shown in blue and
+  sells in amber.
+- **First reading:** 22 sales, 15 wins and 7 losses (68%). Winning sales
+  made $42,043 and losing sales lost $11,308. Taking profit on half and the
+  trailing stop produced every win.
+- **Effect on trading:** None. The page only reads what the bot already
+  records.
+
 ## Daily record
 
 How to read the table:
