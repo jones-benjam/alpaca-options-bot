@@ -258,11 +258,13 @@ def breakdown(title, rows, key, names=None):
 def flags(trades, closed, led, bot, now, equity):
     """Plain-English warnings: things a reviewer should look at first."""
     out = []
-    against = [t for t in trades if (t["regime"], t["direction"]) in (("bear", "call"), ("bull", "put"))]
+    recent = (now.date() - dt.timedelta(days=5)).isoformat()   # older mistakes are history, not news
+    against = [t for t in trades if (t["regime"], t["direction"]) in (("bear", "call"), ("bull", "put"))
+               and t["opened"][:10] >= recent]
     if against:
         names = ", ".join(f"#{t['id']} {t['underlying']} {t['direction']} ({t['opened'][:10]})" for t in against)
         out.append(f"**Bets against the market's mood:** {names}. The rules have blocked these for "
-                   "same-day bets since Nov 11; any after that date would be a bug.")
+                   "same-day bets since Nov 11, so this looks like a bug.")
     slipped = [t for t in closed if "stop" in t["exit"]
                and t["profit_pct"] < (C.ODTE_STOP if t["engine"] == "odte" else C.CORE_STOP) * 100 - 10]
     if slipped:
