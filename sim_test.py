@@ -370,10 +370,38 @@ def test_lead_lock():
     print("\n--- lead lock: caps new bets as the lead shrinks, closes everything when it is gone ---")
 
 
+def test_live_dashboard():
+    """The bot publishes a snapshot each pass and the page and JSON are served."""
+    import json as _json
+    import urllib.request
+
+    import live
+
+    b, f, step = harness(trend=1)
+    live._last_publish["at"] = 0
+    led, _ = step("one pass with the live dashboard on")
+    snap = live._state["snapshot"]
+    assert snap and snap["positions"], "a snapshot with the open positions is published"
+    assert snap["sleeve"]["value"] > 0 and "lock" in snap and snap["log"], "it carries the sleeve, the lock and recent log lines"
+    server = live.start_server(0)
+    port = server.server_address[1]
+    page = urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read().decode()
+    state = _json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state", timeout=5).read())
+    health = urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz", timeout=5).read()
+    server.shutdown()
+    assert "<title>Options Bot Live</title>" in page and health == b"ok"
+    assert state["sleeve"]["value"] == snap["sleeve"]["value"], "the JSON is the published snapshot"
+    import os as _os
+    secrets = [v for k, v in _os.environ.items() if ("KEY" in k or "SECRET" in k) and len(v) >= 8]
+    assert not any(v in _json.dumps(state) for v in secrets), "no keys leak into the page"
+    print("\n--- live dashboard: snapshot published, page and JSON served ---")
+
+
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
     test_default_sizing()
     test_lead_lock()
+    test_live_dashboard()
     # The scenarios below use the original, smaller setup and exits to stay short.
     C.SLEEVE_START, C.CORE_SLOTS, C.CORE_SLOT_PCT = 25_000.0, 3, 0.28
     C.CORE_TP1, C.CORE_TRAIL, C.CORE_TRAIL_FROM = 1.0, 0.30, 1.0
