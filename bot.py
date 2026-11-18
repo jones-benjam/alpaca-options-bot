@@ -24,6 +24,7 @@ import argparse
 import datetime as dt
 import json
 import math
+import os
 import re
 import time
 import traceback
@@ -32,6 +33,7 @@ from collections import defaultdict
 from pathlib import Path
 
 import config as C
+import live
 from alpaca import Alpaca, ApiError
 
 OCC = re.compile(r"^([A-Z]+)(\d{2})(\d{2})(\d{2})([CP])(\d{8})$")
@@ -70,7 +72,9 @@ except Exception:
 
 def log(msg):
     now = dt.datetime.now(ET) if ET else dt.datetime.now()
-    print(f"{now:%Y-%m-%d %H:%M:%S}{' ET' if ET else ''}  {msg}", flush=True)
+    line = f"{now:%Y-%m-%d %H:%M:%S}{' ET' if ET else ''}  {msg}"
+    print(line, flush=True)
+    live.remember(line)  # shown on the live dashboard
 
 
 def parse_ts(text):
@@ -792,6 +796,7 @@ class Bot:
         if not (breach or last_day):
             led, equity, cash = self.core_entries(now, led, view, regime, equity, cash)
             led = self.odte_entries(now, led, view, regime, equity, cash)
+        live.publish(self, now, market_open, led, view, regime)
         return any(p.tag == "odte" for p in led.pos.values())
 
     def run(self, once):
@@ -800,6 +805,8 @@ class Bot:
             f"sleeve ${C.SLEEVE_START:,.0f}, 0DTE {'on' if C.ODTE_ENABLED else 'off'}, "
             f"end date {C.END_DATE or 'not set'}"
         )
+        if not once and live.start_server():
+            log(f"live dashboard serving on port {os.environ.get('PORT', '8080')}")
         told_closed = False
         while True:
             fast = False
@@ -818,6 +825,12 @@ class Bot:
                     if not told_closed:
                         log(f"market closed, next open {clock['next_open']}")
                         told_closed = True
+                    try:  # keep the dashboard current overnight and at weekends
+                        led = self.build_ledger(now)
+                        view, regime = self.market_view(now)
+                        live.publish(self, now, False, led, view, regime, min_gap=240)
+                    except Exception as err:
+                        log(f"(dashboard) could not refresh while closed: {err}")
                     wait = (parse_ts(clock["next_open"]) - now).total_seconds()
                     time.sleep(max(5, min(300, wait)))
                     continue

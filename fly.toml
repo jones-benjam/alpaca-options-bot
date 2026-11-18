@@ -1,4 +1,4 @@
-# Fly.io config: one small always-on worker, no web service.
+# Fly.io config: one small always-on machine that trades and serves the live dashboard.
 # Deploy with:  fly deploy --ha=false   (exactly one machine; two would double-trade)
 app = "msbc5220-optbot"
 primary_region = "ewr"
@@ -16,3 +16,19 @@ primary_region = "ewr"
 [[restart]]
   policy = "always"
   retries = 10
+
+# The live dashboard (read-only). The machine must never be stopped for being
+# idle: it is also the trading bot, so auto-stop is off and one always runs.
+[http_service]
+  internal_port = 8080
+  force_https = true
+  auto_stop_machines = "off"
+  auto_start_machines = true
+  min_machines_running = 1
+
+  [[http_service.checks]]
+    grace_period = "20s"
+    interval = "60s"
+    method = "GET"
+    timeout = "5s"
+    path = "/healthz"

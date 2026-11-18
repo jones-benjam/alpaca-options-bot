@@ -47,6 +47,10 @@ each lesson are in `STRATEGY_LOG.md`.
   job up to seven hours late, so two daily rows were never upgraded from
   preliminary to official. Rule changed: the record now finalises every
   unfinished row whenever it runs, whatever the time. (Nov 13)
+- **A new file must be added to the server's build list.** The bot's
+  container copies named files only; a new module left out of it stopped
+  the bot for a minute. Rule changed: check the Dockerfile when adding a
+  file the bot imports. (Nov 18)
 - **Check a claim against real data before repeating it.** We said option
   buyers overpay; real prices showed that was only true for index funds.
   (Nov 11)

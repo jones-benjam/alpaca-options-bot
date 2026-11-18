@@ -123,6 +123,16 @@ whenever a rule changes.
 Keys are read from `.env` (copy `.env.example`) or from the environment.
 Python 3.9+; no packages to install.
 
+## Live dashboard
+
+The bot serves a live, read-only dashboard from its own Fly.io machine at
+**https://msbc5220-optbot.fly.dev**. It shows the whole account against SPY,
+the lead lock, every open position, recent sales and the bot's latest log lines,
+and refreshes itself every 15 seconds (every few minutes while the market is
+closed). Page requests never call the broker; they read the snapshot the bot
+makes after each pass, so the page cannot slow trading down or place an order.
+The address is public, like this repository. Code: `live.py`.
+
 ## Run it in the cloud (Fly.io)
 
 The live copy runs on Fly.io as one small always-on worker (`fly.toml`).

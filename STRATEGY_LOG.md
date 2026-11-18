@@ -349,6 +349,22 @@ trending, not on skill.
   about $7,000 more. As the lead grows, more money is released for new
   bets. The open bets follow the new selling rules from now on.
 
+### Wed Nov 18, 2026, 1:23 pm: A live dashboard (no rule change)
+- **What:** The bot now runs its own web page at
+  https://msbc5220-optbot.fly.dev. It shows the whole account against SPY,
+  the lead lock, every open position, recent sales and what the bot is
+  doing, and refreshes itself every 15 seconds. It works on a phone. It is
+  read-only: nothing on it can place a trade, and loading it never slows the
+  bot down.
+- **Why:** So the team can follow the bot live instead of waiting for the
+  daily record.
+- **A one-minute outage:** The first update at 1:22 pm left out a new file,
+  so the bot failed to start. It was fixed and trading again at 1:23 pm. No
+  orders were missed and every position was intact.
+- **Cost:** Nothing extra. It runs on the same server, with Fly.io's free
+  shared web address.
+- **Effect on trading:** None.
+
 ## Daily record
 
 How to read the table:
