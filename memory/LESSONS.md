@@ -22,6 +22,15 @@ each lesson are in `STRATEGY_LOG.md`.
   Recent results did not predict the next ones. (Nov 11)
 - **Selling options instead of buying them was steadier but still lost.**
   Neither side beat simply holding SPY. (Nov 11)
+- **Count whole trades, not sales.** Selling half a winner and later the
+  rest counts as two winning sales but is one trade. On Nov 18, 68% of sales
+  had made money but only 42% of whole trades (5 of 12). The dashboard now
+  shows both. (Nov 18)
+- **So far, all the profit comes from letting winners run.** Every closed
+  trade that took profit on half and trailed the rest made money: 5 of 5, a
+  total of +$27,791. Every other way of selling lost money. The two trend-flip
+  sales were the most costly, at -$7,163. That is 12 trades, too few to change a
+  rule on. (Nov 18)
 - **Options on individual stocks were fairly priced; options on index funds
   were about 9% overpriced.** Measured from 505 real bets, 2024 to 2026.
   (Nov 11)

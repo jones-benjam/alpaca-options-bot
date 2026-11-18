@@ -96,7 +96,7 @@ def blotter(led, now):
     """Every fill the bot made, newest first, plus the win/loss record of its sales."""
     from bot import Pos  # late import: bot imports this module
 
-    held, opened_at, trades = {}, {}, []
+    held, opened_at, trades, trip, trips = {}, {}, [], {}, []
     for ev in led.events:
         sym, when, qty, px = ev["symbol"], ev["when"], ev["qty"], ev["px"]
         p = Pos(sym, ev.get("tag", ""))
@@ -117,6 +117,9 @@ def blotter(led, now):
                        basis=round(basis), held=_held((when - start).total_seconds()) if start else None,
                        result="win" if pnl >= 0.5 else "loss" if pnl <= -0.5 else "even")
             held[sym] = max(0, held.get(sym, 0) - qty)
+            trip[sym] = trip.get(sym, 0.0) + pnl
+            if not held[sym]:  # the whole position is gone: one finished trade
+                trips.append(trip.pop(sym))
         trades.append(row)
 
     sales = [t for t in trades if t["side"] == "sell"]
@@ -158,6 +161,8 @@ def blotter(led, now):
         "best": brief(max(sales, key=lambda t: t["pnl"], default=None)),
         "worst": brief(min(sales, key=lambda t: t["pnl"], default=None)),
         "streak": streak,
+        "trades_closed": len(trips), "trades_won": sum(1 for p in trips if p >= 0.5),
+        "trade_win_rate": round(sum(1 for p in trips if p >= 0.5) / len(trips) * 100, 1) if trips else None,
         "bought": sum(t["notional"] for t in trades if t["side"] == "buy"),
         "sold": sum(t["notional"] for t in sales),
         "by_ticker": group("und"), "by_engine": group("engine"), "by_reason": group("reason"),
@@ -299,7 +304,7 @@ def start_server(port=None):
 PAGE = r"""<!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Options Bot Live</title>
+<title>Midas Live</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
@@ -462,7 +467,7 @@ h3 { color:var(--gold); font:9px/1.4 var(--px); margin:16px 0 6px; }
 @media (prefers-reduced-motion: reduce) { .layer, .hero, .hero .fa, .dot.live { animation:none; } .hero .fb { display:none; } .tape-track { animation:none; } .tape { overflow-x:auto; } }
 </style></head><body>
 <header class="top">
-  <span class="logo">OPTBOT</span>
+  <span class="logo">MIDAS</span>
   <span class="cmd">MSBC 5220 <b>OPTIONS QUEST</b><span class="go">GO</span></span>
   <nav class="fkeys" aria-label="Sections">
     <a href="#mon"><b>1</b>MON</a><a href="#pos"><b>2</b>POS</a><a href="#wl"><b>3</b>W/L</a><a href="#blt"><b>4</b>BLOTTER</a><a href="#log"><b>5</b>LOG</a>
@@ -683,13 +688,15 @@ h3 { color:var(--gold); font:9px/1.4 var(--px); margin:16px 0 6px; }
     set("k-real", signed(sl.realized || 0), cls(sl.realized)); set("k-real-s", (st.sales || 0) + " sales, " + (st.buys || 0) + " buys");
     set("k-unrl", signed(sl.unrealized || 0), cls(sl.unrealized)); set("k-unrl-s", s.positions.length + " open, " + money(sl.cash) + " cash");
     set("k-wr", st.win_rate === null || st.win_rate === undefined ? "–" : st.win_rate.toFixed(0) + "%");
-    set("k-wr-s", (st.wins || 0) + " W / " + (st.losses || 0) + " L" + (st.profit_factor ? ", factor " + st.profit_factor.toFixed(2) : ""));
+    set("k-wr-s", "of sales; whole trades " + (st.trade_win_rate === null || st.trade_win_rate === undefined ? "–" : st.trade_win_rate.toFixed(0) + "%"));
     var moods = { bear: "FALLING", bull: "RISING", mixed: "MIXED" };
     set("k-mood", (s.regime === "bear" ? "▼ " : s.regime === "bull" ? "▲ " : "") + (moods[s.regime] || (s.regime || "–").toUpperCase()), s.regime === "bear" ? "dn" : s.regime === "bull" ? "up" : "warn");
     set("k-mood-s", s.regime === "bear" ? "buying puts" : s.regime === "bull" ? "buying calls" : "SPY and QQQ disagree");
     var played = (s.daily || []).filter(function (r) { return r.date !== "start"; });
     var lastDay = played.length ? played[played.length - 1].date : "";
-    set("hud-day", "DAY " + (played.length + (s.as_of.slice(0, 10) > lastDay && s.market_open ? 1 : 0)));
+    var asDay = s.as_of.slice(0, 10), wd = new Date(asDay + "T12:00:00").getDay();  // as_of is in market time
+    var tradedToday = asDay > lastDay && wd > 0 && wd < 6 && (s.market_open || s.as_of.slice(11, 16) >= "09:30");
+    set("hud-day", "DAY " + (played.length + (tradedToday ? 1 : 0)));
     set("hud-w", st.wins || 0); set("hud-l", st.losses || 0); set("hud-p", signed(sl.profit), cls(sl.profit));
     renderTape(s.market);
 
@@ -743,6 +750,7 @@ h3 { color:var(--gold); font:9px/1.4 var(--px); margin:16px 0 6px; }
     facts($("wl-facts"), [
       ["AVERAGE WIN", st.avg_win === null ? "–" : signed(st.avg_win) + "  (" + pct(st.avg_win_pct, 0) + ")", "up"],
       ["AVERAGE LOSS", st.avg_loss === null ? "–" : signed(st.avg_loss) + "  (" + pct(st.avg_loss_pct, 0) + ")", "dn"],
+      ["WHOLE TRADES", st.trades_closed ? st.trades_won + " of " + st.trades_closed + " made money (" + st.trade_win_rate.toFixed(0) + "%)" : "–"],
       ["PROFIT FACTOR", st.profit_factor ? st.profit_factor.toFixed(2) + "  ($ won per $1 lost)" : "–"],
       ["BEST SALE", bw ? bw.label + "  " + signed(bw.pnl) + "  " + bw.when : "–", "up"],
       ["WORST SALE", ww ? ww.label + "  " + signed(ww.pnl) + "  " + ww.when : "–", "dn"],

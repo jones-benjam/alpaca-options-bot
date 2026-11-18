@@ -1,9 +1,12 @@
-# optbot: aggressive options bot for Alpaca paper trading
+# Midas: aggressive options bot for Alpaca paper trading
 
 Trades a $50,000 sleeve of a $100,000 Alpaca **paper** account. The goal is to
 beat SPY by as much as possible over a few weeks, accepting a real chance of
 losing most of the sleeve. It cannot reach a live account: the paper endpoint
 is hard-coded.
+
+The bot's name is Midas. Its orders still carry the original `optbot-` tag,
+because the bot rebuilds its trade history from that tag every time it starts.
 
 **Start here: [STRATEGY_LOG.md](STRATEGY_LOG.md).** It explains the strategy
 in plain English, lists every change to it with the date and reason, and has
