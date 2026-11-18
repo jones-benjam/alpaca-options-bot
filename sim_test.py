@@ -383,6 +383,31 @@ def test_live_dashboard():
     snap = live._state["snapshot"]
     assert snap and snap["positions"], "a snapshot with the open positions is published"
     assert snap["sleeve"]["value"] > 0 and "lock" in snap and snap["log"], "it carries the sleeve, the lock and recent log lines"
+    buys = [t for t in snap["trades"] if t["side"] == "buy"]
+    assert buys and all(t["reason"] and t["label"] for t in buys), "the blotter lists each buy with why it was made"
+    assert snap["stats"]["buys"] == len(buys) and "win_rate" in snap["stats"], "the win/loss record is published"
+    assert all("upnl" in p and "dte" in p for p in snap["positions"]), "positions carry dollar P&L and days left"
+
+    # Score a made-up history: a win, a loss and a partial sale.
+    when = dt.datetime(2026, 11, 16, 15, 0, tzinfo=dt.timezone.utc)
+    sym_a, sym_b = "NVDA261127P00180000", "AMD261211P00505000"
+    led2 = bot.Ledger()
+    led2.events = [  # in time order, as the ledger keeps them
+        {"when": when, "symbol": sym_a, "side": "buy", "qty": 4, "px": 2.00, "tag": "core", "meta": "e_bear_1570"},
+        {"when": when, "symbol": sym_b, "side": "buy", "qty": 1, "px": 10.00, "tag": "odte", "meta": "e_bear_9"},
+        {"when": when + dt.timedelta(minutes=30), "symbol": sym_b, "side": "sell", "qty": 1, "px": 10.00, "tag": "odte", "meta": "x_flip", "pnl": 0.0},
+        {"when": when + dt.timedelta(hours=2), "symbol": sym_a, "side": "sell", "qty": 2, "px": 6.00, "tag": "core", "meta": "x_half", "pnl": 800.0},
+        {"when": when + dt.timedelta(days=1), "symbol": sym_a, "side": "sell", "qty": 2, "px": 1.00, "tag": "core", "meta": "x_stop", "pnl": -200.0},
+    ]
+    trades, stats = live.blotter(led2, when)
+    sells = [t for t in trades if t["side"] == "sell"]
+    assert [t["result"] for t in sells] == ["loss", "win", "even"], "newest first, each sale scored"
+    assert sells[1]["pnl_pct"] == 200.0 and sells[0]["pnl_pct"] == -50.0, "P&L % is against what was paid"
+    assert sells[1]["held"] == "2h 00m" and sells[0]["held"] == "1d 0h", "holding time runs from the first buy"
+    assert sells[1]["reason"] == "Took profit on half" and trades[-1]["reason"].startswith("Momentum signal 15.7%")
+    assert stats["wins"] == 1 and stats["losses"] == 1 and stats["win_rate"] == 50.0 and stats["profit_factor"] == 4.0
+    assert stats["streak"] == {"result": "loss", "n": 1} and stats["realized"] == 600.0
+    assert stats["by_ticker"][0]["name"] == "NVDA" and stats["by_ticker"][0]["pnl"] == 600.0
     server = live.start_server(0)
     port = server.server_address[1]
     page = urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read().decode()
