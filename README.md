@@ -74,7 +74,7 @@ python3 sim_test.py                      # offline test with a fake broker, no k
 python3 bot.py journal                   # add today's row to STRATEGY_LOG.md
 python3 backtest_signal.py               # replay the rules on five years of prices
 python3 bot.py memory                    # refresh the trade table and review
-python3 dashboard.py                     # build the one-page dashboard, docs/index.html
+python3 dashboard.py                     # rebuild docs/: the live page and the daily report
 python3 measure_option_cost.py --cached  # were options overpriced? (real prices)
 ```
 
@@ -125,8 +125,11 @@ Python 3.9+; no packages to install.
 
 ## Live dashboard
 
-The bot serves a live, read-only dashboard from its own Fly.io machine at
-**https://msbc5220-optbot.fly.dev**. It shows the whole account against SPY,
+**https://jones-benjam.github.io/alpaca-options-bot/** is the live dashboard,
+hosted by GitHub Pages from `docs/`. It reads live data from the bot, which
+also serves the same page itself at https://msbc5220-optbot.fly.dev. The daily
+report is at `docs/report.html`, and the live page links to it when the bot
+can't be reached. It shows the whole account against SPY,
 the lead lock, every open position, recent sales and the bot's latest log lines,
 and refreshes itself every 15 seconds (every few minutes while the market is
 closed). Page requests never call the broker; they read the snapshot the bot

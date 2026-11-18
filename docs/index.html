@@ -1,213 +1,219 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Options bot dashboard</title><style>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Options Bot Live</title>
+<style>
+/* Layout: summary tiles, then the lead-over-SPY strip, charts, the book, activity. One column on phones. */
 :root { color-scheme: light;
   --page:#f9f9f7; --surface:#fcfcfb; --ink:#0b0b0b; --ink2:#52514e; --muted:#898781;
-  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,0.10);
-  --account:#2a78d6; --spy:#eb6834; --gain:#2a78d6; --loss:#e34948; --up:#006300; --down:#d03b3b; }
+  --grid:#e1e0d9; --axis:#c3c2b7; --border:rgba(11,11,11,.10);
+  --account:#2a78d6; --spy:#eb6834; --gain:#006300; --loss:#d03b3b; --warn:#9a6700; --wash:rgba(42,120,214,.10); }
 @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) { color-scheme: dark;
   --page:#0d0d0d; --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
-  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
-  --account:#3987e5; --spy:#d95926; --gain:#3987e5; --loss:#e66767; --up:#0ca30c; --down:#e66767; } }
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --account:#3987e5; --spy:#d95926; --gain:#0ca30c; --loss:#e66767; --warn:#fab219; --wash:rgba(57,135,229,.14); } }
 :root[data-theme="dark"] { color-scheme: dark;
   --page:#0d0d0d; --surface:#1a1a19; --ink:#f0efec; --ink2:#c3c2b7; --muted:#898781;
-  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,0.10);
-  --account:#3987e5; --spy:#d95926; --gain:#3987e5; --loss:#e66767; --up:#0ca30c; --down:#e66767; }
-* { box-sizing: border-box; }
-body { margin:0; background:var(--page); color:var(--ink);
-  font:16px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif; }
-main { max-width:980px; margin:0 auto; padding:24px 16px 48px; }
-h1 { font-size:26px; margin:0 0 4px; } h2 { font-size:18px; margin:0 0 4px; }
-p { margin:0 0 12px; } .sub { color:var(--ink2); margin-bottom:20px; } .small { color:var(--muted); font-size:13px; }
-.card { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:18px; margin-bottom:16px; }
-.tiles { display:grid; grid-template-columns:repeat(auto-fit,minmax(170px,1fr)); gap:12px; margin-bottom:16px; }
-.tile { background:var(--surface); border:1px solid var(--border); border-radius:10px; padding:14px 16px; }
-.tile .k { color:var(--ink2); font-size:13px; } .tile .v { font-size:28px; font-weight:650; line-height:1.2; }
-.tile .d { font-size:13px; color:var(--ink2); } .up { color:var(--up); } .down { color:var(--down); }
-.legend { display:flex; gap:18px; flex-wrap:wrap; color:var(--ink2); font-size:14px; margin:6px 0 4px; }
-.key { display:inline-block; width:18px; height:0; border-top:2px solid; vertical-align:middle; margin-right:6px; }
-.sw { display:inline-block; width:10px; height:10px; border-radius:2px; vertical-align:middle; margin-right:6px; }
-.chartwrap { position:relative; } svg.chart { width:100%; height:auto; display:block; overflow:visible; }
-.grid { stroke:var(--grid); stroke-width:1; } .axis { stroke:var(--axis); stroke-width:1; }
-.tick { fill:var(--muted); font-size:12px; font-variant-numeric:tabular-nums; }
-.line { fill:none; stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
-.line.s-account, .dot.s-account { stroke:var(--account); } .line.s-spy { stroke:var(--spy); }
-.dot { stroke:var(--surface); stroke-width:2; } .dot.s-account { fill:var(--account); } .dot.s-spy { fill:var(--spy); stroke:var(--surface); }
-.endlabel { fill:var(--ink2); font-size:13px; } .endlabel .strong { fill:var(--ink); font-weight:650; }
-.barlabel { fill:var(--ink); font-size:12px; font-weight:600; }
-.bar.gain { fill:var(--gain); } .bar.loss { fill:var(--loss); }
-.bar:hover, .bar:focus { opacity:.78; outline:none; } .hit { fill:transparent; outline:none; }
-.crosshair { stroke:var(--axis); stroke-width:1; }
-.tip { position:absolute; pointer-events:none; background:var(--surface); border:1px solid var(--border);
-  border-radius:8px; padding:8px 10px; font-size:13px; box-shadow:0 4px 14px rgba(0,0,0,.12); white-space:nowrap; display:none; z-index:2; }
-.tip b { font-size:15px; } .tip .row { color:var(--ink2); }
-table { border-collapse:collapse; width:100%; font-size:14px; } th, td { text-align:left; padding:6px 10px 6px 0; border-bottom:1px solid var(--grid); }
-th { color:var(--ink2); font-weight:600; } td.n, th.n { text-align:right; font-variant-numeric:tabular-nums; }
-.scroll { overflow-x:auto; } details { margin-top:10px; } summary { cursor:pointer; color:var(--ink2); font-size:14px; }
-blockquote { margin:0; padding:0 0 0 14px; border-left:3px solid var(--axis); color:var(--ink2); white-space:pre-wrap; }
-ul { margin:0; padding-left:20px; } li { margin-bottom:6px; }
+  --grid:#2c2c2a; --axis:#383835; --border:rgba(255,255,255,.10);
+  --account:#3987e5; --spy:#d95926; --gain:#0ca30c; --loss:#e66767; --warn:#fab219; --wash:rgba(57,135,229,.14); }
+* { box-sizing:border-box; }
+body { margin:0; background:var(--page); color:var(--ink); font:15px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif; }
+main { max-width:1080px; margin:0 auto; padding-block:16px 40px;
+  padding-left:max(16px, env(safe-area-inset-left, 0px)); padding-right:max(16px, env(safe-area-inset-right, 0px)); }
+header { display:flex; flex-wrap:wrap; align-items:baseline; justify-content:space-between; gap:8px 16px; margin-bottom:14px; }
+h1 { font-size:22px; margin:0; text-wrap:balance; } h2 { font-size:16px; margin:0 0 8px; }
+.pill { display:inline-flex; align-items:center; gap:6px; font-size:13px; color:var(--ink2);
+  border:1px solid var(--border); border-radius:999px; padding:3px 10px; background:var(--surface); }
+.dot { width:8px; height:8px; border-radius:50%; background:var(--muted); }
+.dot.live { background:var(--gain); } .dot.stale { background:var(--warn); }
+.tiles { display:grid; grid-template-columns:repeat(auto-fit, minmax(180px, 1fr)); gap:10px; margin-bottom:12px; }
+.tile, .card { background:var(--surface); border:1px solid var(--border); border-radius:10px; }
+.tile { padding:12px 14px; } .card { padding:14px 16px; margin-bottom:12px; min-width:0; }
+.k { color:var(--ink2); font-size:13px; } .v { font-size:26px; font-weight:650; line-height:1.2; font-variant-numeric:tabular-nums; }
+.d { font-size:13px; color:var(--ink2); font-variant-numeric:tabular-nums; }
+.up { color:var(--gain); } .down { color:var(--loss); }
+.grid2 { display:grid; grid-template-columns:repeat(auto-fit, minmax(320px, 1fr)); gap:12px; }
+.legend { display:flex; gap:16px; flex-wrap:wrap; font-size:13px; color:var(--ink2); margin-bottom:4px; }
+.key { display:inline-block; width:16px; border-top:2px solid; vertical-align:middle; margin-right:6px; }
+svg { width:100%; height:auto; display:block; overflow:visible; }
+.gridline { stroke:var(--grid); stroke-width:1; } .zero { stroke:var(--axis); stroke-width:1; }
+.tick { fill:var(--muted); font-size:11px; font-variant-numeric:tabular-nums; }
+.lineacc { fill:none; stroke:var(--account); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+.linespy { fill:none; stroke:var(--spy); stroke-width:2; stroke-linejoin:round; stroke-linecap:round; }
+.area { fill:var(--wash); } .enddot { stroke:var(--surface); stroke-width:2; }
+.endlabel { fill:var(--ink); font-size:12px; font-weight:600; }
+.lockbar { position:relative; height:12px; border-radius:6px; background:var(--grid); margin:10px 0 6px; overflow:hidden; }
+.lockfill { position:absolute; inset:0 auto 0 0; background:var(--account); border-radius:6px; }
+.scroll { overflow-x:auto; }
+table { border-collapse:collapse; width:100%; font-size:14px; }
+th, td { text-align:left; padding:6px 10px 6px 0; border-bottom:1px solid var(--grid); white-space:nowrap; }
+th { color:var(--ink2); font-weight:600; font-size:13px; } .n { text-align:right; font-variant-numeric:tabular-nums; }
+.chip { display:inline-block; font-size:12px; padding:1px 8px; border-radius:999px; border:1px solid var(--border); color:var(--ink2); }
+.log { font:12px/1.5 ui-monospace,SFMono-Regular,Menlo,monospace; color:var(--ink2); white-space:pre-wrap; word-break:break-word;
+  max-height:320px; overflow:auto; margin:0; }
+.muted { color:var(--muted); font-size:13px; }
+.empty { color:var(--muted); padding:8px 0; }
 </style></head><body><main>
-<h1>Options bot: how we stand against SPY</h1>
-<p class="sub">A class project on practice money. The goal is to finish ahead of a portfolio that simply holds SPY.
-As of 2026-11-18 (as of 13:17 ET).</p>
-<div class="tiles"><div class="tile"><div class="k">Whole account</div><div class="v">$152,549</div><div class="d up">▲ +52.5% since the start</div></div><div class="tile"><div class="k">SPY, the benchmark</div><div class="v">−0.6%</div><div class="d ">since the contest began</div></div><div class="tile"><div class="k">Lead over SPY</div><div class="v">+53.2 pts</div><div class="d up">▲ ahead of the professor</div></div><div class="tile"><div class="k">The bot&#x27;s profit</div><div class="v">+$55,775</div><div class="d ">on a sleeve now worth $105,775</div></div><div class="tile"><div class="k">Closed trades</div><div class="v">5 of 11</div><div class="d ">made money</div></div></div>
+<header>
+  <h1>Options Bot Live</h1>
+  <span class="pill" id="status"><span class="dot" id="statusdot"></span><span id="statustext">Waiting for the first update</span></span>
+</header>
+<p class="muted" style="margin:-6px 0 12px">Practice money on Alpaca. The goal is to finish ahead of a portfolio that holds SPY. This page refreshes itself every 15 seconds.</p>
 
-<section class="card">
-  <h2>The account against SPY</h2>
-  <p class="sub">Percent change since the start, on one scale. The account started at $100,000.</p>
-  <div class="legend"><span><span class="key" style="border-color:var(--account)"></span>Account</span>
-    <span><span class="key" style="border-color:var(--spy)"></span>SPY</span></div>
-  <div class="chartwrap" id="line-wrap"><svg viewBox="0 0 720 300" role="img" aria-labelledby="lc-title lc-desc" class="chart" id="line-chart">
-<title id="lc-title">Account and SPY, percent change since the start</title>
-<desc id="lc-desc">The account is at +52.5% and SPY at −0.6% as of Nov 18*.</desc>
-<line class="grid" x1="46" x2="608" y1="270.0" y2="270.0"/>
-<text class="tick" x="38" y="274.0" text-anchor="end">-20%</text>
-<line class="axis" x1="46" x2="608" y1="218.8" y2="218.8"/>
-<text class="tick" x="38" y="222.8" text-anchor="end">0%</text>
-<line class="grid" x1="46" x2="608" y1="167.6" y2="167.6"/>
-<text class="tick" x="38" y="171.6" text-anchor="end">20%</text>
-<line class="grid" x1="46" x2="608" y1="116.4" y2="116.4"/>
-<text class="tick" x="38" y="120.4" text-anchor="end">40%</text>
-<line class="grid" x1="46" x2="608" y1="65.2" y2="65.2"/>
-<text class="tick" x="38" y="69.2" text-anchor="end">60%</text>
-<line class="grid" x1="46" x2="608" y1="14.0" y2="14.0"/>
-<text class="tick" x="38" y="18.0" text-anchor="end">80%</text>
-<text class="tick" x="46.0" y="292" text-anchor="middle">Start</text>
-<text class="tick" x="116.2" y="292" text-anchor="middle">Nov 9</text>
-<text class="tick" x="186.5" y="292" text-anchor="middle">Nov 10</text>
-<text class="tick" x="256.8" y="292" text-anchor="middle">Nov 11</text>
-<text class="tick" x="327.0" y="292" text-anchor="middle">Nov 12</text>
-<text class="tick" x="397.2" y="292" text-anchor="middle">Nov 13</text>
-<text class="tick" x="467.5" y="292" text-anchor="middle">Nov 16</text>
-<text class="tick" x="537.8" y="292" text-anchor="middle">Nov 17</text>
-<text class="tick" x="608.0" y="292" text-anchor="middle">Nov 18*</text>
-<path class="line s-spy" d="M46.0,218.8 L116.2,212.8 L186.5,213.7 L256.8,210.3 L327.0,211.2 L397.2,212.2 L467.5,217.2 L537.8,219.8 L608.0,220.4"/>
-<path class="line s-account" d="M46.0,218.8 L116.2,218.8 L186.5,202.2 L256.8,218.7 L327.0,169.9 L397.2,160.1 L467.5,113.8 L537.8,58.2 L608.0,84.3"/>
-<circle class="dot s-account" cx="608.0" cy="84.3" r="4.5"/>
-<text class="endlabel" x="618.0" y="88.3"><tspan class="strong">+52.5%</tspan> Account</text>
-<circle class="dot s-spy" cx="608.0" cy="220.4" r="4.5"/>
-<text class="endlabel" x="618.0" y="224.4"><tspan class="strong">−0.6%</tspan> SPY</text>
-<line class="crosshair" id="crosshair" x1="0" x2="0" y1="14" y2="270" visibility="hidden"/>
-<rect class="hit" data-i="0" data-x="46.0" x="46.0" y="14" width="35.1" height="256" tabindex="0" aria-label="Start: account +0.0%, SPY +0.0%"/>
-<rect class="hit" data-i="1" data-x="116.2" x="81.1" y="14" width="70.2" height="256" tabindex="0" aria-label="Nov 9: account +0.0%, SPY +2.4%"/>
-<rect class="hit" data-i="2" data-x="186.5" x="151.4" y="14" width="70.2" height="256" tabindex="0" aria-label="Nov 10: account +6.5%, SPY +2.0%"/>
-<rect class="hit" data-i="3" data-x="256.8" x="221.6" y="14" width="70.2" height="256" tabindex="0" aria-label="Nov 11: account +0.1%, SPY +3.3%"/>
-<rect class="hit" data-i="4" data-x="327.0" x="291.9" y="14" width="70.2" height="256" tabindex="0" aria-label="Nov 12: account +19.1%, SPY +3.0%"/>
-<rect class="hit" data-i="5" data-x="397.2" x="362.1" y="14" width="70.2" height="256" tabindex="0" aria-label="Nov 13: account +22.9%, SPY +2.6%"/>
-<rect class="hit" data-i="6" data-x="467.5" x="432.4" y="14" width="70.2" height="256" tabindex="0" aria-label="Nov 16: account +41.0%, SPY +0.6%"/>
-<rect class="hit" data-i="7" data-x="537.8" x="502.6" y="14" width="70.2" height="256" tabindex="0" aria-label="Nov 17: account +62.7%, SPY −0.4%"/>
-<rect class="hit" data-i="8" data-x="608.0" x="572.9" y="14" width="35.1" height="256" tabindex="0" aria-label="Nov 18*: account +52.5%, SPY −0.6%"/>
-</svg><div class="tip" id="line-tip"></div></div>
-  <p class="small">* The latest day uses prices from when the page was built. It is replaced with Alpaca's official close afterwards.</p>
-  <details><summary>Show the numbers</summary><div class="scroll"><table>
-    <tr><th>Day</th><th class="n">Account</th><th class="n">Account change</th><th class="n">SPY change</th></tr>
-    <tr><td>Start</td><td class='n'>$100,000</td><td class='n'>+0.0%</td><td class='n'>+0.0%</td></tr><tr><td>Nov 9</td><td class='n'>$100,006</td><td class='n'>+0.0%</td><td class='n'>+2.4%</td></tr><tr><td>Nov 10</td><td class='n'>$106,493</td><td class='n'>+6.5%</td><td class='n'>+2.0%</td></tr><tr><td>Nov 11</td><td class='n'>$100,054</td><td class='n'>+0.1%</td><td class='n'>+3.3%</td></tr><tr><td>Nov 12</td><td class='n'>$119,090</td><td class='n'>+19.1%</td><td class='n'>+3.0%</td></tr><tr><td>Nov 13</td><td class='n'>$122,912</td><td class='n'>+22.9%</td><td class='n'>+2.6%</td></tr><tr><td>Nov 16</td><td class='n'>$141,024</td><td class='n'>+41.0%</td><td class='n'>+0.6%</td></tr><tr><td>Nov 17</td><td class='n'>$162,719</td><td class='n'>+62.7%</td><td class='n'>−0.4%</td></tr><tr><td>Nov 18*</td><td class='n'>$152,549</td><td class='n'>+52.5%</td><td class='n'>−0.6%</td></tr></table></div></details>
+<section class="tiles" aria-label="Summary">
+  <div class="tile"><div class="k">Whole account</div><div class="v" id="t-account">–</div><div class="d" id="t-account-d"></div></div>
+  <div class="tile"><div class="k">Lead over SPY</div><div class="v" id="t-lead">–</div><div class="d" id="t-lead-d"></div></div>
+  <div class="tile"><div class="k">Bot's profit</div><div class="v" id="t-profit">–</div><div class="d" id="t-profit-d"></div></div>
+  <div class="tile"><div class="k">Market mood</div><div class="v" id="t-mood">–</div><div class="d" id="t-mood-d"></div></div>
 </section>
 
 <section class="card">
-  <h2>Every closed trade</h2>
-  <p class="sub">Profit or loss in dollars, in the order the trades were opened. A few large winners carry the result.</p>
-  <div class="legend"><span><span class="sw" style="background:var(--gain)"></span>Made money (above the line)</span>
-    <span><span class="sw" style="background:var(--loss)"></span>Lost money (below the line)</span></div>
-  <div class="chartwrap" id="bar-wrap"><svg viewBox="0 0 720 260" role="img" aria-labelledby="bc-title bc-desc" class="chart" id="bar-chart">
-<title id="bc-title">Profit or loss of each closed trade</title>
-<desc id="bc-desc">5 of 11 closed trades made money. Best +$8,460, worst −$2,300.</desc>
-<line class="grid" x1="56" x2="704" y1="226.0" y2="226.0"/>
-<text class="tick" x="48" y="230.0" text-anchor="end">−$5K</text>
-<line class="axis" x1="56" x2="704" y1="158.0" y2="158.0"/>
-<text class="tick" x="48" y="162.0" text-anchor="end">$0</text>
-<line class="grid" x1="56" x2="704" y1="90.0" y2="90.0"/>
-<text class="tick" x="48" y="94.0" text-anchor="end">$5K</text>
-<line class="grid" x1="56" x2="704" y1="22.0" y2="22.0"/>
-<text class="tick" x="48" y="26.0" text-anchor="end">$10K</text>
-<path class="bar gain" d="M73.5,158.0 V46.9 Q73.5,42.9 77.5,42.9 H93.5 Q97.5,42.9 97.5,46.9 V158.0 Z" tabindex="0" data-tip="#1 NVDA put: +$8,460 (half sold at double then trailing stop)" aria-label="#1 NVDA put: +$8,460 (half sold at double then trailing stop)"/>
-<text class="barlabel" x="85.5" y="36.9" text-anchor="middle">+$8,460</text>
-<text class="tick" x="85.5" y="250" text-anchor="middle">#1</text>
-<path class="bar loss" d="M132.4,158.0 V165.0 Q132.4,169.0 136.4,169.0 H152.4 Q156.4,169.0 156.4,165.0 V158.0 Z" tabindex="0" data-tip="#4 SPY call: −$810 (stop loss)" aria-label="#4 SPY call: −$810 (stop loss)"/>
-<text class="tick" x="144.4" y="250" text-anchor="middle">#4</text>
-<path class="bar loss" d="M191.3,158.0 V165.0 Q191.3,169.0 195.3,169.0 H211.3 Q215.3,169.0 215.3,165.0 V158.0 Z" tabindex="0" data-tip="#5 QQQ call: −$810 (stop loss)" aria-label="#5 QQQ call: −$810 (stop loss)"/>
-<text class="tick" x="203.3" y="250" text-anchor="middle">#5</text>
-<path class="bar loss" d="M250.2,158.0 V175.3 Q250.2,179.3 254.2,179.3 H270.2 Q274.2,179.3 274.2,175.3 V158.0 Z" tabindex="0" data-tip="#7 NFLX put: −$1,568 (trend reversed)" aria-label="#7 NFLX put: −$1,568 (trend reversed)"/>
-<text class="tick" x="262.2" y="250" text-anchor="middle">#7</text>
-<path class="bar gain" d="M309.1,158.0 V110.7 Q309.1,106.7 313.1,106.7 H329.1 Q333.1,106.7 333.1,110.7 V158.0 Z" tabindex="0" data-tip="#9 SPY call: +$3,775 (half sold at double then trailing stop)" aria-label="#9 SPY call: +$3,775 (half sold at double then trailing stop)"/>
-<text class="tick" x="321.1" y="250" text-anchor="middle">#9</text>
-<path class="bar loss" d="M368.0,158.0 V158.0 Q368.0,159.5 369.5,159.5 H390.5 Q392.0,159.5 392.0,158.0 V158.0 Z" tabindex="0" data-tip="#10 AMD call: −$50 (back to break-even)" aria-label="#10 AMD call: −$50 (back to break-even)"/>
-<text class="tick" x="380.0" y="250" text-anchor="middle">#10</text>
-<path class="bar gain" d="M426.9,158.0 V115.1 Q426.9,111.1 430.9,111.1 H446.9 Q450.9,111.1 450.9,115.1 V158.0 Z" tabindex="0" data-tip="#12 QQQ call: +$3,450 (half sold at double then trailing stop)" aria-label="#12 QQQ call: +$3,450 (half sold at double then trailing stop)"/>
-<text class="tick" x="438.9" y="250" text-anchor="middle">#12</text>
-<path class="bar gain" d="M485.8,158.0 V107.9 Q485.8,103.9 489.8,103.9 H505.8 Q509.8,103.9 509.8,107.9 V158.0 Z" tabindex="0" data-tip="#13 QQQ put: +$3,976 (half sold at double then trailing stop)" aria-label="#13 QQQ put: +$3,976 (half sold at double then trailing stop)"/>
-<text class="tick" x="497.8" y="250" text-anchor="middle">#13</text>
-<path class="bar loss" d="M544.7,158.0 V158.0 Q544.7,160.4 547.1,160.4 H566.3 Q568.7,160.4 568.7,158.0 V158.0 Z" tabindex="0" data-tip="#15 SPY put: −$175 (back to break-even)" aria-label="#15 SPY put: −$175 (back to break-even)"/>
-<text class="tick" x="556.7" y="250" text-anchor="middle">#15</text>
-<path class="bar gain" d="M603.6,158.0 V51.4 Q603.6,47.4 607.6,47.4 H623.6 Q627.6,47.4 627.6,51.4 V158.0 Z" tabindex="0" data-tip="#16 SPY put: +$8,130 (half sold at double then trailing stop)" aria-label="#16 SPY put: +$8,130 (half sold at double then trailing stop)"/>
-<text class="tick" x="615.6" y="250" text-anchor="middle">#16</text>
-<path class="bar loss" d="M662.5,158.0 V185.3 Q662.5,189.3 666.5,189.3 H682.5 Q686.5,189.3 686.5,185.3 V158.0 Z" tabindex="0" data-tip="#20 SPY put: −$2,300 (stop loss)" aria-label="#20 SPY put: −$2,300 (stop loss)"/>
-<text class="barlabel" x="674.5" y="203.3" text-anchor="middle">−$2,300</text>
-<text class="tick" x="674.5" y="250" text-anchor="middle">#20</text>
-</svg><div class="tip" id="bar-tip"></div></div>
-  <details><summary>Show the numbers</summary><div class="scroll"><table>
-    <tr><th>Trade</th><th>Bet</th><th>Opened</th><th>Market mood</th><th>Why it was sold</th><th class="n">Result</th><th class="n">Return</th></tr>
-    <tr><td>#1</td><td>NVDA put</td><td>2026-11-09</td><td>bear</td><td>half sold at double then trailing stop</td><td class='n'>+$8,460</td><td class='n'>+129%</td></tr><tr><td>#4</td><td>SPY call</td><td>2026-11-10</td><td>bear</td><td>stop loss</td><td class='n'>−$810</td><td class='n'>-53%</td></tr><tr><td>#5</td><td>QQQ call</td><td>2026-11-10</td><td>bear</td><td>stop loss</td><td class='n'>−$810</td><td class='n'>-54%</td></tr><tr><td>#7</td><td>NFLX put</td><td>2026-11-11</td><td>bear</td><td>trend reversed</td><td class='n'>−$1,568</td><td class='n'>-23%</td></tr><tr><td>#9</td><td>SPY call</td><td>2026-11-11</td><td>mixed</td><td>half sold at double then trailing stop</td><td class='n'>+$3,775</td><td class='n'>+138%</td></tr><tr><td>#10</td><td>AMD call</td><td>2026-11-11</td><td>mixed</td><td>back to break-even</td><td class='n'>−$50</td><td class='n'>-1%</td></tr><tr><td>#12</td><td>QQQ call</td><td>2026-11-12</td><td>mixed</td><td>half sold at double then trailing stop</td><td class='n'>+$3,450</td><td class='n'>+86%</td></tr><tr><td>#13</td><td>QQQ put</td><td>2026-11-13</td><td>bear</td><td>half sold at double then trailing stop</td><td class='n'>+$3,976</td><td class='n'>+94%</td></tr><tr><td>#15</td><td>SPY put</td><td>2026-11-16</td><td>bear</td><td>back to break-even</td><td class='n'>−$175</td><td class='n'>-3%</td></tr><tr><td>#16</td><td>SPY put</td><td>2026-11-17</td><td>bear</td><td>half sold at double then trailing stop</td><td class='n'>+$8,130</td><td class='n'>+144%</td></tr><tr><td>#20</td><td>SPY put</td><td>2026-11-18</td><td>bear</td><td>stop loss</td><td class='n'>−$2,300</td><td class='n'>-50%</td></tr></table></div></details>
-</section>
-<section class="card">
-  <h2>What the bot holds now</h2>
-  <p class="sub">"P" is a put, a bet that the price falls. "C" is a call, a bet that it rises. The percentage is the result so far.</p>
-  <ul><li>4 PLTR 11/27 172.5P (+98%)</li><li>4 COIN 11/27 140P (+171%)</li><li>3 MSTR 12/04 125P (+196%)</li><li>2 MSFT 12/04 540P (+87%)</li><li>23 NFLX 12/04 63P (+68%)</li><li>6 QQQ 12/04 673P (+37%)</li><li>15 GOOGL 12/11 280P (-16%)</li><li>5 META 12/11 625P (-1%)</li><li>3 AMD 12/11 505P (-31%)</li></ul>
+  <h2>Lead lock</h2>
+  <div class="d" id="lock-text">Waiting for data.</div>
+  <div class="lockbar" aria-hidden="true"><div class="lockfill" id="lock-fill" style="width:0"></div></div>
+  <div class="muted">The bot keeps the whole account at least 5 points ahead of SPY. It may hold options worth up to twice the lead above that line; less lead means fewer new bets, and no lead closes everything.</div>
 </section>
 
+<div class="grid2">
+  <section class="card">
+    <h2>Account against SPY, by day</h2>
+    <div class="legend"><span><span class="key" style="border-color:var(--account)"></span>Account</span><span><span class="key" style="border-color:var(--spy)"></span>SPY</span></div>
+    <div id="chart-daily"><p class="empty">No closing values yet.</p></div>
+  </section>
+  <section class="card">
+    <h2>Today, minute by minute</h2>
+    <div class="legend"><span><span class="key" style="border-color:var(--account)"></span>Whole account value</span></div>
+    <div id="chart-intraday"><p class="empty">Builds up while the market is open.</p></div>
+  </section>
+</div>
+
 <section class="card">
-  <h2>Things to look at first</h2>
-  <p class="sub">Warnings from the bot's rule-based review.</p>
-  <ul><li>Bets against the market&#x27;s mood: #4 SPY call (2026-11-10), #5 QQQ call (2026-11-10). The rules have blocked these for same-day bets since Nov 11; any after that date would be a bug.</li><li>One-way book: all 9 open bets are puts. A sharp move the other way would hit every one of them together.</li><li>Short of real cash: the shared account has $2,349 in cash, less than one full-size bet ($21,705). New bets will be smaller or skipped.</li></ul>
+  <h2>Open positions</h2>
+  <div class="scroll"><table><thead><tr><th>Position</th><th>Kind</th><th class="n">Contracts</th><th class="n">Paid</th><th class="n">Now</th><th class="n">Value</th><th class="n">Result</th></tr></thead>
+  <tbody id="positions"><tr><td colspan="7" class="empty">Waiting for data.</td></tr></tbody></table></div>
+  <p class="muted" style="margin:8px 0 0">P is a put, a bet the price falls. C is a call, a bet it rises.</p>
 </section>
 
-<p class="small">Built Nov 18, 2026 at 6:17 PM from the project's own records by <code>python3 dashboard.py</code>.
-Full history: STRATEGY_LOG.md and the memory folder.</p>
+<div class="grid2">
+  <section class="card">
+    <h2>Recent sales</h2>
+    <div class="scroll"><table><thead><tr><th>When</th><th>Contract</th><th class="n">Qty</th><th class="n">Price</th><th class="n">Profit</th></tr></thead>
+    <tbody id="closed"><tr><td colspan="5" class="empty">None yet.</td></tr></tbody></table></div>
+  </section>
+  <section class="card">
+    <h2>What the bot is saying</h2>
+    <pre class="log" id="log">Waiting for data.</pre>
+  </section>
+</div>
+<p class="muted" id="fallback" hidden>The live data can't be reached right now. The <a href="report.html">daily report</a> has the figures as of the last close.</p>
+<p class="muted" id="foot"></p>
 </main>
-<script type="application/json" id="line-data">[{"name": "Start", "accountText": "+0.0%", "accountValue": "$100,000", "spyText": "+0.0%"}, {"name": "Nov 9", "accountText": "+0.0%", "accountValue": "$100,006", "spyText": "+2.4%"}, {"name": "Nov 10", "accountText": "+6.5%", "accountValue": "$106,493", "spyText": "+2.0%"}, {"name": "Nov 11", "accountText": "+0.1%", "accountValue": "$100,054", "spyText": "+3.3%"}, {"name": "Nov 12", "accountText": "+19.1%", "accountValue": "$119,090", "spyText": "+3.0%"}, {"name": "Nov 13", "accountText": "+22.9%", "accountValue": "$122,912", "spyText": "+2.6%"}, {"name": "Nov 16", "accountText": "+41.0%", "accountValue": "$141,024", "spyText": "+0.6%"}, {"name": "Nov 17", "accountText": "+62.7%", "accountValue": "$162,719", "spyText": "\u22120.4%"}, {"name": "Nov 18*", "accountText": "+52.5%", "accountValue": "$152,549", "spyText": "\u22120.6%"}]</script>
+<script>window.OPTBOT_API = "https://msbc5220-optbot.fly.dev"; window.OPTBOT_FALLBACK = true;</script>
 <script>
 (function () {
-  var data = JSON.parse(document.getElementById('line-data').textContent);
-  var wrap = document.getElementById('line-wrap'), svg = document.getElementById('line-chart');
-  var tip = document.getElementById('line-tip'), cross = document.getElementById('crosshair');
-  function row(cls, value, name) {
-    var d = document.createElement('div'); d.className = 'row';
-    var k = document.createElement('span'); k.className = 'key'; k.style.borderColor = 'var(--' + cls + ')';
-    var b = document.createElement('b'); b.textContent = value + ' ';
-    d.appendChild(k); d.appendChild(b); d.appendChild(document.createTextNode(name)); return d;
-  }
-  function show(rect) {
-    var p = data[+rect.dataset.i], x = +rect.dataset.x;
-    cross.setAttribute('x1', x); cross.setAttribute('x2', x); cross.setAttribute('visibility', 'visible');
-    tip.textContent = '';
-    var h = document.createElement('div'); h.textContent = p.name; tip.appendChild(h);
-    tip.appendChild(row('account', p.accountText + ' (' + p.accountValue + ')', 'Account'));
-    tip.appendChild(row('spy', p.spyText, 'SPY'));
-    tip.style.display = 'block';
-    var box = svg.getBoundingClientRect(), scale = box.width / 720, left = x * scale + 12;
-    if (left + tip.offsetWidth > box.width) left = x * scale - tip.offsetWidth - 12;
-    tip.style.left = Math.max(0, left) + 'px'; tip.style.top = '8px';
-  }
-  function hide() { tip.style.display = 'none'; cross.setAttribute('visibility', 'hidden'); }
-  svg.querySelectorAll('.hit').forEach(function (r) {
-    r.addEventListener('pointermove', function () { show(r); });
-    r.addEventListener('focus', function () { show(r); });
-    r.addEventListener('blur', hide);
-  });
-  svg.addEventListener('pointerleave', hide);
+  var last = null, lastFetch = 0;
+  var API = window.OPTBOT_API || "", FALLBACK = !!window.OPTBOT_FALLBACK;
+  function $(id) { return document.getElementById(id); }
+  function money(v) { return (v < 0 ? "−$" : "$") + Math.abs(Math.round(v)).toLocaleString("en-US"); }
+  function signed(v) { return (v >= 0 ? "+$" : "−$") + Math.abs(Math.round(v)).toLocaleString("en-US"); }
+  function pct(v, d) { if (v === null || v === undefined) return "–"; return (v >= 0 ? "+" : "−") + Math.abs(v).toFixed(d === undefined ? 1 : d) + "%"; }
+  function set(id, text, cls) { var e = $(id); e.textContent = text; if (cls !== undefined) e.className = e.className.split(" ")[0] + (cls ? " " + cls : ""); }
+  function cell(tr, text, cls) { var td = document.createElement("td"); td.textContent = text; if (cls) td.className = cls; tr.appendChild(td); return td; }
+  var NS = "http://www.w3.org/2000/svg";
+  function el(name, attrs, parent) { var e = document.createElementNS(NS, name); for (var k in attrs) e.setAttribute(k, attrs[k]); if (parent) parent.appendChild(e); return e; }
+  function ticks(lo, hi, n) { var span = (hi - lo) || 1, raw = span / n, mag = Math.pow(10, Math.floor(Math.log10(raw))), steps = [1, 2, 2.5, 5, 10], step = mag;
+    for (var i = 0; i < steps.length; i++) if (steps[i] * mag >= raw) { step = steps[i] * mag; break; }
+    var out = [], v = Math.floor(lo / step) * step; while (v <= hi + step * 0.999) { out.push(+v.toFixed(6)); v += step; } return out; }
 
-  var bwrap = document.getElementById('bar-wrap'), btip = document.getElementById('bar-tip');
-  if (bwrap) bwrap.querySelectorAll('.bar').forEach(function (b) {
-    function on() {
-      btip.textContent = b.dataset.tip; btip.style.display = 'block';
-      var w = bwrap.getBoundingClientRect(), r = b.getBoundingClientRect();
-      var left = r.left - w.left + r.width / 2 - btip.offsetWidth / 2;
-      btip.style.left = Math.max(0, Math.min(left, w.width - btip.offsetWidth)) + 'px';
-      btip.style.top = Math.max(0, r.top - w.top - btip.offsetHeight - 8) + 'px';
-    }
-    function off() { btip.style.display = 'none'; }
-    b.addEventListener('pointermove', on); b.addEventListener('focus', on);
-    b.addEventListener('pointerleave', off); b.addEventListener('blur', off);
-  });
+  function lineChart(box, series, labels, fmt) {
+    box.textContent = "";
+    var W = 520, H = 230, L = 48, R = 70, T = 10, B = 26, pw = W - L - R, ph = H - T - B;
+    var all = []; series.forEach(function (s) { s.values.forEach(function (v) { if (v !== null) all.push(v); }); });
+    if (all.length < 2) { var p = document.createElement("p"); p.className = "empty"; p.textContent = "Not enough points yet."; box.appendChild(p); return; }
+    var tk = ticks(Math.min.apply(null, all), Math.max.apply(null, all), 4), lo = tk[0], hi = tk[tk.length - 1];
+    var n = labels.length, x = function (i) { return L + pw * (n < 2 ? 0 : i / (n - 1)); }, y = function (v) { return T + ph * (1 - (v - lo) / ((hi - lo) || 1)); };
+    var svg = el("svg", { viewBox: "0 0 " + W + " " + H, role: "img" }, box);
+    tk.forEach(function (t) { el("line", { "class": t === 0 ? "zero" : "gridline", x1: L, x2: L + pw, y1: y(t), y2: y(t) }, svg);
+      el("text", { "class": "tick", x: L - 6, y: y(t) + 4, "text-anchor": "end" }, svg).textContent = fmt(t, true); });
+    var every = Math.max(1, Math.ceil(n / 6));
+    labels.forEach(function (lab, i) { if (i % every === 0 || i === n - 1) el("text", { "class": "tick", x: x(i), y: H - 6, "text-anchor": "middle" }, svg).textContent = lab; });
+    series.forEach(function (s) {
+      var d = "", started = false;
+      s.values.forEach(function (v, i) { if (v === null) return; d += (started ? "L" : "M") + x(i).toFixed(1) + "," + y(v).toFixed(1); started = true; });
+      if (s.area && started) el("path", { "class": "area", d: d + "L" + x(n - 1).toFixed(1) + "," + y(lo) + "L" + x(0) + "," + y(lo) + "Z" }, svg);
+      el("path", { "class": s.cls, d: d }, svg);
+      var li = s.values.length - 1; while (li >= 0 && s.values[li] === null) li--;
+      if (li >= 0) { el("circle", { "class": "enddot", cx: x(li), cy: y(s.values[li]), r: 4.5, fill: s.color }, svg);
+        if (!s.nolabel) el("text", { "class": "endlabel", x: x(li) + 9, y: y(s.values[li]) + 4 }, svg).textContent = fmt(s.values[li]); }
+    });
+  }
+
+  function render(s) {
+    if (!s || s.waiting) return;
+    last = s;
+    var a = s.account, sl = s.sleeve;
+    set("t-account", money(a.value));
+    set("t-account-d", pct(a.return_pct) + " since the start" + (a.today_pct !== null ? ", " + pct(a.today_pct, 2) + " today" : ""), "");
+    set("t-lead", a.lead_pts === null ? "–" : (a.lead_pts >= 0 ? "+" : "−") + Math.abs(a.lead_pts).toFixed(1) + " pts");
+    set("t-lead-d", a.spy_return_pct === null ? "" : "SPY " + pct(a.spy_return_pct, 2) + " since the start", "");
+    set("t-profit", signed(sl.profit), sl.profit >= 0 ? "up" : "down");
+    set("t-profit-d", "sleeve " + money(sl.value) + ", " + money(sl.cash) + " in cash");
+    var moods = { bear: "Falling", bull: "Rising", mixed: "Mixed" };
+    set("t-mood", moods[s.regime] || s.regime || "–");
+    set("t-mood-d", s.signals.length ? "Next up: " + s.signals.slice(0, 3).map(function (x) { return x.symbol + " " + x.kind; }).join(", ") : "No signals");
+
+    var lk = s.lock;
+    if (lk.enabled && lk.floor) {
+      var exposure = s.positions.reduce(function (t, p) { return t + (p.value || 0); }, 0);
+      var allowed = Math.max(0, lk.multiplier * (a.value - lk.floor));
+      $("lock-text").textContent = "Floor " + money(lk.floor) + ". Account " + money(a.value) + ", so the lead above the floor is " + money(a.value - lk.floor) +
+        ". Options held " + money(exposure) + " of " + money(allowed) + " allowed; room for new bets " + money(lk.room || 0) + ".";
+      $("lock-fill").style.width = Math.min(100, allowed ? exposure / allowed * 100 : 100).toFixed(1) + "%";
+    } else { $("lock-text").textContent = "The lead lock is off."; }
+
+    var daily = s.daily || [];
+    lineChart($("chart-daily"), [
+      { cls: "lineacc", color: "var(--account)", values: daily.map(function (r) { return r.account_pct; }) },
+      { cls: "linespy", color: "var(--spy)", values: daily.map(function (r) { return r.spy_pct; }) }
+    ], daily.map(function (r) { return r.date === "start" ? "Start" : new Date(r.date + "T12:00:00").toLocaleDateString("en-US", { month: "short", day: "numeric" }); }),
+      function (v, axis) { return axis ? v + "%" : pct(v); });
+    var intra = s.intraday || [];
+    lineChart($("chart-intraday"), [{ cls: "lineacc", color: "var(--account)", area: true, values: intra.map(function (p) { return p.account; }) }],
+      intra.map(function (p) { return p.t; }), function (v, axis) { return axis ? "$" + Math.round(v / 1000) + "K" : money(v); });
+
+    var tb = $("positions"); tb.textContent = "";
+    if (!s.positions.length) { var tr0 = tb.insertRow(); var td0 = cell(tr0, "No open positions.", "empty"); td0.colSpan = 7; }
+    s.positions.forEach(function (p) {
+      var tr = tb.insertRow(); cell(tr, p.label);
+      var td = document.createElement("td"); var chip = document.createElement("span"); chip.className = "chip"; chip.textContent = p.engine; td.appendChild(chip); tr.appendChild(td);
+      cell(tr, p.qty, "n"); cell(tr, "$" + p.paid.toFixed(2), "n"); cell(tr, p.now === null ? "–" : "$" + p.now.toFixed(2), "n");
+      cell(tr, p.value === null ? "–" : money(p.value), "n"); cell(tr, p.pnl_pct === null ? "–" : pct(p.pnl_pct, 0), "n " + (p.pnl_pct >= 0 ? "up" : "down"));
+    });
+    var cb = $("closed"); cb.textContent = "";
+    if (!s.closed.length) { var tr1 = cb.insertRow(); var td1 = cell(tr1, "None yet.", "empty"); td1.colSpan = 5; }
+    s.closed.forEach(function (c) { var tr = cb.insertRow(); cell(tr, c.when); cell(tr, c.symbol); cell(tr, c.qty, "n"); cell(tr, "$" + c.price.toFixed(2), "n"); cell(tr, signed(c.pnl), "n " + (c.pnl >= 0 ? "up" : "down")); });
+    var lg = $("log"); lg.textContent = (s.log || []).slice().reverse().join("\n") || "Nothing yet.";
+    $("foot").textContent = "Data as of " + s.as_of_text + ". Contest ends " + s.end_date + ". Read-only: nothing on this page can place a trade.";
+    status();
+  }
+
+  function status() {
+    var dot = $("statusdot"), text = $("statustext");
+    if (!last) return;
+    var age = (Date.now() - new Date(last.as_of).getTime()) / 1000;
+    if (!last.market_open) { dot.className = "dot"; text.textContent = "Market closed · updated " + ago(age); }
+    else if (age < 150) { dot.className = "dot live"; text.textContent = "Live · updated " + ago(age); }
+    else { dot.className = "dot stale"; text.textContent = "Delayed · last update " + ago(age); }
+  }
+  function ago(s) { s = Math.max(0, Math.round(s)); return s < 60 ? s + "s ago" : s < 3600 ? Math.round(s / 60) + " min ago" : Math.round(s / 3600) + " h ago"; }
+
+  function poll() {
+    lastFetch = Date.now();
+    fetch(API + "/api/state", { cache: "no-store" }).then(function (r) { return r.json(); })
+      .then(function (s) { $("fallback").hidden = true; render(s); })
+      .catch(function () { $("statusdot").className = "dot stale"; $("statustext").textContent = "Cannot reach the bot · retrying";
+        if (FALLBACK) $("fallback").hidden = false; });
+  }
+  poll(); setInterval(poll, 15000); setInterval(status, 1000);
 })();
 </script></body></html>
