@@ -1,36 +1,34 @@
 # Review of the bot's trades
 
-Generated Wed Nov 18, 2026, 1:17 PM ET by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Wed Nov 18, 2026, 3:56 PM ET by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
 
-- **Sleeve:** $108,523 on $50,000 of capital (+$58,523).
-- **Closed trades:** 11, of which 5 made money (45%).
-- **Banked profit or loss:** +$36,330.
-- **Typical winner and loser:** +$5,558 against -$952.
-- **Best and worst:** #1 NVDA +$8,460, #20 SPY -$2,300.
+- **Sleeve:** $104,971 on $50,000 of capital (+$54,971).
+- **Closed trades:** 12, of which 5 made money (42%).
+- **Banked profit or loss:** +$30,735.
+- **Typical winner and loser:** +$5,558 against -$1,615.
+- **Best and worst:** #1 NVDA +$8,460, #19 AMD -$5,595.
 - **Market mood now:** bear.
 
 ## Things to look at first
 
-- **Bets against the market's mood:** #4 SPY call (2026-11-10), #5 QQQ call (2026-11-10). The rules have blocked these for same-day bets since Nov 11; any after that date would be a bug.
-- **One-way book:** all 9 open bets are puts. A sharp move the other way would hit every one of them together.
-- **Short of real cash:** the shared account has $2,349 in cash, less than one full-size bet ($21,705). New bets will be smaller or skipped.
+- **One-way book:** all 8 open bets are puts. A sharp move the other way would hit every one of them together.
+- **Short of real cash:** the shared account has $11,229 in cash, less than one full-size bet ($20,994). New bets will be smaller or skipped.
 
 ## Open bets
 
 | Bet | Paid | Now | Result so far |
 |---|---|---|---|
-| 4 PLTR 11/27 172.5P | $8.65 | $18.20 | +110% |
-| 4 COIN 11/27 140P | $9.40 | $26.68 | +184% |
-| 3 MSTR 12/04 125P | $10.90 | $32.26 | +196% |
-| 2 MSFT 12/04 540P | $20.00 | $39.01 | +95% |
-| 23 NFLX 12/04 63P | $1.96 | $3.41 | +74% |
-| 6 QQQ 12/04 673P | $17.37 | $24.13 | +39% |
-| 15 GOOGL 12/11 280P | $10.75 | $9.34 | -13% |
-| 5 META 12/11 625P | $30.00 | $30.29 | +1% |
-| 3 AMD 12/11 505P | $48.25 | $34.36 | -29% |
+| 4 PLTR 11/27 172.5P | $8.65 | $16.61 | +92% |
+| 4 COIN 11/27 140P | $9.40 | $28.52 | +203% |
+| 3 MSTR 12/04 125P | $10.90 | $34.61 | +218% |
+| 2 MSFT 12/04 540P | $20.00 | $35.48 | +77% |
+| 23 NFLX 12/04 63P | $1.96 | $3.67 | +87% |
+| 6 QQQ 12/04 673P | $17.37 | $23.01 | +32% |
+| 15 GOOGL 12/11 280P | $10.75 | $8.57 | -20% |
+| 5 META 12/11 625P | $30.00 | $28.34 | -6% |
 
 ## Where the profit and loss came from
 
@@ -41,20 +39,20 @@ Closed trades only. With this few trades these tables show what happened, not wh
 | | Trades | Won | Profit |
 |---|---|---|---|
 | same-day bet | 8 | 4 of 8 | +$15,236 |
-| three-week bet | 3 | 1 of 3 | +$6,842 |
+| three-week bet | 4 | 1 of 4 | +$1,247 |
 
 ### By direction
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| puts (bets on a fall) | 6 | 3 of 6 | +$16,523 |
+| puts (bets on a fall) | 7 | 3 of 7 | +$10,928 |
 | calls (bets on a rise) | 5 | 2 of 5 | +$5,555 |
 
 ### By the market's mood when the bet was placed
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| falling | 8 | 3 of 8 | +$14,903 |
+| falling | 9 | 3 of 9 | +$9,308 |
 | mixed | 3 | 2 of 3 | +$7,175 |
 
 ### By the reason it was sold
@@ -63,8 +61,8 @@ Closed trades only. With this few trades these tables show what happened, not wh
 |---|---|---|---|
 | took profit on half, then trailing stop | 5 | 5 of 5 | +$27,791 |
 | breakeven stop | 2 | 0 of 2 | -$225 |
-| trend flipped | 1 | 0 of 1 | -$1,568 |
 | stop loss | 3 | 0 of 3 | -$3,920 |
+| trend flipped | 2 | 0 of 2 | -$7,163 |
 
 ## The trader's own picks, scored against the rules
 
@@ -72,7 +70,7 @@ Neither set is traded. Each pick is judged on what the stock did afterwards, in 
 
 | | Picks scored | Right after 1 day | Average 1-day move | Average 5-day move |
 |---|---|---|---|---|
-| The rules' top three | 9 | 9 of 9 | +4.16% | too early |
+| The rules' top three | 9 | 9 of 9 | +4.61% | too early |
 
 ## Where the rest of the memory lives
 
