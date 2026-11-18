@@ -388,6 +388,8 @@ def test_live_dashboard():
     page = urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read().decode()
     state = _json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state", timeout=5).read())
     health = urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz", timeout=5).read()
+    cors = urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state", timeout=5).headers.get("Access-Control-Allow-Origin")
+    assert cors == "*", "the GitHub copy of the page may read the data"
     server.shutdown()
     assert "<title>Options Bot Live</title>" in page and health == b"ok"
     assert state["sleeve"]["value"] == snap["sleeve"]["value"], "the JSON is the published snapshot"

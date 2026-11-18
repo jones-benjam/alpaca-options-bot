@@ -3,7 +3,7 @@
 A starting point for the five slides (strategy, implementation, results,
 takeaways). Figures are as of the official close on Thu Nov 12, 2026 and will
 change before the contest ends on Dec 2. Refresh every number from
-`docs/index.html` (the dashboard) and `STRATEGY_LOG.md` before presenting.
+`docs/report.html` (the daily report) and `STRATEGY_LOG.md` before presenting.
 
 ---
 

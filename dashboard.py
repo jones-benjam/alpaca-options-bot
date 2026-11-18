@@ -17,7 +17,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).parent
 MEMORY = ROOT / "memory"
-OUT = ROOT / "docs" / "index.html"
+OUT = ROOT / "docs" / "report.html"          # the daily report, built from the records
+LIVE_OUT = ROOT / "docs" / "index.html"     # the live page, for GitHub Pages
+LIVE_API = "https://msbc5220-optbot.fly.dev"  # where the bot serves its live data
 START_VALUE = 100_000.0
 esc = html.escape
 
@@ -386,6 +388,7 @@ As of {esc(last['label'])}.</p>
   <ul>{flags_html}</ul>
 </section>
 {diary_html}
+<p class="small"><a href="index.html">Live dashboard</a>, refreshed every 15 seconds while the bot is running.</p>
 <p class="small">Built {esc(built)} from the project's own records by <code>python3 dashboard.py</code>.
 Full history: STRATEGY_LOG.md and the memory folder.</p>
 </main>
@@ -394,7 +397,20 @@ Full history: STRATEGY_LOG.md and the memory folder.</p>
 """
     OUT.parent.mkdir(exist_ok=True)
     OUT.write_text(page)
+    write_live_page()
     print(f"dashboard written: {OUT.relative_to(ROOT)} ({len(rows)} days, {len(closed)} closed trades)")
+
+
+def write_live_page():
+    """The live dashboard, published by GitHub Pages from docs/. It is the same page
+    the bot serves, set to read the bot's data across the internet and to point to
+    the daily report when the bot can't be reached."""
+    import live
+
+    config = (f'<script>window.OPTBOT_API = {json.dumps(LIVE_API)}; '
+              'window.OPTBOT_FALLBACK = true;</script>')
+    LIVE_OUT.write_text(live.PAGE.replace("<!--CONFIG-->", config, 1))
+    (LIVE_OUT.parent / ".nojekyll").write_text("")   # serve the files as they are
 
 
 if __name__ == "__main__":

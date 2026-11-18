@@ -127,9 +127,11 @@ class _Handler(BaseHTTPRequestHandler):
     def log_message(self, *args):  # keep request noise out of the trading log
         pass
 
-    def _send(self, code, body, kind):
+    def _send(self, code, body, kind, extra=None):
         raw = body.encode() if isinstance(body, str) else body
         self.send_response(code)
+        for key, value in (extra or {}).items():
+            self.send_header(key, value)
         self.send_header("Content-Type", kind)
         self.send_header("Content-Length", str(len(raw)))
         self.send_header("Cache-Control", "no-store")
@@ -143,7 +145,9 @@ class _Handler(BaseHTTPRequestHandler):
             self._send(200, "ok", "text/plain")
         elif path == "/api/state":
             snap = _state["snapshot"]
-            self._send(200, json.dumps(snap or {"waiting": True}), "application/json")
+            # Read-only and public, so any page (the GitHub copy of the dashboard) may read it.
+            self._send(200, json.dumps(snap or {"waiting": True}), "application/json",
+                       {"Access-Control-Allow-Origin": "*"})
         elif path in ("/", "/index.html"):
             self._send(200, PAGE, "text/html; charset=utf-8")
         else:
@@ -270,11 +274,14 @@ th { color:var(--ink2); font-weight:600; font-size:13px; } .n { text-align:right
     <pre class="log" id="log">Waiting for data.</pre>
   </section>
 </div>
+<p class="muted" id="fallback" hidden>The live data can't be reached right now. The <a href="report.html">daily report</a> has the figures as of the last close.</p>
 <p class="muted" id="foot"></p>
 </main>
+<!--CONFIG-->
 <script>
 (function () {
   var last = null, lastFetch = 0;
+  var API = window.OPTBOT_API || "", FALLBACK = !!window.OPTBOT_FALLBACK;
   function $(id) { return document.getElementById(id); }
   function money(v) { return (v < 0 ? "−$" : "$") + Math.abs(Math.round(v)).toLocaleString("en-US"); }
   function signed(v) { return (v >= 0 ? "+$" : "−$") + Math.abs(Math.round(v)).toLocaleString("en-US"); }
@@ -371,8 +378,10 @@ th { color:var(--ink2); font-weight:600; font-size:13px; } .n { text-align:right
 
   function poll() {
     lastFetch = Date.now();
-    fetch("/api/state", { cache: "no-store" }).then(function (r) { return r.json(); }).then(render)
-      .catch(function () { $("statusdot").className = "dot stale"; $("statustext").textContent = "Cannot reach the bot · retrying"; });
+    fetch(API + "/api/state", { cache: "no-store" }).then(function (r) { return r.json(); })
+      .then(function (s) { $("fallback").hidden = true; render(s); })
+      .catch(function () { $("statusdot").className = "dot stale"; $("statustext").textContent = "Cannot reach the bot · retrying";
+        if (FALLBACK) $("fallback").hidden = false; });
   }
   poll(); setInterval(poll, 15000); setInterval(status, 1000);
 })();
