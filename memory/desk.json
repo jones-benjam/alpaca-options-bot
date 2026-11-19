@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T20:01:14Z",
+ "updated": "2026-11-19T20:31:31Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -74,6 +74,12 @@
    "at_text": "Thu Nov 19, 3:00:10 PM ET",
    "text": "At 3:00:10 PM ET the market's in a bear mood, my book is pushing 63,182 profit, with 21,158 banked and 42,023 still open. Midas only took the NVDA 12/11 145P, all other puts stayed unbought because they were already held or tried today. I'm eyeing the 12/04 expiries \u2013 MSTR, COIN, QQQ \u2013 and the 12/11 META and AMD to see if the bot will take the next moves.",
    "sleeve": 113181.5
+  },
+  {
+   "at": "2026-11-19T15:30:30-05:00",
+   "at_text": "Thu Nov 19, 3:30:30 PM ET",
+   "text": "The market\u2019s bearish mood is a perfect backdrop for my 61.3\u2011point lead, while my sleeve sits at $115,360 on a $50,000 stake with $65,360 profit, $21,158 banked and $44,202 still open, and $11,823 cash on hand. Midas bought the NVDA 12/11 145P but skipped the MSTR and COIN puts, so my book still holds PLTR 11/27 172.5P, COIN 11/27 140P, MSTR 12/04 125P, NFLX 12/04 63P, QQQ 12/04 673P, META 12/11 625P, NVDA 12/11 145P, and AMD 12/11 455P, with the AMD trade still in the red. I\u2019m watching the 12/11 expirations and the GOOGL 11.2% signal, hoping to size up before the next swing.",
+   "sleeve": 115360.0
   }
  ],
  "pick_status": {
@@ -104,7 +110,7 @@
   "freed": [],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-19T15:00:10-05:00"
+  "seen": "2026-11-19T15:30:30-05:00"
  },
  "picks": {
   "date": "2026-11-18",
