@@ -389,13 +389,21 @@ def picks(cfg, day=None, main=True):
     day, label, fact_text = facts(day)
     held = sorted({(t["underlying"], t["direction"]) for t in read_csv(TRADES)
                    if t.get("status") == "open" and t.get("engine") == "core"})
-    menu = {(c["symbol"], c["direction"]) for c in read_csv(CANDIDATES) if c["date"] == day}
-    if not menu:
+    signals = {(c["symbol"], c["direction"]) for c in read_csv(CANDIDATES) if c["date"] == day}
+    if not signals:
         print(f"No signals recorded for {day} yet, so there is nothing for him to pick from.")
         return []
+    # Midas never adds to a stock it already holds, so a pick on one is wasted.
+    taken = {u for u, _ in held}
+    menu = {k for k in signals if k[0] not in taken}
+    off = sorted({k[0] for k in signals} & taken)
     task = (
-        "From TODAY'S SIGNALS in the facts, choose up to three you would trade tomorrow. You may "
-        "only choose a symbol and direction that appear in that list, and you may choose none. "
+        "Choose up to three of the signals OPEN TO YOU below that you would trade tomorrow. You may "
+        "only choose a symbol and direction from that list, and you may choose none. "
+        + (f"Midas never adds to a stock it already holds, so these signals are off your list: "
+           f"{', '.join(off)}.\n" if off else "")
+        + "OPEN TO YOU: " + ", ".join(f"{u} {d}" for u, d in sorted(menu)) + "\n"
+        "Each signal's strength is in TODAY'S SIGNALS in the facts. "
         "These are real now: tomorrow Midas, the bot, tries your picks of conviction 3 or more "
         "before its own, if its rules still approve them in the morning, and they take the scarce "
         "cash first. So be selective, and weigh what your notes say worked. Give each a conviction "
@@ -413,7 +421,9 @@ def picks(cfg, day=None, main=True):
     show_work("picks", label, fact_text)
     messages = [{"role": "system", "content": persona(cfg)}, {"role": "user", "content": task}]
     chosen, sell = [], []
-    for attempt in range(2):
+    if not menu:
+        print(f"Every signal for {day} is a stock Midas already holds ({', '.join(off)}); nothing new to pick.")
+    for attempt in range(2 if menu else 0):
         raw = ask(cfg, messages, temperature=0.6, schema=PICK_SCHEMA)
         try:
             answer = json.loads(raw)
@@ -444,7 +454,7 @@ def picks(cfg, day=None, main=True):
     if not rows:
         print(f"{cfg['name']} picked nothing for {day}.")
     if dropped:
-        print(f"Ignored (not among the day's signals): {', '.join(dropped)}")
+        print(f"Ignored (not among the day's signals, or a stock Midas already holds): {', '.join(dropped)}")
     if main:
         record_free_up(cfg, day, sell, held)
     return rows
@@ -808,12 +818,78 @@ TUNE_SCHEMA = {
                 "dial": {"type": "string", "enum": sorted(DIALS)},
                 "value": {"type": "number"},
                 "why": {"type": "string"},
+                "evidence": {"type": "string"},
             },
-            "required": ["dial", "value", "why"],
+            "required": ["dial", "value", "why", "evidence"],
         },
         "keep_why": {"type": "string"},
     },
 }
+
+
+CHECK_SCHEMA = {
+    "type": "object",
+    "properties": {"verdict": {"type": "string", "enum": ["approve", "reject"]}, "reason": {"type": "string"}},
+    "required": ["verdict", "reason"],
+}
+
+
+def clean(text, n):
+    return "".join(ch for ch in str(text or "") if ch.isprintable())[:n]
+
+
+def tune_evidence():
+    """The facts a settings change must rest on: Midas's closed three-week trades,
+    overall and by how each was sold. Computed here, never by the model."""
+    try:
+        from memory import EXIT_WORDS
+    except Exception:
+        EXIT_WORDS = {}
+    closed = [t for t in read_csv(TRADES) if t.get("engine") == "core" and t.get("status") == "closed"
+              and t.get("profit_pct") not in ("", None)]
+    if not closed:
+        return ""
+
+    def line(label, rows):
+        p = [float(t["profit_pct"]) for t in rows]
+        days = [float(t["days_held"]) for t in rows if t.get("days_held") not in ("", None)]
+        text = (f"- {label}: {len(rows)} trade{'s' * (len(rows) != 1)}, {sum(x > 0 for x in p)} won, "
+                f"average {sum(p) / len(p):+.0f}%, best {max(p):+.0f}%, worst {min(p):+.0f}%")
+        return text + (f", held {sum(days) / len(days):.1f} days on average" if days else "")
+
+    by = {}
+    for t in closed:
+        by.setdefault(t.get("exit") or "other", []).append(t)
+    out = [line("all closed three-week trades", closed)]
+    for code, rows in sorted(by.items(), key=lambda kv: (-len(kv[1]), kv[0])):
+        words = " then ".join(EXIT_WORDS.get(c, c) for c in code.split("+"))
+        out.append(line(f"sold by {words}", rows))
+    return "\n".join(out)
+
+
+def second_look(cfg, dial, old, new, why, evidence, record):
+    """A separate, skeptical pass over his proposed change: does the record really
+    point this way, and is his reason about this setting at all?"""
+    task = (
+        "A trader wants to change one setting of Midas, an options trading bot.\n"
+        f"SETTING: {dial}: {DIALS.get(dial, dial)}\n"
+        f"CHANGE: from {old} to {new} ({'raise' if new > old else 'lower'} it)\n"
+        f"HIS REASON: {why}\nHIS EVIDENCE: {evidence}\n\n"
+        f"THE RECORD (computed from Midas's closed three-week trades)\n{record}\n\n"
+        "Approve only if the record, read plainly, supports moving this setting in this direction, and "
+        "his reason is about this setting rather than a different rule. Reject if his evidence is about "
+        "another rule, if it misreads the record, or if the figures point the other way. Give your "
+        "reason in one sentence. Answer in JSON only."
+    )
+    system = ("You are a careful, skeptical risk reviewer. You did not propose this change, and letting "
+              "a poorly supported change through is worse than turning down a good one.")
+    try:
+        answer = json.loads(ask(cfg, [{"role": "system", "content": system}, {"role": "user", "content": task}],
+                                temperature=0.0, schema=CHECK_SCHEMA))
+        ok, reason = answer.get("verdict") == "approve", clean(answer.get("reason"), 300)
+    except (ValueError, AttributeError):
+        return False, "the reviewer gave no clear answer"
+    return ok, reason or ("no reason given" if not ok else "approved")
 
 
 def read_dials():
@@ -914,7 +990,7 @@ def tune(cfg):
     data = read_dials()
     hist = data["history"]
     if any(h.get("proposed") == day for h in hist):
-        print(f"{cfg['name']} already changed a setting for {day}.")
+        print(f"{cfg['name']} already proposed a change for {day}.")
         return None
     if any(h.get("status") == "pending" for h in hist):
         print("A change is still waiting to start; one at a time.")
@@ -925,7 +1001,8 @@ def tune(cfg):
         return None
     current = settings_now(data, day)
     cutoff = (dt.date.fromisoformat(day) - dt.timedelta(days=C.TUNING_COOLDOWN_DAYS)).isoformat()
-    resting = {h["dial"] for h in hist if max(h.get("proposed", ""), h.get("undone_on", ""), h.get("vetoed_on", "")) > cutoff}
+    resting = {h["dial"] for h in hist if h.get("status") != "rejected"
+               and max(h.get("proposed", ""), h.get("undone_on", ""), h.get("vetoed_on", "")) > cutoff}
     lines = []
     for d, (lo, hi, step) in C.TUNING_LIMITS.items():
         if d in resting:
@@ -936,8 +1013,12 @@ def tune(cfg):
         print("Every setting was changed or undone recently; nothing to tune today.")
         return None
     recent = "\n".join(f"- {h.get('proposed')}: {h['dial']} {h['from']} to {h['to']}, {h['status']}"
-                       + (f" ({h['undone_why']})" if h.get("undone_why") else "") for h in hist[-8:])
+                       + (f" ({h['undone_why']})" if h.get("undone_why") else "")
+                       + (f" (the second look said: {h['check_why']})" if h.get("check_why") else "") for h in hist[-8:])
+    record = tune_evidence()
     material = (
+        f"THE RECORD: MIDAS'S CLOSED THREE-WEEK TRADES (exact; the only figures a change may rest on)\n"
+        f"{record or 'none yet'}\n\n"
         "SETTINGS YOU MAY CHANGE TODAY (name = value now, limits, meaning)\n" + "\n".join(lines) + "\n\n"
         f"YOUR EARLIER CHANGES AND WHAT HAPPENED\n{recent or 'none yet'}\n\n"
         f"YOUR NOTES TO YOURSELF\n{recent_notes() or 'none yet'}\n\n"
@@ -947,8 +1028,12 @@ def tune(cfg):
     task = (
         "You may change ONE of Midas's settings, or keep them all. The change starts on the next trading "
         "day; a person may veto it, and it is undone automatically if the trades opened after it clearly "
-        "lose. Change one only when the review gives a concrete reason, and say what it is in one or two "
-        "sentences. Stay inside each setting's limits and step. With few trades, keeping is often right. "
+        "lose. Change one only when THE RECORD gives a concrete reason. In 'evidence', quote the figures "
+        "from THE RECORD that support it, exactly as written there; in 'why', say in one or two sentences "
+        "how the change follows from them. A change that cites no figure from THE RECORD is thrown out, "
+        "and a separate reviewer checks that the figures really point the way you are moving the setting "
+        "and are about that setting, not another rule. Stay inside each setting's limits and step. With "
+        "few trades, keeping is often right. "
         "Answer in JSON only: either {\"change\": {...}} or {\"keep_why\": \"...\"}.\n\n" + material
     )
     show_work("settings change", label, material)
@@ -962,7 +1047,7 @@ def tune(cfg):
         print(f"{cfg['name']} keeps Midas's settings: {str((answer or {}).get('keep_why', ''))[:200]}")
         return None
     dial = str(c.get("dial", ""))
-    why = "".join(ch for ch in str(c.get("why", "")) if ch.isprintable())[:300]
+    why, evidence = clean(c.get("why"), 300), clean(c.get("evidence"), 300)
     if dial not in C.TUNING_LIMITS or dial in resting:
         print(f"Ignored: {dial} may not be changed today.")
         return None
@@ -979,12 +1064,23 @@ def tune(cfg):
     if unsupported_numbers(why, material + f" {new}"):
         print("Ignored: the reason used figures that are not in the records.")
         return None
-    entry = {"dial": dial, "from": old, "to": new, "why": why, "by": cfg["name"],
-             "proposed": day, "effective": start_day(day), "status": "pending"}
+    if not record or not NUMBER.findall(evidence) or unsupported_numbers(evidence, record):
+        print(f"Ignored: the evidence must quote figures from Midas's closed trades. He wrote: {evidence or 'nothing'}")
+        return None
+    ok, check_why = second_look(cfg, dial, old, new, why, evidence, record)
+    entry = {"dial": dial, "from": old, "to": new, "why": why, "evidence": evidence, "check_why": check_why,
+             "by": cfg["name"], "proposed": day}
+    if not ok:
+        entry["status"] = "rejected"
+        hist.append(entry)
+        write_dials(data)
+        print(f"Turned down on a second look: {dial} {old} -> {new}. {why}\nReviewer: {check_why}")
+        return None
+    entry.update(effective=start_day(day), status="pending")
     hist.append(entry)
     write_dials(data)
     log_setting_change(f"**{day}**: {cfg['name']} set {dial} from {old} to {new}, starting "
-                       f"{entry['effective']}. {why}")
+                       f"{entry['effective']}. {why} Evidence: {evidence} Second look: {check_why}")
     print(f"{cfg['name']} changes {dial} {old} -> {new} from {entry['effective']}: {why}\n"
           f"To veto before then: mac_mini/veto.sh {dial}")
     return entry
@@ -1133,10 +1229,21 @@ def selftest():
         "The risk desk says: no.",
     ])
     menu = [(c["symbol"], c["direction"]) for c in read_csv(CANDIDATES)]
-    first = menu[-1] if menu else ("SPY", "put")
     open_bets = [(t["underlying"], t["direction"]) for t in read_csv(TRADES)
                  if t.get("status") == "open" and t.get("engine") == "core"]
     held_one = open_bets[0] if open_bets else ("NONE", "call")
+    free = [m for m in menu if m[0] not in {u for u, _ in open_bets}]
+    first = free[-1] if free else ("SPY", "put")
+    held_pick = next((m for m in menu if m[0] in {u for u, _ in open_bets}), None)
+    record_now = lambda: NUMBER.findall(tune_evidence())
+    tune_replies = iter([
+        lambda: {"dial": "CORE_STOP", "value": -0.45, "why": "Stops fire too often.", "evidence": "stops lost 999%"},
+        lambda: {"dial": "CORE_TRAIL_FROM", "value": 1.25, "why": "Let winners run.",
+                 "evidence": f"the stop-loss trades averaged {record_now()[0]}"},
+    ])
+    check_replies = iter([
+        {"verdict": "reject", "reason": "The evidence is about the stop loss, not the trailing stop."},
+    ])
     desk_replies = iter([
         "Sleeve at $9,999,999 and climbing.",                           # an invented figure
         "Sleeve at $106,198. My NVDA put is stuck on cash; MSTR is in.",
@@ -1178,9 +1285,12 @@ def selftest():
         def do_POST(self):
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
             asked = body["messages"][-1]["content"]
-            if "change" in (body.get("format") or {}).get("properties", {}):
-                text = json.dumps({"change": {"dial": "CORE_STOP", "value": -0.45,
-                                              "why": "Stops keep firing on losers that later recover."}})
+            if "verdict" in (body.get("format") or {}).get("properties", {}):
+                text = json.dumps(next(check_replies, {"verdict": "approve", "reason": "Stop-loss trades lose most."}))
+            elif "change" in (body.get("format") or {}).get("properties", {}):
+                text = json.dumps({"change": next(tune_replies, lambda: {
+                    "dial": "CORE_STOP", "value": -0.45, "why": "Stops keep firing on losers that later recover.",
+                    "evidence": f"all closed three-week trades averaged {record_now()[0]}"})()})
             elif "proposals" in (body.get("format") or {}).get("properties", {}):
                 text = json.dumps({"proposals": [
                     {"dial": "CORE_STOP", "value": -0.4, "why": "Stops keep firing on losers."},
@@ -1191,7 +1301,8 @@ def selftest():
                 text = json.dumps({"picks": [
                     {"symbol": first[0], "direction": first[1], "conviction": 9, "why": "It is moving."},
                     {"symbol": "ZZZZ", "direction": "call", "conviction": 5, "why": "Made up."},
-                ], "free_up": [
+                ] + ([{"symbol": held_pick[0], "direction": held_pick[1], "conviction": 5, "why": "Already mine."}]
+                     if held_pick else []), "free_up": [
                     {"symbol": held_one[0], "direction": held_one[1], "why": "Biggest winner, can spare some."},
                     {"symbol": "ZZZZ", "direction": "put", "why": "Not even held."},
                 ]})
@@ -1230,7 +1341,8 @@ def selftest():
 
     if menu:
         rows = picks(cfg)
-        assert [(r["symbol"], r["direction"]) for r in rows] == [first], "only real signals can be picked"
+        assert [(r["symbol"], r["direction"]) for r in rows] == [first], \
+            "only real signals can be picked, and not stocks Midas already holds"
         assert rows[0]["conviction"] == 5, "conviction is clamped to the 1-5 scale"
         named = [(r["symbol"], r["direction"]) for r in read_csv(FREE_UP)]
         assert named == ([held_one] if open_bets else []), "only bets Midas really holds may be named to sell"
@@ -1258,9 +1370,18 @@ def selftest():
     assert "CORE_STOP" in PROPOSALS.read_text() and "777,777" not in PROPOSALS.read_text()
     assert not {"KILL_FLOOR_PCT", "LOCK_MARGIN_PCT", "END_DATE"} & set(DIALS), "risk limits are off limits"
     import config as C
+    assert tune_evidence().startswith("- all closed three-week trades"), "the record is computed, not written by the model"
+    assert tune(cfg) is None and not read_dials()["history"], "a change must quote real figures from the record"
+    assert tune(cfg) is None, "the second look can turn a change down"
+    turned = read_dials()["history"][-1]
+    assert turned["status"] == "rejected" and "not the trailing stop" in turned["check_why"], "and says why"
+    assert settings_now(read_dials(), "2099-01-01")["CORE_TRAIL_FROM"] == C.CORE_TRAIL_FROM, "a turned-down change never applies"
+    assert tune(cfg) is None, "one proposal a day, even if it was turned down"
+    write_dials({"history": []})
     change = tune(cfg)
     assert change and (change["dial"], change["to"], change["status"]) == ("CORE_STOP", -0.45, "pending"), \
         "he may change one setting, inside its limits"
+    assert change["evidence"] and change["check_why"], "an accepted change keeps its evidence and the second look"
     assert change["effective"] > daily_rows()[-1]["date"], "a change starts on the next trading day"
     assert change["effective"] > dt.date.today().isoformat(), "never the same day it was made"
     assert start_day("2026-11-18", today="2026-11-19") == "2026-11-20", "the 6:30 am run's change waits a night"
