@@ -370,6 +370,10 @@ def test_ai_picks():
     assert (rows["SPY"]["source"], rows["SPY"]["ai_conviction"]) == ("ai", "4"), "AI trades are tagged"
     assert (rows["IWM"]["source"], rows["NVDA"]["source"]) == ("ai", "rules")
     assert rows["SPY"]["regime"] == "bull" and rows["SPY"]["signal_pct"] != "", "the rest of the tag still reads"
+    status = {(p["symbol"], p["kind"]): p["status"] for p in live._ai_status(b, led, f.now)["picks"]}
+    assert status == {("SPY", "call"): "bought", ("IWM", "call"): "bought",
+                      ("AAPL", "put"): "not bought: puts are off in a bull market"}, \
+        "the live page and his desk notes get the bot's verdict on each pick"
     said = {(u, k): why for _, u, k, why in b.ai_said}
     assert said.get(("AAPL", "put")) == "puts are off in a bull market", "a rejected pick is explained"
     ev = next(e for e in led.events if e["side"] == "buy" and parse_und(e["symbol"]) == "SPY" and e["tag"] == "core")
@@ -473,6 +477,10 @@ def test_live_dashboard():
     server = live.start_server(0)
     port = server.server_address[1]
     page = urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read().decode()
+    midas = urllib.request.urlopen(f"http://127.0.0.1:{port}/midas", timeout=5).read().decode()
+    assert "<title>Midas's Desk</title>" in midas and "desk.json" in midas, "the /midas page is served"
+    assert 'href="midas"' in page, "the dashboard links to it"
+    assert "innerHTML" not in midas, "the AI's words are set as text, never as HTML"
     state = _json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state", timeout=5).read())
     health = urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz", timeout=5).read()
     cors = urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state", timeout=5).headers.get("Access-Control-Allow-Origin")

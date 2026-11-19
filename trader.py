@@ -7,6 +7,7 @@
     python3 trader.py reflect    # add to his long-term notes (run daily)
     python3 trader.py propose    # suggest rule changes for a human to approve (run Fridays)
     python3 trader.py nightly    # diary + picks + notes, and proposals on Fridays
+    python3 trader.py desk       # a live desk note from the bot's live data (market hours)
     python3 trader.py chat       # talk to him about the bot's trades
     python3 trader.py compare A B  # try several models on today's diary, side by side
     python3 trader.py modelfile  # write mac_mini/Modelfile, to chat with him in the Ollama app
@@ -47,8 +48,16 @@ Settings (environment variables, or mac_mini/config.env):
                   "Name:file Name:file" (default: none). Their picks are scored
                   side by side with his, to see whether personality matters.
     OLLAMA_URL    where Ollama is listening     (default: http://localhost:11434)
+    LIVE_URL      the bot's live dashboard, read for desk notes
+                  (default: https://msbc5220-optbot.fly.dev)
+
+His desk: every 30 minutes while the market is open (mac_mini/desk.sh) he reads
+the bot's live snapshot and writes a short note. The notes, his picks, diary,
+notes and proposals and the scoreboard go to memory/desk.json, which the
+/midas page on the live dashboard shows. The notes are commentary only.
 """
 import csv
+import datetime as dt
 import json
 import os
 import re
@@ -79,6 +88,8 @@ DIALS = {
     "AI_MIN_CONVICTION": "your lowest conviction the bot will act on (1 to 5)",
 }
 WHOLE_DIALS = {"CORE_DTE_TARGET", "CORE_SLOTS", "AI_MIN_CONVICTION"}
+DESK = MEMORY / "desk.json"
+DESK_KEEP = 40          # desk notes kept in the feed
 LOG, REVIEW = ROOT / "STRATEGY_LOG.md", MEMORY / "REVIEW.md"
 TRADES, MARKET, LESSONS = MEMORY / "trades.csv", MEMORY / "market.csv", MEMORY / "LESSONS.md"
 
@@ -97,6 +108,7 @@ def settings():
         "url": os.environ.get("OLLAMA_URL", "http://localhost:11434").rstrip("/"),
         "persona": os.environ.get("PERSONA_FILE", "PERSONA.md"),
         "think": os.environ.get("THINK", ""),
+        "live": os.environ.get("LIVE_URL", "https://msbc5220-optbot.fly.dev").rstrip("/"),
         "rivals": [tuple(r.split(":", 1)) for r in os.environ.get("RIVALS", "").split() if ":" in r],
     }
 
@@ -405,10 +417,19 @@ def reflect(cfg):
     scores = section(REVIEW, "The trader's own picks, scored against the rules")
     used = section(REVIEW, "What the bot did with the AI trader's suggestions")
     split = section(REVIEW, "Where the profit and loss came from")
+    feed = read_desk()
+    seen = feed.get("pick_status") or {}
+    live = "; ".join(f"{p['symbol']} {p['kind']} ({p['conviction']}/5): {p['status']}"
+                     for p in seen.get("picks") or [])
+    today_notes = "\n".join(f"- {n['at_text']}: {n['text']}" for n in (feed.get("notes") or [])
+                            if str(n.get("at", ""))[:10] == day)
     material = (
         f"YOUR RECENT DIARY\n{recent_entries(5) or 'nothing yet'}\n\n"
         f"HOW YOUR OWN PICKS HAVE DONE\n{scores or 'not scored yet'}\n\n"
         f"WHAT THE BOT DID WITH YOUR SUGGESTIONS\n{used or 'nothing yet'}\n\n"
+        f"THE BOT'S OWN WORD ON YOUR PICKS FROM {seen.get('day') or '?'} (live, with its reasons)\n"
+        f"{live or 'not recorded'}\n\n"
+        f"YOUR DESK NOTES TODAY\n{today_notes or 'none'}\n\n"
         f"WHERE THE PROFIT AND LOSS CAME FROM (including your picks against the rules')\n"
         f"{split or 'no closed trades yet'}\n\n"
         f"WHAT THE TEAM HAS LEARNED\n{LESSONS.read_text() if LESSONS.exists() else ''}\n\n"
@@ -528,9 +549,164 @@ def propose(cfg):
     return kept
 
 
-def nightly(cfg):
-    import datetime as dt
+# ---- his desk: live notes and the feed behind the /midas page ------------------
+def money_text(x):
+    return f"{'-' if x < 0 else ''}${abs(x):,.0f}"
 
+
+def pct_text(x):
+    return f"{x:+.1f}%"
+
+
+def live_facts(snap):
+    """The bot's live snapshot as plain facts, with figures written the way he
+    would write them, so the number check can match them."""
+    a, s = snap.get("account") or {}, snap.get("sleeve") or {}
+    out = [f"TIME: {snap.get('as_of_text', '?')}. MARKET MOOD: {snap.get('regime', '?')}."]
+    if a.get("value"):
+        out.append(f"WHOLE ACCOUNT: {money_text(a['value'])}, {pct_text(a.get('return_pct') or 0)} since the start"
+                   + (f", {pct_text(a['today_pct'])} today" if a.get("today_pct") is not None else "") + ".")
+    if a.get("spy_return_pct") is not None:
+        out.append(f"SPY SINCE THE START: {pct_text(a['spy_return_pct'])}. MY LEAD: {a.get('lead_pts')} points.")
+    if s.get("value"):
+        out.append(f"MY SLEEVE: {money_text(s['value'])} on {money_text(s.get('capital') or 0)}, profit "
+                   f"{money_text(s.get('profit') or 0)} (banked {money_text(s.get('realized') or 0)}, open "
+                   f"{money_text(s.get('unrealized') or 0)}), cash {money_text(s.get('cash') or 0)}.")
+    pos = snap.get("positions") or []
+    if pos:
+        out.append("MY BOOK: " + "; ".join(
+            f"{p['label']} {pct_text(p['pnl_pct']) if p.get('pnl_pct') is not None else 'no quote'}"
+            + (f" ({money_text(p['upnl'])})" if p.get("upnl") is not None else "") for p in pos) + ".")
+    else:
+        out.append("MY BOOK: empty.")
+    sig = snap.get("signals") or []
+    if sig:
+        out.append("SIGNALS NOW: " + ", ".join(f"{g['symbol']} {g['kind']} {g['strength_pct']}%" for g in sig) + ".")
+    ai = (snap.get("ai") or {}).get("picks") or []
+    if ai:
+        out.append("WHAT THE BOT DID WITH MY PICKS TODAY: " + "; ".join(
+            f"{p['symbol']} {p['kind']} ({p['conviction']}/5): {p['status']}" for p in ai) + ".")
+    moves = [line for line in (snap.get("log") or []) if re.search(r"\b(BUY|SELL|AI pick|KILL)\b", line)][-8:]
+    if moves:
+        out.append("LATEST ORDERS AND NOTES FROM THE BOT:\n" + "\n".join(moves))
+    return "\n".join(out)
+
+
+def md_table(path, heading):
+    """Rows of the first markdown table after a '#'-heading in a file."""
+    if not path.exists():
+        return []
+    lines, rows, found = path.read_text().splitlines(), [], False
+    for line in lines:
+        if not found:
+            found = re.match(r"^#+ " + re.escape(heading) + r"\s*$", line) is not None
+            continue
+        if line.startswith("|"):
+            cells = [c.strip() for c in line.strip().strip("|").split("|")]
+            if not all(re.fullmatch(r":?-+:?", c) for c in cells):
+                rows.append(cells)
+        elif rows or line.startswith("#"):
+            break
+    return rows
+
+
+def read_desk():
+    try:
+        return json.loads(DESK.read_text()) if DESK.exists() else {}
+    except ValueError:
+        return {}
+
+
+def write_desk(cfg, note=None, pick_status=None):
+    """Rebuild memory/desk.json: his live notes plus everything the /midas page shows.
+    `pick_status` is the bot's live word on today's picks (bought, or not and why);
+    it is kept so his nightly reflection can learn from the exact reasons."""
+    feed = read_desk()
+    notes = feed.get("notes") or []
+    if not (pick_status and pick_status.get("picks")):
+        pick_status = feed.get("pick_status") or {}
+    if note:
+        notes = (notes + [note])[-DESK_KEEP:]
+    rows = [r for r in read_csv(PICKS) if r.get("symbol")]
+    last = max((r["date"] for r in rows), default="")
+    entry = recent_entries(1)
+    head, _, body = entry.partition("\n")
+    diary_text = body.split("> **The risk desk replies**")[0].strip()
+    proposals = []
+    if PROPOSALS.exists():
+        for line in PROPOSALS.read_text().splitlines():
+            m = re.match(r"^- \[( |x|X)\] (.*)", line)
+            if m:
+                done = m.group(1).lower() == "x"
+                state = "declined" if "declined" in m.group(2).lower() else "approved" if done else "waiting for a human"
+                proposals.append({"text": re.sub(r"\*\*", "", m.group(2)), "status": state})
+    feed = {
+        "updated": dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "name": cfg["name"], "model": cfg["model"],
+        "notes": notes, "pick_status": pick_status,
+        "picks": {"date": last, "rows": [
+            {k: r.get(k, "") for k in ("name", "symbol", "direction", "conviction", "why")}
+            for r in rows if r["date"] == last]},
+        "diary": {"heading": head.lstrip("# ").strip(), "text": diary_text},
+        "self_notes": [b[2:] for b in recent_notes(8).splitlines()],
+        "proposals": proposals[-6:],
+        "scoreboard": {"who_chose": md_table(REVIEW, "By who chose it"),
+                       "picks_vs_rules": md_table(REVIEW, "The trader's own picks, scored against the rules")},
+    }
+    DESK.write_text(json.dumps(feed, indent=1) + "\n")
+    return feed
+
+
+def desk(cfg):
+    """One live desk note from the bot's live snapshot. Returns the note, or
+    None when the market is closed or the bot cannot be reached (exit code 2)."""
+    try:
+        with urllib.request.urlopen(cfg["live"] + "/api/state", timeout=15) as resp:
+            snap = json.loads(resp.read())
+    except (OSError, ValueError) as err:
+        print(f"Could not read the bot's live data at {cfg['live']}: {err}")
+        return None
+    if not snap.get("market_open"):
+        print("The market is closed, so there is nothing to call live.")
+        return None
+    try:
+        age = (dt.datetime.now(dt.timezone.utc) - dt.datetime.fromisoformat(snap["as_of"])).total_seconds()
+    except (KeyError, ValueError, TypeError):
+        age = 0
+    if age > 600:
+        print(f"The bot's live data is {age / 60:.0f} minutes old; skipping this note.")
+        return None
+    fact_text = live_facts(snap)
+    task = (
+        "Write a short live desk note, two to four sentences, as you sit at the desk right now: "
+        "what is moving in your book, how your picks are doing with the bot, and what you are "
+        "watching next. In your own voice, plain text, no heading or bullets. Every number you "
+        "write must appear in the facts; when unsure, use no number.\n\n"
+        f"FACTS (live from the bot)\n{fact_text}"
+    )
+    show_work("desk note", snap.get("as_of_text", ""), fact_text)
+    messages = [{"role": "system", "content": persona(cfg)}, {"role": "user", "content": task}]
+    text = ask(cfg, messages, temperature=0.7)
+    bad = unsupported_numbers(text, fact_text)
+    if bad:
+        messages += [{"role": "assistant", "content": text},
+                     {"role": "user", "content": "These figures are not in the facts: " + ", ".join(bad)
+                      + ". Rewrite the note using only numbers from the facts, or no numbers."}]
+        text = ask(cfg, messages, temperature=0.5)
+        bad = unsupported_numbers(text, fact_text)
+    text = "".join(ch for ch in text if ch.isprintable() or ch == "\n").strip()[:900]
+    if not text or bad:
+        print("No usable note this time" + (f" (figures not in the facts: {', '.join(bad)})" if bad else "") + ".")
+        return None
+    note = {"at": snap.get("as_of"), "at_text": snap.get("as_of_text"), "text": text,
+            "sleeve": (snap.get("sleeve") or {}).get("value")}
+    ai = dict(snap.get("ai") or {}, seen=snap.get("as_of"))
+    write_desk(cfg, note, ai)
+    print(f"{cfg['name']} at the desk, {note['at_text']}:\n{text}")
+    return note
+
+
+def nightly(cfg):
     day, label, _ = facts()
     written = DIARY.read_text() if DIARY.exists() else ""
     if f"## {label}\n" in written:
@@ -552,6 +728,7 @@ def nightly(cfg):
     if dt.date.fromisoformat(day).weekday() == 4 and f"## {day}" not in proposed:
         print()  # Friday: suggest rule changes, once
         propose(cfg)
+    write_desk(cfg)  # the /midas page shows tonight's diary, picks, notes and proposals
 
 
 def diary_prompt(cfg, day=None):
@@ -659,6 +836,24 @@ def selftest():
     ])
     menu = [(c["symbol"], c["direction"]) for c in read_csv(CANDIDATES)]
     first = menu[-1] if menu else ("SPY", "put")
+    desk_replies = iter([
+        "Sleeve at $9,999,999 and climbing.",                           # an invented figure
+        "Sleeve at $106,198. My NVDA put is stuck on cash; MSTR is in.",
+    ])
+    live_snap = {
+        "as_of": dt.datetime.now(dt.timezone.utc).isoformat(), "as_of_text": "Thu Nov 19, 11:01:00 AM ET",
+        "market_open": True, "regime": "bear",
+        "account": {"value": 155000.0, "return_pct": 55.0, "today_pct": 1.2, "spy_return_pct": -0.7, "lead_pts": 55.7},
+        "sleeve": {"value": 106198.0, "capital": 50000.0, "profit": 56198.0, "realized": 30735.0,
+                   "unrealized": 25463.0, "cash": 11229.0},
+        "positions": [{"label": "3 MSTR 12/04 125P", "pnl_pct": 211.0, "upnl": 4500.0}],
+        "signals": [{"symbol": "NVDA", "kind": "put", "strength_pct": 21.1}],
+        "ai": {"enabled": True, "day": "2026-11-18", "picks": [
+            {"symbol": "MSTR", "kind": "put", "conviction": 5, "status": "bought"},
+            {"symbol": "NVDA", "kind": "put", "conviction": 5,
+             "status": "not bought: not enough cash for a proper-size bet"}]},
+        "log": ["10:01 BUY  3 x MSTR... AI pick 5/5", "10:01 AI pick NVDA put not bought: not enough cash"],
+    }
 
     class Stub(BaseHTTPRequestHandler):
         def log_message(self, *a):
@@ -673,6 +868,9 @@ def selftest():
             self.wfile.write(raw)
 
         def do_GET(self):
+            if self.path == "/api/state":   # stands in for the bot's live dashboard
+                self._send(live_snap)
+                return
             self._send({"version": "stub"} if self.path == "/api/version"
                        else {"models": [{"name": "stub-model:latest"}]})
 
@@ -692,6 +890,8 @@ def selftest():
                 ]})
             elif "notes to yourself" in asked:
                 text = "- I cut losers fast and it worked.\n- I made $888,888 once.\n- I want more size than is wise."
+            elif "live desk note" in " ".join(m["content"] for m in body["messages"]):
+                text = next(desk_replies)
             else:
                 text = next(diary_replies)
             self._send({"message": {"role": "assistant", "content": text},
@@ -699,11 +899,12 @@ def selftest():
 
     server = HTTPServer(("127.0.0.1", 0), Stub)
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    cfg = {"name": "Midas", "model": "stub-model", "url": f"http://127.0.0.1:{server.server_port}"}
-    global DIARY, NOTES, PICKS, LAST, PROPOSALS
+    cfg = {"name": "Midas", "model": "stub-model", "url": f"http://127.0.0.1:{server.server_port}",
+           "live": f"http://127.0.0.1:{server.server_port}"}
+    global DIARY, NOTES, PICKS, LAST, PROPOSALS, DESK
     tmp = Path(tempfile.mkdtemp())
     DIARY, NOTES, PICKS, LAST = tmp / "DIARY.md", tmp / "NOTES.md", tmp / "picks.csv", tmp / "last.txt"
-    PROPOSALS = tmp / "PROPOSALS.md"
+    PROPOSALS, DESK = tmp / "PROPOSALS.md", tmp / "desk.json"
 
     assert check(cfg), "check should find the stand-in model"
     day, label, fact_text = facts()
@@ -722,8 +923,19 @@ def selftest():
         assert [(r["symbol"], r["direction"]) for r in rows] == [first], "only real signals can be picked"
         assert rows[0]["conviction"] == 5, "conviction is clamped to the 1-5 scale"
 
+    note = desk(cfg)
+    assert note and "9,999,999" not in note["text"] and "$106,198" in note["text"], \
+        "a live note with an invented figure is rewritten"
+    feed = json.loads(DESK.read_text())
+    assert feed["notes"][-1]["text"] == note["text"], "the note reaches the feed the /midas page reads"
+    assert feed["pick_status"]["picks"][1]["status"].startswith("not bought"), "the bot's live verdicts are kept"
+    live_snap["market_open"] = False
+    assert desk(cfg) is None and len(json.loads(DESK.read_text())["notes"]) == 1, "no notes while the market is shut"
+
     bullets = reflect(cfg)
     assert len(bullets) == 2 and not any("888,888" in b for b in bullets), "notes with invented figures are dropped"
+    assert "not enough cash for a proper-size bet" in LAST.read_text(), \
+        "his nightly reflection sees the bot's own reasons for skipping his picks"
     assert "cut losers fast" in persona(cfg), "his notes are read back to him next time"
     assert cfg.get("_speed") == 30.0, "speed is measured from the model's own report"
 
@@ -732,9 +944,13 @@ def selftest():
         "only small changes to allowed settings, with honest reasons, are proposed"
     assert "CORE_STOP" in PROPOSALS.read_text() and "777,777" not in PROPOSALS.read_text()
     assert not {"KILL_FLOOR_PCT", "LOCK_MARGIN_PCT", "END_DATE"} & set(DIALS), "risk limits are off limits"
+    feed = write_desk(cfg)
+    assert feed["proposals"][-1]["status"] == "waiting for a human" and feed["self_notes"], \
+        "the /midas page gets his proposals and notes"
+    assert feed["notes"] and feed["pick_status"].get("picks"), "rebuilding the feed keeps the live notes"
     server.shutdown()
     print(f"\nSELFTEST PASSED for {label}: invented figures caught, made-up picks rejected, "
-          "notes carried forward, unsafe rule proposals dropped")
+          "notes carried forward, unsafe rule proposals dropped, live desk notes checked and fed back")
 
 
 def main():
@@ -750,6 +966,8 @@ def main():
         reflect(cfg)
     elif cmd == "propose":
         propose(cfg)
+    elif cmd == "desk":
+        sys.exit(0 if desk(cfg) else 2)
     elif cmd == "nightly":
         nightly(cfg)
     elif cmd == "compare":

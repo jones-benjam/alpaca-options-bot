@@ -410,6 +410,7 @@ def write_live_page():
     config = (f'<script>window.OPTBOT_API = {json.dumps(LIVE_API)}; '
               'window.OPTBOT_FALLBACK = true;</script>')
     LIVE_OUT.write_text(live.PAGE.replace("<!--CONFIG-->", config, 1))
+    (LIVE_OUT.parent / "midas.html").write_text(live.MIDAS_PAGE.replace("<!--CONFIG-->", config, 1))
     (LIVE_OUT.parent / ".nojekyll").write_text("")   # serve the files as they are
 
 

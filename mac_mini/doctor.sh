@@ -35,8 +35,10 @@ elif ollama list 2>/dev/null | awk '{print $1}' | grep -qx "$MODEL"; then
 else
   bad "Model $MODEL is not downloaded" "ollama pull $MODEL"
 fi
-brew services list 2>/dev/null | awk '$1=="ollama" {print $2}' | grep -q started \
-  && ok "Ollama starts by itself after a restart" || note "Ollama is not set to start by itself (brew services start ollama)"
+{ brew services list 2>/dev/null | awk '$1=="ollama" {print $2}' | grep -q started \
+    || launchctl print "gui/$(id -u)" 2>/dev/null | grep -q '"com.ollama.ollama" => enabled'; } \
+  && ok "Ollama starts by itself after a restart" \
+  || note "Ollama is not set to start by itself (brew services start ollama, or the Ollama app's login item)"
 
 echo; echo "The project and GitHub"
 git fetch -q origin 2>/dev/null && ok "Can reach GitHub" || bad "Cannot reach GitHub" "Check the internet connection"
@@ -59,6 +61,11 @@ if launchctl print "gui/$(id -u)/com.optbot.trader" >/dev/null 2>&1; then
   ok "The daily job is scheduled (6:00 pm weekdays, 6:30 am the next morning)"
 else
   bad "The daily job is not scheduled" "mac_mini/install_schedule.sh"
+fi
+if launchctl print "gui/$(id -u)/com.optbot.desk" >/dev/null 2>&1; then
+  ok "Live desk notes are scheduled (every 30 minutes while the market is open)"
+else
+  bad "Live desk notes are not scheduled" "mac_mini/install_schedule.sh"
 fi
 if [ -f mac_mini/nightly.log ]; then
   LAST=$(grep '^=== ' mac_mini/nightly.log | tail -1)
