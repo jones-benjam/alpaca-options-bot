@@ -81,6 +81,22 @@ ODTE_ENTRY_FROM = "10:00"
 ODTE_ENTRY_TO = "14:00"
 ODTE_EXIT_AT = "15:00"      # flat well before expiry
 
+# ---- AI trader's suggestions (core engine only) -------------------------------
+# Each evening the trader persona (a local AI model on the Mac mini, trader.py)
+# suggests up to three trades from the day's signals, with a conviction of 1-5.
+# The next trading day the bot tries those first, but only if its own rules
+# still approve them; it never buys anything the rules reject, and sizing,
+# stops and every guard rail are unchanged. Set AI_PICKS=0 to turn this off.
+AI_PICKS = _env("AI_PICKS", True, bool)
+AI_TRADER = _env("AI_TRADER", "Midas")          # whose picks count (others only add agreement)
+AI_MIN_CONVICTION = _env("AI_MIN_CONVICTION", 3, int)  # weaker picks are ignored
+AI_PICKS_URL = _env(
+    "AI_PICKS_URL",
+    "https://raw.githubusercontent.com/jones-benjam/alpaca-options-bot/main/memory/shadow_picks.csv",
+)
+AI_MAX_AGE_DAYS = 4             # older picks are stale (covers a long weekend)
+AI_REFRESH_SECONDS = 900        # look again this often until the day's picks arrive
+
 # ---- Engine -----------------------------------------------------------------
 LOOP_SECONDS = _env("LOOP_SECONDS", 60, int)
 ODTE_LOOP_SECONDS = _env("ODTE_LOOP_SECONDS", 10, int)  # while a 0DTE position is open

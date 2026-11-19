@@ -39,7 +39,7 @@ EXIT_WORDS = {
 ENGINES = {"core": "three-week bet", "odte": "same-day bet"}
 TRADE_FIELDS = ["id", "engine", "underlying", "direction", "contract", "opened", "regime",
                 "signal_pct", "qty", "entry_price", "cost", "closed", "exit", "proceeds",
-                "profit", "profit_pct", "days_held", "status"]
+                "profit", "profit_pct", "days_held", "status", "source", "ai_conviction"]
 MARKET_FIELDS = ["date", "as_of", "regime", "spy", "spy_vs_avg_pct", "qqq", "qqq_vs_avg_pct",
                  "strongest_signals"]
 CANDIDATE_FIELDS = ["date", "rank", "symbol", "direction", "strength_pct", "price"]
@@ -58,11 +58,13 @@ def build_trades(led, tz):
             if t is None:
                 und, _, kind, _ = parse_occ(symbol)
                 bits = e["meta"].split("_")
-                known = len(bits) == 3 and bits[0] == "e"
+                known = len(bits) >= 3 and bits[0] == "e"
+                ai = next((b[2:] for b in bits[3:] if b.startswith("ai")), "")
                 t = live[symbol] = {
                     "id": len(done) + len(live) + 1, "engine": e["tag"], "underlying": und,
                     "direction": kind, "contract": symbol, "at": e["when"],
                     "regime": bits[1] if known else "", "signal_pct": int(bits[2]) / 100 if known else "",
+                    "source": "ai" if ai else "rules", "ai_conviction": ai,
                     "qty": 0, "cost": 0.0, "left": 0, "proceeds": 0.0, "exits": [], "end": None,
                 }
             t["qty"] += e["qty"]
@@ -95,6 +97,7 @@ def build_trades(led, tz):
             "profit_pct": round(profit / sold_cost * 100, 1) if sold_cost else "",
             "days_held": round((t["end"] - t["at"]).total_seconds() / 86400, 2) if closed else "",
             "status": "closed" if closed else "open",
+            "source": t["source"], "ai_conviction": t["ai_conviction"],
         })
     for i, row in enumerate(rows, 1):
         row["id"] = i
@@ -239,6 +242,50 @@ def shadow_section(scores):
     return lines + [""]
 
 
+def ai_section(trades, days=10):
+    """What the bot did with the AI trader's suggestions: bought (and how it is
+    going) or not bought. The bot only buys a suggestion its rules still
+    approve the next trading day, so 'not bought' usually means the signal
+    faded, or slots, cash or contracts ran out (the bot's log says which)."""
+    lines = ["## What the bot did with the AI trader's suggestions", "",
+             f"Picks of {C.AI_MIN_CONVICTION}/5 or more are tried first the next trading day, "
+             "if the rules still approve them. " + ("" if C.AI_PICKS else "**Turned off (AI_PICKS=0).**"), ""]
+    picks = []
+    if PICKS.exists():
+        with PICKS.open() as f:
+            picks = [r for r in csv.DictReader(f) if r.get("symbol")
+                     and (r.get("name") or C.AI_TRADER) == C.AI_TRADER
+                     and int(r.get("conviction") or 0) >= C.AI_MIN_CONVICTION]
+    if not picks:
+        return lines + ["No suggestions yet.", ""]
+    signals = {}
+    if CANDIDATES.exists():
+        with CANDIDATES.open() as f:
+            for c in csv.DictReader(f):
+                signals.setdefault(c["date"], set()).add((c["symbol"], c["direction"]))
+    recent = sorted({p["date"] for p in picks})[-days:]
+    lines += ["| Picked | Suggestion | Conviction | What happened |", "|---|---|---|---|"]
+    for p in [p for p in picks if p["date"] in recent]:
+        day, key = p["date"], (p["symbol"], p["direction"])
+        until = (dt.date.fromisoformat(day) + dt.timedelta(days=C.AI_MAX_AGE_DAYS)).isoformat()
+        bought = next((t for t in trades if t["source"] == "ai" and (t["underlying"], t["direction"]) == key
+                       and day < t["opened"][:10] <= until), None)
+        if bought:
+            result = (f"{money(float(bought['profit']))} ({bought['profit_pct']}%)" if bought["profit"] != ""
+                      else "no sale yet")
+            what = f"Bought, trade #{bought['id']}: {bought['status']}, {result}"
+        else:
+            nxt = min((d for d in signals if d > day), default=None)
+            if nxt is None:
+                what = "Waiting for the next trading day"
+            elif key in signals[nxt]:
+                what = "Not bought; still a signal at the next close (slots, cash or contract ran out)"
+            else:
+                what = "Not bought; the rules no longer approved it"
+        lines.append(f"| {day} | {p['symbol']} {p['direction']} | {p['conviction']}/5 | {what} |")
+    return lines + [""]
+
+
 def money(x):
     return f"{'+' if x >= 0 else '-'}${abs(x):,.0f}"
 
@@ -342,6 +389,8 @@ def write_review(trades, led, bot, now, regime, is_open, scores=()):
                   "Closed trades only. With this few trades these tables show what happened, "
                   "not what works.", ""]
         lines += breakdown("By kind of bet", closed, lambda t: t["engine"], ENGINES)
+        lines += breakdown("By who chose it", closed, lambda t: t.get("source") or "rules",
+                           {"ai": "AI trader's pick, approved by the rules", "rules": "the rules alone"})
         lines += breakdown("By direction", closed, lambda t: t["direction"],
                            {"call": "calls (bets on a rise)", "put": "puts (bets on a fall)"})
         lines += breakdown("By the market's mood when the bet was placed", closed, lambda t: t["regime"],
@@ -349,6 +398,7 @@ def write_review(trades, led, bot, now, regime, is_open, scores=()):
         lines += breakdown("By the reason it was sold", closed, lambda t: t["exit"],
                            {k: v for k, v in EXIT_WORDS.items()} | {
                                "half+trail": "took profit on half, then trailing stop"})
+    lines += ai_section(trades)
     if scores:
         lines += shadow_section(scores)
     lines += ["## Where the rest of the memory lives", "",

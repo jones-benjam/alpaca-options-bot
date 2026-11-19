@@ -4,8 +4,9 @@
     python3 trader.py check      # is Ollama running and the model downloaded?
     python3 trader.py diary      # write today's diary entry in memory/DIARY.md
     python3 trader.py picks      # record the trades HE would make (never placed)
-    python3 trader.py reflect    # add to his long-term notes (run weekly)
-    python3 trader.py nightly    # diary + picks, and reflect on Fridays
+    python3 trader.py reflect    # add to his long-term notes (run daily)
+    python3 trader.py propose    # suggest rule changes for a human to approve (run Fridays)
+    python3 trader.py nightly    # diary + picks + notes, and proposals on Fridays
     python3 trader.py chat       # talk to him about the bot's trades
     python3 trader.py compare A B  # try several models on today's diary, side by side
     python3 trader.py modelfile  # write mac_mini/Modelfile, to chat with him in the Ollama app
@@ -20,14 +21,17 @@ He reads the bot's memory (the files in memory/ and the daily record) and
 writes about it in character. He does not place trades, and he cannot change
 any rule or limit: this script never talks to the broker and needs no keys.
 
-His own picks are a shadow experiment. Each day he chooses from the same
-signals the rules saw; the picks are written to memory/shadow_picks.csv and
-scored later against the rules' own top picks. Nothing is traded.
+His picks: each day he chooses from the same signals the rules saw; the picks
+are written to memory/shadow_picks.csv and scored against the rules' own top
+picks. Since Nov 19 the bot reads them too: a pick of conviction 3 or more is
+tried first the next trading day, but only if the bot's rules still approve
+it (see AI_PICKS in config.py). He suggests; the rules decide.
 
 His memory has three layers, an idea borrowed from the open-source FinMem
 project: the day's facts (short term), his recent diary entries (medium
-term), and memory/TRADER_NOTES.md, lessons he writes for himself each week
-and reads back before every entry (long term).
+term), and memory/TRADER_NOTES.md, lessons he writes for himself every day
+and reads back before every entry (long term). On Fridays he may also suggest
+rule changes in memory/PROPOSALS.md; a human approves them or not.
 
 Small local models are unreliable with numbers, so every figure comes from
 the bot's own files. He is told to use only those, and each entry is checked:
@@ -59,6 +63,22 @@ DIARY, PERSONA = MEMORY / "DIARY.md", MEMORY / "PERSONA.md"
 NOTES, PICKS, LAST = MEMORY / "TRADER_NOTES.md", MEMORY / "shadow_picks.csv", MEMORY / "last_facts.txt"
 CANDIDATES, NEWS = MEMORY / "candidates.csv", MEMORY / "news.csv"
 PICK_FIELDS = ["date", "name", "symbol", "direction", "conviction", "why"]
+PROPOSALS = MEMORY / "PROPOSALS.md"
+# The rule settings he may suggest changing. The kill switch, the lead lock,
+# the end date and the safety checks are deliberately not on this list.
+DIALS = {
+    "CORE_MIN_STRENGTH": "lowest momentum for a new bet (0.02 means 2%)",
+    "CORE_DELTA": "how far out of the money to buy (0.35 delta is about 5%)",
+    "CORE_DTE_TARGET": "days to expiry for new bets",
+    "CORE_STOP": "stop loss as a share of what was paid (-0.5 means sell at -50%)",
+    "CORE_TP1": "sell half once up this much (2.0 means +200%)",
+    "CORE_TRAIL_FROM": "start the trailing stop once up this much (1.0 means +100%)",
+    "CORE_TRAIL": "trailing stop: sell if it falls this far from its best (0.4 means 40%)",
+    "CORE_SLOTS": "most three-week bets held at once",
+    "CORE_SLOT_PCT": "size of each three-week bet, as a share of the sleeve",
+    "AI_MIN_CONVICTION": "your lowest conviction the bot will act on (1 to 5)",
+}
+WHOLE_DIALS = {"CORE_DTE_TARGET", "CORE_SLOTS", "AI_MIN_CONVICTION"}
 LOG, REVIEW = ROOT / "STRATEGY_LOG.md", MEMORY / "REVIEW.md"
 TRADES, MARKET, LESSONS = MEMORY / "trades.csv", MEMORY / "market.csv", MEMORY / "LESSONS.md"
 
@@ -332,10 +352,13 @@ def picks(cfg, day=None):
         print(f"No signals recorded for {day} yet, so there is nothing for him to pick from.")
         return []
     task = (
-        "From TODAY'S SIGNALS in the facts, choose up to three you would trade tomorrow if the "
-        "risk desk let you. You may only choose a symbol and direction that appear in that list, "
-        "and you may choose none. Give each a conviction from 1 (a punt) to 5 (you would bet the "
-        "desk) and one sentence saying why, in your own voice. Answer in JSON only.\n\n"
+        "From TODAY'S SIGNALS in the facts, choose up to three you would trade tomorrow. You may "
+        "only choose a symbol and direction that appear in that list, and you may choose none. "
+        "These are real now: tomorrow the bot tries your picks of conviction 3 or more before "
+        "its own, if its rules still approve them in the morning, and they take the scarce cash "
+        "first. So be selective, and weigh what your notes say worked. Give each a conviction "
+        "from 1 (a punt) to 5 (you would bet the desk) and one sentence saying why, in your own "
+        "voice. Answer in JSON only.\n\n"
         f"FACTS\n{fact_text}"
     )
     show_work("picks", label, fact_text)
@@ -380,9 +403,14 @@ def reflect(cfg):
     memory: they are read back to him before every later entry."""
     day, label, fact_text = facts()
     scores = section(REVIEW, "The trader's own picks, scored against the rules")
+    used = section(REVIEW, "What the bot did with the AI trader's suggestions")
+    split = section(REVIEW, "Where the profit and loss came from")
     material = (
         f"YOUR RECENT DIARY\n{recent_entries(5) or 'nothing yet'}\n\n"
         f"HOW YOUR OWN PICKS HAVE DONE\n{scores or 'not scored yet'}\n\n"
+        f"WHAT THE BOT DID WITH YOUR SUGGESTIONS\n{used or 'nothing yet'}\n\n"
+        f"WHERE THE PROFIT AND LOSS CAME FROM (including your picks against the rules')\n"
+        f"{split or 'no closed trades yet'}\n\n"
         f"WHAT THE TEAM HAS LEARNED\n{LESSONS.read_text() if LESSONS.exists() else ''}\n\n"
         f"TODAY'S FACTS\n{fact_text}"
     )
@@ -402,13 +430,102 @@ def reflect(cfg):
         return []
     head = NOTES.read_text() if NOTES.exists() else (
         f"# {cfg['name']}'s notes to himself\n\n"
-        "Written by the trader persona (a local AI model) when he looks back over his week "
+        "Written by the trader persona (a local AI model) when he looks back over each day "
         "(`python3 trader.py reflect`). The most recent notes are read back to him before every "
-        "diary entry and pick, which is how he carries lessons forward. They are his opinions, "
-        "not rules: nothing here changes how the bot trades.\n")
+        "diary entry and pick, which is how he carries lessons forward. They shape his picks, "
+        "which the bot tries first when its rules agree; the rules themselves change only when "
+        "a human approves a proposal (memory/PROPOSALS.md).\n")
     NOTES.write_text(head.rstrip() + f"\n\n## {label}\n\n" + "\n".join(bullets) + "\n")
     print(f"{cfg['name']}'s notes to himself, {label}:\n" + "\n".join(bullets))
     return bullets
+
+
+PROPOSAL_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "proposals": {
+            "type": "array", "maxItems": 3,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "dial": {"type": "string", "enum": sorted(DIALS)},
+                    "value": {"type": "number"},
+                    "why": {"type": "string"},
+                },
+                "required": ["dial", "value", "why"],
+            },
+        },
+    },
+    "required": ["proposals"],
+}
+
+
+def propose(cfg):
+    """Have him suggest up to three rule changes, backed by the review. They are
+    written to memory/PROPOSALS.md for a human to approve; nothing here changes
+    config.py. Each change may move a setting by at most half its value."""
+    import config as C
+
+    day, label, _ = facts()
+    current = {k: getattr(C, k) for k in DIALS}
+    material = (
+        "THE SETTINGS YOU MAY SUGGEST CHANGING (name = current value: meaning)\n"
+        + "\n".join(f"- {k} = {current[k]}: {v}" for k, v in DIALS.items()) + "\n\n"
+        f"YOUR NOTES TO YOURSELF\n{recent_notes() or 'none yet'}\n\n"
+        f"YOUR EARLIER SUGGESTIONS AND WHAT THE HUMANS DECIDED\n"
+        f"{PROPOSALS.read_text()[-3000:] if PROPOSALS.exists() else 'none yet'}\n\n"
+        f"THE REVIEW OF THE BOT'S TRADES\n{REVIEW.read_text() if REVIEW.exists() else 'none yet'}\n\n"
+        f"WHAT THE TEAM HAS LEARNED\n{LESSONS.read_text() if LESSONS.exists() else ''}"
+    )
+    task = (
+        "You may suggest up to three changes to the bot's rules, or none. Suggest one only when the "
+        "review gives a concrete reason, and say what it is. Each change sets one setting from the "
+        "list to a new value, no more than half its current value away. A human reads every "
+        "suggestion and nothing changes until they approve it. Answer in JSON only.\n\n" + material
+    )
+    show_work("proposals", label, material)
+    try:
+        chosen = json.loads(ask(cfg, [{"role": "system", "content": persona(cfg)},
+                                      {"role": "user", "content": task}],
+                                temperature=0.4, schema=PROPOSAL_SCHEMA)).get("proposals", [])
+    except (ValueError, AttributeError):
+        chosen = []
+    kept, dropped = [], []
+    for p in chosen[:3]:
+        dial, why = str(p.get("dial", "")), "".join(ch for ch in str(p.get("why", "")) if ch.isprintable())[:300]
+        try:
+            value = float(p.get("value"))
+        except (TypeError, ValueError):
+            dropped.append(f"{dial} (no number)")
+            continue
+        if dial not in DIALS:
+            dropped.append(f"{dial} (not a setting he may change)")
+            continue
+        cur = float(current[dial])
+        value = int(round(value)) if dial in WHOLE_DIALS else round(value, 4)
+        if dial == "AI_MIN_CONVICTION" and not 1 <= value <= 5:
+            dropped.append(f"{dial} (must be 1 to 5)")
+        elif value == cur or (cur and abs(value - cur) > abs(cur) / 2 + 1e-9):
+            dropped.append(f"{dial} {value} (no change, or more than half the current value away)")
+        elif unsupported_numbers(why, material + f" {value}"):
+            dropped.append(f"{dial} (reason used invented figures)")
+        elif dial not in {k["dial"] for k in kept}:
+            kept.append({"dial": dial, "from": current[dial], "to": value, "why": why})
+    if dropped:
+        print("Ignored: " + "; ".join(dropped))
+    if not kept:
+        print(f"{cfg['name']} suggests no rule changes for {label}.")
+        return []
+    head = PROPOSALS.read_text() if PROPOSALS.exists() else (
+        "# Rule changes the AI trader suggests\n\n"
+        "Written by the trader persona (`python3 trader.py propose`, Fridays). Nothing here changes "
+        "the bot. To accept one: change the value in `config.py`, add an entry to `STRATEGY_LOG.md`, "
+        "and mark it below as approved; otherwise mark it declined. He reads this file back, so "
+        "a one-line reason for a decline teaches him too.\n")
+    lines = [f"- [ ] **{k['dial']}**: {k['from']} to {k['to']}. {k['why']}" for k in kept]
+    PROPOSALS.write_text(head.rstrip() + f"\n\n## {label}\n\n" + "\n".join(lines) + "\n")
+    print(f"{cfg['name']} suggests, for a human to decide:\n" + "\n".join(lines))
+    return kept
 
 
 def nightly(cfg):
@@ -428,9 +545,13 @@ def nightly(cfg):
             print()
             picks(who)
     noted = NOTES.read_text() if NOTES.exists() else ""
-    if dt.date.fromisoformat(day).weekday() == 4 and f"## {day}" not in noted:
-        print()  # Friday: look back over the week, once
+    if f"## {day}" not in noted:
+        print()  # look back over the day, once
         reflect(cfg)
+    proposed = PROPOSALS.read_text() if PROPOSALS.exists() else ""
+    if dt.date.fromisoformat(day).weekday() == 4 and f"## {day}" not in proposed:
+        print()  # Friday: suggest rule changes, once
+        propose(cfg)
 
 
 def diary_prompt(cfg, day=None):
@@ -558,7 +679,13 @@ def selftest():
         def do_POST(self):
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
             asked = body["messages"][-1]["content"]
-            if body.get("format"):
+            if "proposals" in (body.get("format") or {}).get("properties", {}):
+                text = json.dumps({"proposals": [
+                    {"dial": "CORE_STOP", "value": -0.4, "why": "Stops keep firing on losers."},
+                    {"dial": "CORE_SLOTS", "value": 30, "why": "More bets."},
+                    {"dial": "CORE_TP1", "value": 1.5, "why": "I would have made $777,777."},
+                ]})
+            elif body.get("format"):
                 text = json.dumps({"picks": [
                     {"symbol": first[0], "direction": first[1], "conviction": 9, "why": "It is moving."},
                     {"symbol": "ZZZZ", "direction": "call", "conviction": 5, "why": "Made up."},
@@ -573,9 +700,10 @@ def selftest():
     server = HTTPServer(("127.0.0.1", 0), Stub)
     threading.Thread(target=server.serve_forever, daemon=True).start()
     cfg = {"name": "Midas", "model": "stub-model", "url": f"http://127.0.0.1:{server.server_port}"}
-    global DIARY, NOTES, PICKS, LAST
+    global DIARY, NOTES, PICKS, LAST, PROPOSALS
     tmp = Path(tempfile.mkdtemp())
     DIARY, NOTES, PICKS, LAST = tmp / "DIARY.md", tmp / "NOTES.md", tmp / "picks.csv", tmp / "last.txt"
+    PROPOSALS = tmp / "PROPOSALS.md"
 
     assert check(cfg), "check should find the stand-in model"
     day, label, fact_text = facts()
@@ -598,9 +726,15 @@ def selftest():
     assert len(bullets) == 2 and not any("888,888" in b for b in bullets), "notes with invented figures are dropped"
     assert "cut losers fast" in persona(cfg), "his notes are read back to him next time"
     assert cfg.get("_speed") == 30.0, "speed is measured from the model's own report"
+
+    kept = propose(cfg)
+    assert [(k["dial"], k["to"]) for k in kept] == [("CORE_STOP", -0.4)], \
+        "only small changes to allowed settings, with honest reasons, are proposed"
+    assert "CORE_STOP" in PROPOSALS.read_text() and "777,777" not in PROPOSALS.read_text()
+    assert not {"KILL_FLOOR_PCT", "LOCK_MARGIN_PCT", "END_DATE"} & set(DIALS), "risk limits are off limits"
     server.shutdown()
     print(f"\nSELFTEST PASSED for {label}: invented figures caught, made-up picks rejected, "
-          "notes carried forward")
+          "notes carried forward, unsafe rule proposals dropped")
 
 
 def main():
@@ -614,6 +748,8 @@ def main():
         picks(cfg, sys.argv[2] if len(sys.argv) > 2 else None)
     elif cmd == "reflect":
         reflect(cfg)
+    elif cmd == "propose":
+        propose(cfg)
     elif cmd == "nightly":
         nightly(cfg)
     elif cmd == "compare":

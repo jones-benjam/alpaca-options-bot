@@ -78,7 +78,9 @@ def _reason(ev):
             what = f"Broke the opening range by {sig:.2f}%" if sig is not None else "Opening-range breakout"
         else:
             what = f"Momentum signal {sig:.1f}%" if sig is not None else "Momentum signal"
-        return f"{what}, {mood}" if mood else what
+        what = f"{what}, {mood}" if mood else what
+        ai = next((p[2:] for p in parts[3:] if p.startswith("ai")), None)
+        return f"{what}, AI pick {ai}/5" if ai else what
     if meta.startswith("x_"):
         return EXIT_TEXT.get(meta[2:], meta[2:].replace("_", " ").capitalize())
     return "Entry" if ev["side"] == "buy" else "Exit"
