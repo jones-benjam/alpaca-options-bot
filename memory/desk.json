@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T20:31:31Z",
+ "updated": "2026-11-19T21:01:19Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -80,6 +80,12 @@
    "at_text": "Thu Nov 19, 3:30:30 PM ET",
    "text": "The market\u2019s bearish mood is a perfect backdrop for my 61.3\u2011point lead, while my sleeve sits at $115,360 on a $50,000 stake with $65,360 profit, $21,158 banked and $44,202 still open, and $11,823 cash on hand. Midas bought the NVDA 12/11 145P but skipped the MSTR and COIN puts, so my book still holds PLTR 11/27 172.5P, COIN 11/27 140P, MSTR 12/04 125P, NFLX 12/04 63P, QQQ 12/04 673P, META 12/11 625P, NVDA 12/11 145P, and AMD 12/11 455P, with the AMD trade still in the red. I\u2019m watching the 12/11 expirations and the GOOGL 11.2% signal, hoping to size up before the next swing.",
    "sleeve": 115360.0
+  },
+  {
+   "at": "2026-11-19T15:59:46-05:00",
+   "at_text": "Thu Nov 19, 3:59:46 PM ET",
+   "text": "At 3:59:46PM ET the bot just bought the NVDA12/11145P put after ignoring MSTR and COIN because already tried, so my book now has eight open positions, including a $4,740 win on NVDA and a $2,082 loss on AMD. The account is up 58.7% overall and 1.2% today, with $45,554 still open in the sleeve and $21,158 banked. Market mood is bearish, and I'm watching the 31.2% MSTR signal, 24.2% COIN, 19.7% NVDA, and 14.9% PLTR for next picks, while keeping an eye on the 11.5% GOOGL and 11.2% AMD signals.",
+   "sleeve": 116711.0
   }
  ],
  "pick_status": {
@@ -110,7 +116,7 @@
   "freed": [],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-19T15:30:30-05:00"
+  "seen": "2026-11-19T15:59:46-05:00"
  },
  "picks": {
   "date": "2026-11-18",
