@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T19:01:15Z",
+ "updated": "2026-11-19T19:31:33Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -62,6 +62,12 @@
    "at_text": "Thu Nov 19, 2:00:26 PM ET",
    "text": "At 2:00:26PMET the bot has only filled my NVDA 12/11 145P; my MSTR and COIN puts were skipped because I\u2019ve already held or tried them today. My book is up $59,523, with the biggest win on MSTR 12/04 125P at 238.6% and the only loss on AMD 12/11 455P at \u20139.6%. I\u2019m eyeing the next 29.9% MSTR signal, hoping the bot will clear a size before the market swings.",
    "sleeve": 109523.0
+  },
+  {
+   "at": "2026-11-19T14:30:48-05:00",
+   "at_text": "Thu Nov 19, 2:30:48 PM ET",
+   "text": "At 2:30:48PM, my sleeve sits at $107,620 on $50,000, $57,620 in profit, $21,158 banked, $36,462 open and $11,823 cash, while the bot just captured NVDA12/11145P \u2013 the only new pick today; MSTR and COIN stayed out because already held or tried. The book is still in the green: PLTR+98.0%($3,392), COIN+214.5%($8,064), MSTR+239.2%($7,821), NFLX+140.6%($6,336), QQQ+65.3%($6,810), META+22.8%($3,420), NVDA+18.7%($1,850), and AMD is the lone loser at\u201313.7%($\u20131,231). I\u2019m watching the 29.8%MSTR signal, the 23.1%COIN signal, the bear market mood, and that AMD put still bleeding.",
+   "sleeve": 107620.0
   }
  ],
  "pick_status": {
@@ -92,7 +98,7 @@
   "freed": [],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-19T14:00:26-05:00"
+  "seen": "2026-11-19T14:30:48-05:00"
  },
  "picks": {
   "date": "2026-11-18",
