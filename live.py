@@ -928,7 +928,34 @@ ul.plain { margin:0; padding-left:20px; } ul.plain li { margin:0 0 7px; color:va
 .gloss dt { color:var(--gold); font:8.5px/1.8 var(--px); } .gloss dd { margin:0; color:var(--ink2); font-size:19px; }
 details summary { cursor:pointer; color:var(--gold); font:9px/1.6 var(--px); }
 details[open] summary { margin-bottom:10px; }
-</style></head><body>
+/* the booth: Dionysus as an old trader, drawn in code as pixel art */
+.booth-row { display:grid; gap:16px; grid-template-columns:minmax(0, 1fr); }
+@media (min-width: 960px) { .booth-row { grid-template-columns:minmax(0, 1.35fr) minmax(0, 1fr); } }
+.stagebox { position:relative; background:#1d1a16; box-shadow:0 0 0 3px #3b3830; }
+.stagebox canvas { display:block; width:100%; height:auto; image-rendering:pixelated; }
+.closed-sign { position:absolute; left:50%; top:12%; transform:translateX(-50%) rotate(-3deg); background:#4a3a28; color:#e6dcc3;
+  font:16px/1 "Special Elite", ui-monospace, monospace; padding:6px 12px; box-shadow:0 0 0 2px #2a2118; white-space:nowrap; }
+.speech { margin-top:12px; background:#14120f; color:#e6dcc3; font-size:21px; line-height:1.2; padding:8px 11px; min-height:56px;
+  box-shadow:0 0 0 2px var(--gold2); }
+.speech b { color:var(--gold); font-weight:400; }
+.slip { position:relative; background:#d8ccb0; color:#2b2620; font:14px/1.55 "Special Elite", ui-monospace, monospace;
+  padding:12px 14px; margin:0 0 16px; box-shadow:3px 3px 0 var(--gold2); }
+.slip h4 { font:14px/1.3 "Special Elite", ui-monospace, monospace; margin:0 0 6px; padding:0 46% 6px 0; min-height:40px; border-bottom:1px dashed #8f7d4a; color:#2b2620; }
+.slip .r { display:flex; gap:10px; } .slip .r span:first-child { min-width:96px; flex:none; color:#5f5442; }
+.slip .dots { color:#6b5530; font-size:15px; margin:0; letter-spacing:1px; }
+.stamp { position:absolute; right:10px; top:6px; border:3px solid currentColor; padding:3px 9px; font:17px/1.1 "Special Elite", ui-monospace, monospace;
+  transform:rotate(-8deg); text-align:center; opacity:.85; max-width:44%; pointer-events:none; }
+.stamp small { display:block; font-size:11px; }
+.stamp.ok { color:#3f6b34; } .stamp.no { color:#8f2a22; } .stamp.wait { color:#6b6252; } .stamp.ign { color:#7a6a50; }
+.stamp.slam { animation:slam .35s ease-out; }
+@keyframes slam { 0% { opacity:0; scale:1.8; } 100% { opacity:.85; scale:1; } }
+@media (prefers-reduced-motion: reduce) { .stamp.slam { animation:none; } }
+@media (max-width: 560px) { .slip h4 { padding-right:0; min-height:0; }
+  .stamp { position:static; display:inline-block; margin:8px 0 2px; max-width:none; transform:rotate(-4deg); }
+  .closed-sign { font-size:11px; padding:4px 8px; top:9%; } }
+</style>
+<link href="https://fonts.googleapis.com/css2?family=Special+Elite&display=swap" rel="stylesheet">
+</head><body>
 <header class="top">
   <span class="logo ai">DIONYSUS</span>
   <span class="cmd">THE AI TRADER <b>· WORKS WITH MIDAS</b></span>
@@ -938,6 +965,18 @@ details[open] summary { margin-bottom:10px; }
   <span class="status"><span class="dot" id="statusdot"></span><span id="statustext">CONNECTING</span><span id="clock"></span></span>
 </header>
 <main>
+  <div class="booth-row">
+    <section class="panel" id="booth" aria-labelledby="booth-h"><div class="ph" id="booth-h">AT THE DESK <span class="sub" id="booth-sub"></span></div>
+      <div class="pb">
+        <div class="stagebox"><canvas id="booth-cv" width="160" height="100" role="img" aria-label="Dionysus, an old trader with a long grey beard, at his desk"></canvas>
+          <div class="closed-sign" id="booth-sign" hidden>CLOSED · OPENS 9:30 ET</div></div>
+        <div class="speech"><b>DIONYSUS:</b> <span id="booth-line">…</span></div>
+        <p class="explain">Chalkboard: the account since the start, its lead over SPY in points, and today. The calendar crosses off the contest's trading days and the clock shows Eastern time. He toasts when Midas buys one of his picks.</p>
+      </div></section>
+    <section class="panel" id="today"><div class="ph">HIS TRADE REQUESTS <span class="sub" id="today-sub"></span></div>
+      <div class="pb" id="today-body"><p class="empty">Loading…</p></div></section>
+  </div>
+
   <p class="lede"><i>Dionysus</i> is an AI trader running on the team's Mac mini. He suggests trades;
     <b>Midas</b>, the bot, decides. Midas only buys a suggestion its own fixed rules approve, and it controls
     every limit on risk. This page shows what Dionysus said, what Midas did about it, and how he is doing.</p>
@@ -960,25 +999,20 @@ details[open] summary { margin-bottom:10px; }
   </div>
 
   <div class="row r2">
-    <section class="panel" id="today"><div class="ph">TODAY: HIS PICKS AND WHAT MIDAS DID <span class="sub" id="today-sub"></span></div>
-      <div class="pb" id="today-body"><p class="empty">Loading…</p></div></section>
     <section class="panel" id="notes"><div class="ph">LIVE NOTES FROM THE DESK <span class="sub">every 30 min while the market is open</span></div>
       <div class="pb notes" id="notes-body"><p class="empty">Loading…</p></div></section>
-  </div>
-
-  <div class="row r2">
     <section class="panel" id="record"><div class="ph">HIS RECORD VS MIDAS'S RULES <span class="sub">is he adding anything?</span></div>
       <div class="pb" id="record-body"><p class="empty">Loading…</p></div></section>
-    <section class="panel" id="rules"><div class="ph">MIDAS'S SETTINGS HE HAS CHANGED <span class="sub">one at a time, inside hard limits</span></div>
-      <div class="pb" id="rules-body"><p class="empty">Loading…</p></div></section>
   </div>
 
   <div class="row r2">
+    <section class="panel" id="rules"><div class="ph">MIDAS'S SETTINGS HE HAS CHANGED <span class="sub">one at a time, inside hard limits</span></div>
+      <div class="pb" id="rules-body"><p class="empty">Loading…</p></div></section>
     <section class="panel" id="journal"><div class="ph">HIS DIARY <span class="sub" id="diary-sub"></span></div>
       <div class="pb" id="diary-body"><p class="empty">Loading…</p></div></section>
-    <section class="panel"><div class="ph">LESSONS HE HAS WRITTEN FOR HIMSELF <span class="sub">read back before every pick</span></div>
-      <div class="pb" id="self-body"><p class="empty">Loading…</p></div></section>
   </div>
+  <section class="panel"><div class="ph">LESSONS HE HAS WRITTEN FOR HIMSELF <span class="sub">read back before every pick</span></div>
+      <div class="pb" id="self-body"><p class="empty">Loading…</p></div></section>
 
   <section class="panel"><div class="pb"><details><summary>WHAT THE WORDS MEAN</summary><dl class="gloss">
     <dt>CALL / PUT</dt><dd>A call is a bet a stock rises; a put is a bet it falls. The most a bet can lose is what was paid for it.</dd>
@@ -991,6 +1025,237 @@ details[open] summary { margin-bottom:10px; }
   <p class="foot" id="foot">The page checks for news every minute; a new note can take up to 5 minutes to appear.</p>
 </main>
 <!--CONFIG-->
+<script>
+// Dionysus, the old trader, in his booth. 160x100 pixel canvas. Original pixel art drawn in code.
+window.Booth = (function () {
+  var W = 160, H = 100;
+  function hash(a, b) { var s = Math.sin(a * 127.1 + b * 311.7) * 43758.5453; return s - Math.floor(s); }
+  var FONT = {
+    "0": "111101101101111", "1": "010110010010111", "2": "111001111100111", "3": "111001111001111",
+    "4": "101101111001001", "5": "111100111001111", "6": "111100111101111", "7": "111001001001001",
+    "8": "111101111101111", "9": "111101111001111", "+": "000010111010000", "-": "000000111000000",
+    ".": "000000000000010", "D": "110101101101110", "I": "111010010010111", "O": "111101101101111",
+    "N": "101111111101101", "Y": "101101010010010", "S": "111100111001111", "U": "101101101101111", " ": "000000000000000"
+  };
+  function make(cv) {
+    var x = cv.getContext("2d");
+    function R(c, a, b, w, h) { x.fillStyle = c; x.fillRect(a, b, w || 1, h || 1); }
+    function text(s, tx, ty, c) { for (var i = 0; i < s.length; i++) { var f = FONT[s[i]] || FONT[" "]; for (var k = 0; k < 15; k++) if (f[k] === "1") R(c, tx + i * 4 + (k % 3), ty + Math.floor(k / 3)); } }
+    // ticker tape glyph columns
+    var tape = [], k = 0, grp = 0;
+    while (tape.length < 300) {
+      var n = 3 + Math.floor(hash(++k, 1) * 3);
+      for (var l = 0; l < n; l++) { for (var c = 0; c < 3; c++) tape.push({ m: (Math.floor(hash(++k, 2) * 31) | 17), c: "#CFB87C" }); tape.push(null); }
+      tape.push(null); var up = hash(++k, 3) > 0.5; grp++;
+      tape.push({ a: up ? 1 : -1, o: 0, i: grp }, { a: up ? 1 : -1, o: 1, i: grp }, { a: up ? 1 : -1, o: 2, i: grp }, null);
+      for (var d = 0; d < 4; d++) { for (var c2 = 0; c2 < 2; c2++) tape.push({ m: (Math.floor(hash(++k, 4) * 31) | 10), c: "#A2A4A3" }); tape.push(null); }
+      for (var s = 0; s < 6; s++) tape.push(null);
+    }
+    var books = [];
+    [[20, 46, 46], [20, 46, 56], [20, 46, 66], [104, 142, 66]].forEach(function (r, ri) {
+      var cols = ["#5a2433", "#3f5a3f", "#43465a", "#8f7d4a", "#6b5a40", "#4a3a28", "#5e4b6b"], bx = r[0];
+      while (bx < r[1] - 2) { var w = 2 + Math.floor(hash(bx, ri) * 2), h = 6 + Math.floor(hash(bx, ri + 9) * 3);
+        books.push([bx, r[2] + 9 - h, w, h, cols[Math.floor(hash(bx * 3, ri) * cols.length)]]); bx += w + (hash(bx, 77) > 0.85 ? 1 : 0); }
+    });
+    var motes = []; for (var m = 0; m < 9; m++) motes.push([hash(m, 5) * 50 + 4, hash(m, 6) * 26 + 70, hash(m, 7)]);
+
+    function head(cx, cy, mood, blink, t) {
+      var dn = mood === "down" || mood === "denied", shut = blink || mood === "closed";
+      // long wild hair behind, falling to the shoulders
+      for (var y = 28; y < 64; y++) for (var side = -1; side <= 1; side += 2) {
+        var w0 = 4 + Math.floor((y - 28) / 8);
+        for (var i = 0; i < w0; i++) { var hx = cx + side * (13 + i - 1), v = hash(hx, Math.floor(y / 3));
+          if (hash(hx, y) < 0.85) R(v < 0.3 ? "#5c5850" : v < 0.7 ? "#8e897d" : "#bdb6a6", hx, y); }
+      }
+      // face
+      for (var yy = cy - 16; yy <= cy + 16; yy++) {
+        var hw = Math.round(13 * Math.sqrt(Math.max(0, 1 - Math.pow((yy - cy) / 16.5, 2))));
+        for (var xx = cx - hw; xx <= cx + hw; xx++) {
+          var c = "#b88a66";
+          if (xx < cx - hw * 0.5) c = "#d2a882"; else if (xx < cx - hw * 0.3 && (xx + yy) % 2) c = "#d2a882";
+          if (xx > cx + hw * 0.45) c = "#9a6e50"; if (xx > cx + hw * 0.75) c = "#7c5540";
+          R(c, xx, yy);
+        }
+      }
+      // ears
+      R("#b88a66", cx - 14, cy - 2, 2, 7); R("#7c5540", cx - 13, cy - 1, 1, 4); R("#9a6e50", cx + 13, cy - 2, 2, 7); R("#6e4a35", cx + 13, cy - 1, 1, 4);
+      // forehead wrinkles and age spots
+      [[-7, -11, 6], [3, -11, 5], [-5, -9, 4], [2, -9, 6]].forEach(function (w) { R("#9a6e50", cx + w[0], cy + w[1], w[2], 1); });
+      R("#8a5e42", cx + 8, cy - 8); R("#8a5e42", cx - 9, cy - 6); R("#8a5e42", cx + 10, cy + 3);
+      // eyeshade: band, translucent brim, shadow on the brow
+      R("#2a4634", cx - 13, cy - 13, 27, 3); R("#3b5f45", cx - 13, cy - 13, 27, 1);
+      for (var bx = -17; bx <= 17; bx++) { R(Math.abs(bx) > 14 ? "#3f6b4a" : "#4f7f58", cx + bx, cy - 10); R("#3a6345", cx + bx, cy - 9); }
+      R("#78a882", cx - 15, cy - 10, 12, 1);
+      for (var sx = -12; sx <= 12; sx++) { R((sx + cy) % 2 ? "#7c5540" : "#8a6048", cx + sx, cy - 8); R("#9a6e50", cx + sx, cy - 7); }
+      // vine wreath around the crown, grapes at the temples
+      for (var lw = -14; lw <= 14; lw++) { var ly = cy - 15 - Math.round(Math.cos(lw / 14 * 1.3) * 3);
+        R(lw % 3 === 0 ? "#6b8a4a" : "#4c6b3c", cx + lw, ly, 1, 2); if (lw % 4 === 0) { R("#7fa05a", cx + lw - 1, ly - 1, 2, 1); R("#3a5230", cx + lw, ly + 2); } }
+      [[-16, -8], [-17, -6], [-15, -5], [-16, -3], [-15, -1], [15, -8], [16, -6], [14, -5], [15, -3]].forEach(function (p, i) {
+        R(i % 2 ? "#4b2c5a" : "#6a4280", cx + p[0], cy + p[1], 2, 2); R("#9a78b0", cx + p[0], cy + p[1]); });
+      R("#4c6b3c", cx - 17, cy - 10, 3, 2); R("#4c6b3c", cx + 15, cy - 10, 3, 2);
+      // wild brows
+      var furrow = dn ? 1 : 0;
+      for (var b = 0; b < 7; b++) {
+        var lyb = cy - 5 + (b > 3 ? furrow : 0), ryb = cy - 5 + (b < 3 ? furrow : 0);
+        R(b % 2 ? "#e4dfd3" : "#bdb6a6", cx - 9 + b, lyb); R("#a8a191", cx - 9 + b, lyb + 1);
+        R(b % 2 ? "#e4dfd3" : "#bdb6a6", cx + 3 + b, ryb); R("#a8a191", cx + 3 + b, ryb + 1);
+      }
+      R("#e4dfd3", cx - 10, cy - 7); R("#e4dfd3", cx - 8, cy - 6 ); R("#e4dfd3", cx + 9, cy - 7); R("#e4dfd3", cx + 10, cy - 6);
+      // eyes: deep set, looking over the glasses
+      if (shut) { R("#4a3226", cx - 8, cy - 2, 4, 1); R("#4a3226", cx + 4, cy - 2, 4, 1); }
+      else {
+        R("#5a3e2c", cx - 8, cy - 3, 4, 1); R("#5a3e2c", cx + 4, cy - 3, 4, 1);
+        R("#e8dec8", cx - 8, cy - 2, 4, 1); R("#e8dec8", cx + 4, cy - 2, 4, 1);
+        R("#3a2a1e", cx - 7, cy - 2, 2, 1); R("#3a2a1e", cx + 5, cy - 2, 2, 1); R("#fff", cx - 7, cy - 2); R("#fff", cx + 5, cy - 2);
+      }
+      R("#8a5e42", cx - 9, cy - 1, 5, 1); R("#9a6e50", cx - 8, cy, 4, 1); R("#7c5540", cx + 3, cy - 1, 5, 1); R("#8a5e42", cx + 4, cy, 4, 1);
+      // crow's feet
+      R("#8a5e42", cx - 11, cy - 3); R("#8a5e42", cx - 12, cy - 2); R("#8a5e42", cx - 11, cy - 1); R("#8a5e42", cx - 12, cy);
+      R("#6e4a35", cx + 9, cy - 3); R("#6e4a35", cx + 10, cy - 2); R("#6e4a35", cx + 9, cy - 1); R("#6e4a35", cx + 10, cy);
+      // nose: long bridge, red bulbous tip
+      R("#d2a882", cx - 1, cy - 3, 1, 6); R("#b88a66", cx, cy - 3, 1, 6); R("#8a5e42", cx + 1, cy - 2, 1, 6);
+      R("#b8705a", cx - 3, cy + 3, 7, 4); R("#d88f75", cx - 2, cy + 3, 2, 1); R("#9a5442", cx + 2, cy + 4, 2, 3); R("#7a3e30", cx - 2, cy + 6); R("#7a3e30", cx + 2, cy + 6);
+      // ruddy cheeks and stubble
+      [[-11, 3], [-10, 4], [-12, 4], [9, 3], [10, 4], [8, 4]].forEach(function (p) { R("#c27a62", cx + p[0], cy + p[1]); });
+      for (var sy = 2; sy < 9; sy++) for (var sxx = -13; sxx <= 13; sxx++) { if (Math.abs(sxx) < 5 && sy < 7) continue; if (hash(cx + sxx, sy) < 0.35) R(hash(sxx, sy * 3) < 0.5 ? "#6f6a60" : "#8e897d", cx + sxx, cy + sy); }
+      // half-moon glasses riding low on the nose
+      R("#CFB87C", cx - 9, cy + 2, 7, 1); R("#CFB87C", cx + 3, cy + 2, 7, 1); R("#8f7d4a", cx - 9, cy + 3); R("#8f7d4a", cx - 3, cy + 3);
+      R("#8f7d4a", cx + 3, cy + 3); R("#8f7d4a", cx + 9, cy + 3); R("#8f7d4a", cx - 8, cy + 4, 5, 1); R("#8f7d4a", cx + 4, cy + 4, 5, 1);
+      R("#CFB87C", cx - 2, cy + 1, 5, 1); R("#CFB87C", cx - 13, cy + 1, 4, 1); R("#8f7d4a", cx + 10, cy + 1, 4, 1); R("#f3ead2", cx - 8, cy + 3); R("#f3ead2", cx + 4, cy + 3);
+      return dn;
+    }
+
+    function beard(cx, top, mood, t) {
+      var sway = Math.round(Math.sin(t / 18));
+      for (var y = top; y <= top + 44; y++) {
+        var d = y - top, hw = d < 6 ? 13 + d * 0.6 : d < 18 ? 16.6 + (d - 6) * 0.2 : 19 - (d - 18) * 0.55;
+        var jl = Math.floor(hash(y, 11) * 3) - 1, jr = Math.floor(hash(y, 12) * 3) - 1, off = d > 30 ? sway : 0;
+        for (var xx = Math.round(cx - hw) + jl; xx <= Math.round(cx + hw) + jr; xx++) {
+          if (d < 6 && Math.abs(xx - cx) < 5) continue; // mouth area
+          // long wavy strands: each column keeps its colour for several rows, with a slight drift
+          var sxx = xx + Math.round(Math.sin(y / 5 + xx * 0.7) * 0.8);
+          var s = hash(sxx, Math.floor((y + hash(sxx, 7) * 9) / 7)), c;
+          c = s < 0.1 ? "#46423b" : s < 0.38 ? "#7f796d" : s < 0.84 ? "#b3ac9c" : "#e2ddd0";
+          if (xx < cx - hw * 0.55 && s > 0.38) c = s < 0.84 ? "#c6bfae" : "#ece8dd";
+          if (xx > cx + hw * 0.5) c = s < 0.38 ? "#46423b" : s < 0.84 ? "#6f6a60" : "#9e988a";
+          R(c, xx + off, y);
+        }
+        // stray whiskers off the edges
+        if (hash(y, 21) < 0.35) R("#b3ac9c", Math.round(cx - hw) + jl - 1 - (hash(y, 22) < 0.4 ? 1 : 0), y);
+        if (hash(y, 23) < 0.35) R("#8e897d", Math.round(cx + hw) + jr + 1 + (hash(y, 24) < 0.4 ? 1 : 0), y);
+      }
+      // ragged tips hanging over the counter
+      for (var tp = -6; tp <= 6; tp += 2) { var len = 2 + Math.floor(hash(tp, 31) * 5); for (var q = 0; q < len; q++) R(q % 2 ? "#b3ac9c" : "#e2ddd0", cx + tp + sway + (q > 2 ? Math.sign(tp) : 0), top + 45 + q); }
+      // chin under the lip
+      for (var cy2 = top + 7; cy2 < top + 10; cy2++) for (var cx2 = cx - 4; cx2 <= cx + 4; cx2++) { var s2 = hash(cx2, cy2); R(s2 < 0.3 ? "#5c5850" : s2 < 0.7 ? "#9e988a" : "#d2ccbe", cx2, cy2); }
+      // heavy drooping moustache
+      for (var mx = -10; mx <= 10; mx++) {
+        var my = top + 1 + Math.floor(Math.abs(mx) / 4), hgt = 3 + (Math.abs(mx) > 6 ? 2 : 0);
+        for (var mh = 0; mh < hgt; mh++) { var s3 = hash(mx + 50, mh + Math.floor(mx / 2)); R(s3 < 0.25 ? "#77716a" : s3 < 0.7 ? "#d2ccbe" : "#ece8dd", cx + mx, my + mh); }
+      }
+      R("#3e3a34", cx - 1, top + 1, 2, 2);
+      // mouth
+      var my2 = top + 6;
+      R("#3a2a22", cx - 3, my2, 7, 1);
+      if (mood === "approved") { R("#3a2a22", cx - 4, my2 - 1); R("#3a2a22", cx + 4, my2 - 1); R("#8a5a48", cx - 2, my2 + 1, 5, 1); }
+      else if (mood === "down" || mood === "denied") { R("#3a2a22", cx - 4, my2 + 1); R("#3a2a22", cx + 4, my2 + 1); }
+      else R("#8a5a48", cx - 2, my2 + 1, 5, 1);
+    }
+
+    function goblet(gx, gy) {
+      R("#9ea0a2", gx, gy, 7, 1); R("#5a1a2a", gx + 1, gy + 1, 5, 1); R("#7a2a3a", gx + 1, gy + 1, 2, 1);
+      R("#c4c6c8", gx, gy + 1, 1, 3); R("#9ea0a2", gx + 1, gy + 2, 4, 2); R("#6e7072", gx + 6, gy + 1, 1, 3); R("#c4c6c8", gx + 1, gy + 2);
+      R("#8e9092", gx + 1, gy + 4, 5, 1); R("#8e9092", gx + 2, gy + 5, 3, 1); R("#8e9092", gx + 3, gy + 6, 1, 2); R("#9ea0a2", gx + 1, gy + 8, 5, 1);
+    }
+    function hand(hx, hy, flip) {
+      R("#b88a66", hx, hy, 6, 4); R("#d2a882", hx + (flip ? 3 : 0), hy, 3, 1); R("#9a6e50", hx, hy + 3, 6, 1);
+      R("#7c5540", hx + 1, hy + 1); R("#7c5540", hx + 3, hy + 1); R("#7c5540", hx + 5, hy + 1); R("#CFB87C", hx + (flip ? 1 : 4), hy + 2);
+    }
+
+    function draw(mood, t, now, data) {
+      data = data || {};
+      var closed = mood === "closed", blink = (t % 52) < 2, breathe = (t >> 4) % 2;
+      // back room
+      R("#1d1a16", 0, 0, W, H);
+      for (var p = 0; p < W; p += 7) { R("#191612", p, 10, 1, 80); for (var gy = 12; gy < 90; gy += 5) if (hash(p, gy) < 0.3) R("#221e19", p + 2 + Math.floor(hash(gy, p) * 3), gy, 2, 1); }
+      // chalkboard
+      R("#4a3a28", 20, 14, 38, 26); R("#26302a", 22, 16, 34, 22);
+      for (var ch = 0; ch < 40; ch++) R("rgba(220,215,200,.06)", 22 + Math.floor(hash(ch, 1) * 34), 16 + Math.floor(hash(ch, 2) * 22), 2, 1);
+      (data.chalk || [["+239", 1], ["-38", -1], ["+46.5", 1]]).slice(0, 3).forEach(function (cl, i) {
+        var ink = cl[1] > 0 ? "#bfd9b0" : cl[1] < 0 ? "#d79a8e" : "#d9d4c8"; text(String(cl[0]).slice(0, 6), 25, 18 + i * 7, ink);
+        if (cl[1] > 0) { R(ink, 49, 20 + i * 7, 3, 1); R(ink, 50, 19 + i * 7); } else if (cl[1] < 0) { R(ink, 49, 20 + i * 7, 3, 1); R(ink, 50, 21 + i * 7); } });
+      R("#d9d4c8", 50, 37, 4, 1); R("#e8e2d2", 53, 37, 2, 1);
+      // clock with the real Eastern time
+      var cxk = 134, cyk = 22; for (var a = 0; a < 64; a++) { var an = a / 64 * Math.PI * 2; R("#8f7d4a", cxk + Math.round(Math.cos(an) * 8), cyk + Math.round(Math.sin(an) * 8)); }
+      for (var ry = -7; ry <= 7; ry++) { var rw = Math.round(Math.sqrt(49 - ry * ry)); R("#d8ccb0", cxk - rw, cyk + ry, rw * 2 + 1, 1); }
+      for (var hr = 0; hr < 12; hr++) { var ha = hr / 12 * Math.PI * 2; R("#5f5442", cxk + Math.round(Math.sin(ha) * 6), cyk - Math.round(Math.cos(ha) * 6)); }
+      var hh = now.h % 12 + now.m / 60, mm = now.m;
+      function arm(len, ang, col) { for (var i = 1; i <= len; i++) R(col, cxk + Math.round(Math.sin(ang) * i), cyk - Math.round(Math.cos(ang) * i)); }
+      arm(4, hh / 12 * Math.PI * 2, "#2b2620"); arm(6, mm / 60 * Math.PI * 2, "#2b2620"); R("#8f2a22", cxk, cyk);
+      // calendar counting down to Dec 2
+      R("#d8ccb0", 106, 34, 18, 18); R("#8f2a22", 106, 34, 18, 3);
+      var total = data.total || 17, played = data.played == null ? 9 : data.played;
+      for (var dd = 0; dd < total; dd++) { var dx = 107 + (dd % 6) * 3, dy = 39 + Math.floor(dd / 6) * 4, gone = dd < played; R(gone ? "#8f2a22" : "#5f5442", dx, dy, 2, 2); if (gone) R("#d8ccb0", dx, dy); }
+      // shelves: ledgers, bottles, a cobweb
+      [46, 56, 66].forEach(function (sy) { R("#3b3025", 18, sy + 9, 30, 1); }); R("#3b3025", 102, 75, 42, 1);
+      books.forEach(function (b) { R(b[4], b[0], b[1], b[2], b[3]); R("rgba(255,255,255,.07)", b[0], b[1], 1, b[3]); R("rgba(0,0,0,.25)", b[0], b[1] + 2, b[2], 1); });
+      [[126, 0], [131, 1], [136, 0]].forEach(function (bt) { R("#24402b", bt[0], 64 + bt[1], 4, 11 - bt[1]); R("#24402b", bt[0] + 1, 60 + bt[1], 2, 4); R("#5a1a2a", bt[0] + 1, 59 + bt[1], 2, 1); R("#4f7a58", bt[0], 66 + bt[1], 1, 5); R("#CFB87C", bt[0], 69, 4, 2); });
+      for (var cw = 0; cw < 7; cw++) { R("rgba(200,200,190,.18)", 19 + cw, 13 + cw); R("rgba(200,200,190,.12)", 19 + cw * 2, 13); R("rgba(200,200,190,.12)", 19, 13 + cw * 2); }
+      // ticker tape across the top
+      R("#100f0c", 0, 0, W, 10); R("#3b3830", 0, 10, W, 1);
+      for (var tc = 0; tc < W - 4; tc++) { var g = tape[(tc + (closed ? 0 : t)) % tape.length]; if (!g) continue;
+        if (g.a) { var sg = data.signs && data.signs.length ? data.signs[g.i % data.signs.length] : g.a; var red = sg < 0, col = red ? "#9b3a2e" : "#4f7a3a", hgt = g.o === 1 ? 3 : 1; R(col, 2 + tc, red ? 3 : 7 - hgt, 1, hgt); }
+        else for (var r = 0; r < 5; r++) if (g.m & (1 << r)) R(g.c, 2 + tc, 3 + r); }
+      // the booth frame
+      R("#3b3830", 14, 11, 132, 3); R("#4a463c", 14, 11, 132, 1); R("#3b3830", 14, 11, 3, 70); R("#3b3830", 143, 11, 3, 70);
+      // robe, shoulders and folds
+      var oy = breathe, cx = 80;
+      for (var ry2 = 60; ry2 < 82; ry2++) { var hw3 = Math.round(20 + (ry2 - 60) * 1.5);
+        for (var rx = cx - hw3; rx <= cx + hw3; rx++) { var cc = "#5a2433"; if (rx < cx - hw3 * 0.6) cc = "#6e3044"; if (rx > cx + hw3 * 0.5) cc = "#431a26";
+          if ((rx - cx + 40) % 9 === 0 && ry2 > 66) cc = "#3f1822"; R(cc, rx, ry2 + oy); } }
+      for (var tr = 0; tr < 20; tr++) { R(tr % 2 ? "#CFB87C" : "#8f7d4a", cx - 18 + Math.floor(tr / 3), 60 + tr + oy); R(tr % 2 ? "#8f7d4a" : "#CFB87C", cx + 18 - Math.floor(tr / 3), 60 + tr + oy); }
+      R("#4a3a28", 104, 66 + oy, 6, 5); for (var st = 0; st < 6; st += 2) { R("#8f7d4a", 104 + st, 66 + oy); R("#8f7d4a", 104 + st, 70 + oy); }
+      // head, beard
+      var dn = head(cx, 40 + oy, mood, blink, t);
+      beard(cx, 45 + oy, mood, t);
+      if (mood === "down") { var drip = (t >> 1) % 12; R("#9fc3d4", cx + 12, 31 + oy + Math.floor(drip / 3), 1, 2); R("#cfe3ea", cx + 12, 31 + oy + Math.floor(drip / 3)); }
+      // counter
+      R("#5e4a34", 0, 80, W, 11); for (var gx2 = 0; gx2 < W; gx2 += 3) if (hash(gx2, 3) < 0.6) R("#4e3c2a", gx2, 82 + Math.floor(hash(gx2, 4) * 7), 2 + Math.floor(hash(gx2, 5) * 4), 1);
+      R("#7a6040", 0, 80, W, 1); R("#7a6040", 0, 90, W, 1); R("#3b2e22", 0, 91, W, 9); R("#33281d", 4, 93, 50, 5); R("#33281d", 106, 93, 50, 5);
+      // brass nameplate
+      R("#6b5530", 60, 92, 40, 7); R("#a88a4a", 61, 93, 38, 5); R("#c9a96a", 61, 93, 38, 1); text("DIONYSUS", 64, 93, "#4a3a20");
+      // the trade slip, pencil hand, ink pad, coins
+      R("rgba(0,0,0,.35)", 59, 83, 28, 8); R("#d8ccb0", 58, 82, 28, 8); for (var ln = 0; ln < 3; ln++) R("#a89c80", 60, 84 + ln * 2, 14 - ln * 3, 1);
+      var sc = data.slip || (mood === "denied" ? "#8f2a22" : closed ? "#6b6252" : "#3f6b34"); R(sc, 77, 83, 7, 1); R(sc, 77, 87, 7, 1); R(sc, 77, 83, 1, 5); R(sc, 83, 83, 1, 5); R(sc, 79, 85, 3, 1);
+      R("#c9a227", 52, 79, 1, 5); R("#2b2620", 52, 84); hand(48, 80, false);
+      R("#2b2620", 92, 84, 9, 4); R(mood === "denied" ? "#7a2620" : "#2f5a2a", 93, 85, 7, 2); R("#6b5a40", 95, 78, 3, 6); R("#8f7d4a", 94, 77, 5, 1);
+      [0, 1, 2, 3].forEach(function (cn) { R(cn % 2 ? "#a88a4a" : "#CFB87C", 116, 86 - cn * 2, 6, 2); }); R("#e8d9a8", 117, 80);
+      // goblet: raised in a toast when his pick is approved
+      var raise = mood === "approved" && ((t >> 3) % 6 < 4);
+      if (raise) { goblet(98, 52 + oy); hand(98, 61 + oy, true); R("#5a2433", 97, 65 + oy, 9, 15); }
+      else { goblet(104, 74); hand(110, 80, true); }
+      // banker's lamp
+      R("#a88a4a", 6, 87, 16, 3); R("#c9a96a", 6, 87, 16, 1); R("#8f7d4a", 13, 70, 2, 17);
+      R("#2f5a3a", 3, 64, 22, 6); R("#4f8a5a", 4, 64, 20, 1); R("#5f9a6a", 6, 65, 6, 1); R("#1f3f28", 3, 69, 22, 1); R(closed ? "#5a5040" : "#f0dca0", 5, 70, 18, 1);
+      // ticker machine under a glass dome, tape spilling down the counter
+      R("#6b5530", 124, 84, 22, 6); R("#a88a4a", 124, 84, 22, 1); R("#565A5C", 129, 74, 12, 10); R("#8e9092", 131, 76, 3, 3); R("#8e9092", 136, 76, 3, 3); R("#2b2620", 132, 77); R("#2b2620", 137, 77);
+      for (var dr = 0; dr < 18; dr++) { var dw = Math.round(Math.sqrt(Math.max(0, 81 - Math.pow(dr - 9, 2) * (dr < 9 ? 1 : 0)))); R("rgba(200,220,230,.14)", 135 - dw, 66 + dr, 1, 1); R("rgba(200,220,230,.14)", 135 + dw, 66 + dr, 1, 1); }
+      R("rgba(230,240,245,.35)", 130, 68, 1, 5);
+      for (var tp2 = 0; tp2 < 16; tp2++) { var tyy = 84 + tp2, txx = 146 + Math.round(Math.sin((tp2 + t / 3) / 3) * 1.5); R("#e6dcc3", txx, tyy, 3, 1); if (((tp2 + (closed ? 0 : t)) % 4) === 0) R("#5f5442", txx + 1, tyy); }
+      // lamp light and dust in it
+      if (!closed) {
+        x.fillStyle = "rgba(255,226,160," + (0.08 + (t % 41 === 0 ? 0.03 : 0)) + ")"; x.beginPath(); x.moveTo(4, 70); x.lineTo(24, 70); x.lineTo(70, 92); x.lineTo(0, 92); x.closePath(); x.fill();
+        motes.forEach(function (mt, i) { var my = 72 + ((mt[1] - 70 + t * 0.15 * (0.5 + mt[2])) % 18), mx = mt[0] + Math.sin(t / 15 + i) * 2; R("rgba(255,240,200,.5)", Math.round(mx), Math.round(my)); });
+      } else {
+        x.fillStyle = "rgba(0,0,0,.42)"; x.fillRect(0, 0, W, H);
+        var z = (t >> 3) % 4; [[96, 28], [101, 22], [106, 16]].forEach(function (pz, i) { if (i < z) { R("#e6dcc3", pz[0], pz[1], 3, 1); R("#e6dcc3", pz[0] + 1, pz[1] + 1); R("#e6dcc3", pz[0], pz[1] + 2, 3, 1); } });
+      }
+    }
+    return { draw: draw };
+  }
+  return { make: make };
+})();
+</script>
 <script>
 (function () {
   "use strict";
@@ -1022,12 +1287,24 @@ details[open] summary { margin-bottom:10px; }
   function verdict(status) {
     status = String(status || "");
     if (status.indexOf("bought") === 0)
-      return { cls: "bought", word: "BOUGHT", text: status.length > 6 ? cap(status.slice(7)) + "." : "Midas's rules approved it and it was bought." };
+      return { cls: "bought", word: "BOUGHT", text: status.length > 6 ? cap(status.slice(7)) + "." : "Midas's rules approved it and it was bought.",
+        stamp: "ok", big: "APPROVED", small: "bought" };
     if (status.indexOf("not bought: ") === 0) {
       var why = status.slice(12), plain = PLAIN.filter(function (p) { return p[0].test(why); })[0];
-      return { cls: "no", word: "SKIPPED", text: plain ? plain[1] : cap(why) + "." };
+      return { cls: "no", word: "SKIPPED", text: plain ? plain[1] : cap(why) + ".", stamp: "no", big: "DENIED",
+        small: why.split(/[:;,(]| or /)[0].slice(0, 24) };
     }
-    return { cls: "wait", word: "WAITING", text: "Midas checks it after 9:45 ET." };
+    return { cls: "wait", word: "WAITING", text: "Midas checks it after 9:45 ET.", stamp: "wait", big: "PENDING", small: "checked 9:45 ET" };
+  }
+  var IGNORED = { cls: "no", word: "IGNORED", text: "Rated under 3, so Midas will not consider it.", stamp: "ign", big: "IGNORED", small: "rated under 3" };
+  function mine(r) { return r.name === ((desk && desk.who && desk.who.ai) || "Dionysus") || r.name === "Midas"; }
+  // What Midas did with his latest picks: the bot's own copy first, else the copy in his desk feed
+  // (the bot forgets its copy when it restarts, the feed does not).
+  function effectivePicks() {
+    var live = snap && snap.ai, ps = desk && desk.pick_status, latest = (desk && desk.picks) || {};
+    if (live && live.picks && live.picks.length) return { day: live.day, picks: live.picks, freed: live.freed || [] };
+    if (ps && ps.picks && ps.picks.length && ps.day && ps.day === latest.date) return { day: ps.day, picks: ps.picks, freed: ps.freed || [] };
+    return null;
   }
   function etNow() { var p = new Date().toLocaleString("en-US", { timeZone: "America/New_York", hour12: false, hour: "2-digit", minute: "2-digit" }).split(":");
     return { h: +p[0] % 24, m: +p[1] }; }
@@ -1039,15 +1316,16 @@ details[open] summary { margin-bottom:10px; }
     set("t-mkt", open ? "OPEN" : snap ? "CLOSED" : "?"); set("t-mkt-s", open ? "Midas is trading" : "opens 9:30 AM ET on weekdays");
     set("t-note", last ? ago((Date.now() - new Date(last.at).getTime()) / 1000) : "NONE YET", last ? "kv" : "kv sm");
     set("t-note-s", open ? "next about " + nextNote() : "next after the open");
-    var live = (snap && snap.ai && snap.ai.picks) || [], latest = (desk && desk.picks && desk.picks.rows) || [];
-    if (live.length) {
+    var ep = effectivePicks(), live = ep ? ep.picks : [], latest = (desk && desk.picks && desk.picks.rows) || [];
+    var newer = latest.filter(mine).length && (!ep || (desk.picks.date || "") > (ep.day || ""));
+    if (live.length && !newer) {
       var b = live.filter(function (p) { return verdict(p.status).cls === "bought"; }).length,
           sk = live.filter(function (p) { return verdict(p.status).cls === "no"; }).length;
       set("t-picks", live.length + " TRIED"); set("t-picks-s", b + " bought · " + sk + " skipped · " + (live.length - b - sk) + " waiting");
     } else {
-      var mine = latest.filter(function (r) { return r.name === ((desk.who || {}).ai || "Dionysus") || r.name === "Midas"; });
-      set("t-picks", mine.length ? mine.length + " READY" : "NONE", mine.length ? "kv" : "kv sm");
-      set("t-picks-s", mine.length ? "Midas checks them after 9:45 ET" : "he suggests some each evening");
+      var his = latest.filter(mine);
+      set("t-picks", his.length ? his.length + " READY" : "NONE", his.length ? "kv" : "kv sm");
+      set("t-picks-s", his.length ? "Midas checks them after 9:45 ET" : "he suggests some each evening");
     }
     var st = (desk && desk.stats) || {}, pa = (st.picks || {}).ai || {}, pr = (st.picks || {}).rules || {};
     if (pa.scored) { set("t-rec", pa.right + " OF " + pa.scored); set("t-rec-s", "rules alone: " + (pr.right || 0) + " of " + (pr.scored || 0)); }
@@ -1057,29 +1335,39 @@ details[open] summary { margin-bottom:10px; }
     else { set("t-pnl", ta.open ? ta.open + " OPEN" : "NONE YET", "kv sm"); set("t-pnl-s", ta.open ? "none closed yet" : "no trade from his picks yet"); }
   }
 
-  function pickCard(box, sym, kind, conv, why, v) {
-    var c = el("article", "card", box), t = el("div", "top-line", c);
-    el("span", "sym", t, sym); el("span", "dir", t, dir(kind));
-    var d = el("span", "dots", t, dots(conv)); d.setAttribute("aria-label", "conviction " + conv + " of 5"); d.title = "conviction " + conv + " of 5";
-    if (v) { var vr = el("div", "verdict", c); el("span", "st " + v.cls, vr, v.word); el("p", "", vr, v.text); }
-    if (why) el("p", "why", c, "Why he picked it: " + why);
+  var stamped = {};
+  function slipNo(day, i) { return String(day || "").slice(5).replace("-", "") + "-" + (i < 9 ? "0" : "") + (i + 1); }
+  function slip(box, no, sym, kind, conv, why, v, key) {
+    var s = el("article", "slip", box);
+    el("h4", "", s, "Trade request No. " + no);
+    function row(k, val, cls) { var r = el("div", "r", s); el("span", "", r, k); el("span", cls || "", r, val); }
+    row("Filed by", "Dionysus, AI desk"); row("Stock", sym); row("Bet", dir(kind));
+    row("Conviction", dots(conv) + " " + conv + " of 5", "dots");
+    if (why) row("His reason", why);
+    if (v) row("Midas", v.text);
+    if (v && v.stamp) {
+      var st = el("div", "stamp " + v.stamp, s); st.appendChild(document.createTextNode(v.big)); el("small", "", st, v.small);
+      if (!stamped[key]) { stamped[key] = 1; st.className += " slam"; }
+    }
   }
   function renderToday() {
     var box = clear($("today-body")), live = snap && snap.ai, latest = (desk && desk.picks) || {}, rows = latest.rows || [];
-    var me = (desk && desk.who && desk.who.ai) || "Dionysus", whyOf = {};
-    rows.forEach(function (r) { if (r.name === me || r.name === "Midas") whyOf[r.symbol + " " + r.direction] = r.why; });
+    var ep = effectivePicks(), whyOf = {}, his = rows.filter(mine);
+    rows.forEach(function (r) { if (mine(r)) whyOf[r.symbol + " " + r.direction] = r.why; });
     if (live && live.enabled === false) el("p", "empty", box, "Midas is not using his picks right now (switched off).");
-    if (live && live.picks && live.picks.length) {
-      $("today-sub").textContent = "picked " + live.day;
-      live.picks.forEach(function (p) { pickCard(box, p.symbol, p.kind, p.conviction, whyOf[p.symbol + " " + p.kind], verdict(p.status)); });
-      (live.freed || []).forEach(function (f) { el("p", "explain", box, "To pay for his pick, Midas " + f + "."); });
-    } else {
-      var mine = rows.filter(function (r) { return r.name === me || r.name === "Midas"; });
-      $("today-sub").textContent = latest.date ? "picked " + latest.date : "";
-      if (!mine.length) { if (!box.firstChild) empty(box, "No picks yet. He suggests some each evening after the close."); }
-      else mine.forEach(function (r) { pickCard(box, r.symbol, r.direction, r.conviction, r.why,
-        +r.conviction >= 3 ? verdict("") : { cls: "no", word: "IGNORED", text: "Rated under 3, so Midas will not consider it." }); });
+    var newer = his.length && (!ep || (latest.date || "") > (ep.day || ""));
+    if (newer) {
+      $("today-sub").textContent = "filed " + latest.date + " · checked at 9:45 ET";
+      his.forEach(function (r, i) { slip(box, slipNo(latest.date, i), r.symbol, r.direction, r.conviction, r.why,
+        +r.conviction >= 3 ? verdict("") : IGNORED, latest.date + r.symbol + r.direction + "wait"); });
     }
+    if (ep) {
+      if (newer) el("h3", "", box, "LAST VERDICTS · FILED " + ep.day); else $("today-sub").textContent = "filed " + ep.day;
+      ep.picks.forEach(function (p, i) { slip(box, slipNo(ep.day, i), p.symbol, p.kind, p.conviction, whyOf[p.symbol + " " + p.kind],
+        verdict(p.status), ep.day + p.symbol + p.kind + p.status); });
+      ep.freed.forEach(function (f) { el("p", "explain", box, "To pay for his pick, Midas " + f + "."); });
+    }
+    if (!newer && !ep) { $("today-sub").textContent = ""; if (!box.firstChild) empty(box, "No requests yet. He files some each evening after the close."); }
     var fu = (desk && desk.free_up) || [];
     if (fu.length) {
       el("h3", "", box, "WINNERS HE WOULD SELL TO PAY FOR A 4 OR 5");
@@ -1087,10 +1375,59 @@ details[open] summary { margin-bottom:10px; }
       fu.forEach(function (f) { el("li", "", ul, f.symbol + " " + f.direction + ": " + f.why); });
       el("p", "explain", box, "Midas sells part of one only if cash or the lead lock is the one thing stopping an approved pick, the bet is in profit, and only as much as needed. At most once a day.");
     }
-    var rivals = rows.filter(function (r) { return r.name !== me && r.name !== "Midas"; });
+    var rivals = rows.filter(function (r) { return !mine(r); });
     if (rivals.length) el("p", "explain", box, "Also picking, for comparison only (never traded): " +
       rivals.map(function (r) { return r.name + " " + r.symbol + " " + r.direction + " " + r.conviction + "/5"; }).join(", ") + ".");
   }
+
+  var WISE = {
+    closed: ["The bell has rung. I'll read the tape tonight and file my requests by morning.", "Markets close. Ledgers don't.", "Rest is a position too. See you at the open."],
+    down: ["A red day. I have seen forty years of them. We hold the line.", "The tape is bleeding. The rules hold, and so do I.", "Losses are tuition. I have paid plenty and learned a little."],
+    approved: ["Patience, then conviction. Today the rules agree with me.", "A good trade is a dull trade. Pour me another.", "A toast, to discipline, not to luck."],
+    denied: ["Denied. Midas is right more often than I'd like to admit.", "No is an answer too. The rules keep an old man honest.", "Rejected again. The vine grows slowly."],
+    neutral: ["The tape speaks if you listen long enough.", "I watch, I wait, I file. That is the job.", "Every trend ends. The trick is not to end with it."] };
+  var booth = null, frame = 0, bMood = "neutral", bLine = "", typed = 0, bData = {};
+  var HOLIDAYS = { "2026-11-26": 1, "2026-12-25": 1 };
+  function etDate() { try { return new Date().toLocaleDateString("en-CA", { timeZone: "America/New_York" }); } catch (e) { return new Date().toISOString().slice(0, 10); } }
+  function contestDays(end) {
+    var out = [], d = new Date("2026-11-09T12:00:00Z"), stop = new Date((end || "2026-12-02") + "T12:00:00Z");
+    for (; d <= stop; d.setUTCDate(d.getUTCDate() + 1)) { var iso = d.toISOString().slice(0, 10), wd = d.getUTCDay();
+      if (wd > 0 && wd < 6 && !HOLIDAYS[iso]) out.push(iso); }
+    return out;
+  }
+  function firstSentence(t) { t = String(t || "").replace(/\s+/g, " ").trim(); var m = t.match(/^.*?[.!?](\s|$)/), s = (m ? m[0] : t).trim();
+    return s.length > 170 ? s.slice(0, 167).replace(/\s+\S*$/, "") + "…" : s; }
+  function f1(v) { return v == null ? "" : (v >= 0 ? "+" : "-") + Math.abs(v).toFixed(1); }
+  function renderBooth() {
+    var a = (snap && snap.account) || {}, open = !!(snap && snap.market_open), ep = effectivePicks(), picks = ep ? ep.picks : [];
+    var bought = picks.filter(function (p) { return verdict(p.status).cls === "bought"; });
+    var denied = picks.filter(function (p) { return verdict(p.status).cls === "no"; });
+    var waiting = picks.filter(function (p) { return verdict(p.status).cls === "wait"; });
+    var mood = !snap ? "neutral" : !open ? "closed" : a.today_pct != null && a.today_pct <= -3 ? "down"
+      : bought.length || (a.today_pct != null && a.today_pct >= 2) ? "approved" : denied.length && !waiting.length ? "denied" : "neutral";
+    var days = contestDays(snap && snap.end_date), today = etDate(), t = etNow();
+    var played = days.filter(function (d) { return d < today || (d === today && (open || t.h * 60 + t.m >= 570)); }).length;
+    bData = { chalk: [[f1(a.return_pct), a.return_pct], [f1(a.lead_pts), a.lead_pts], [f1(a.today_pct), a.today_pct]],
+      total: days.length, played: played, signs: ((snap && snap.market) || []).map(function (m) { return m.chg_pct >= 0 ? 1 : -1; }),
+      slip: bought.length ? "#3f6b34" : denied.length ? "#8f2a22" : "#6b6252" };
+    var notes = (desk && desk.notes) || [], last = notes[notes.length - 1], line;
+    if (open && last && Date.now() - new Date(last.at).getTime() < 45 * 60000) line = firstSentence(last.text);
+    else if (mood === "approved" && bought.length) line = "Midas approved my " + bought[0].symbol + " " + bought[0].kind + ". A toast, to discipline, not to luck.";
+    else { var pool = WISE[mood] || WISE.neutral; line = pool[(new Date().getDate() + t.h) % pool.length]; }
+    if (line !== bLine) { bLine = line; typed = REDUCE ? line.length : 0; if (REDUCE) $("booth-line").textContent = line; }
+    bMood = mood;
+    $("booth-sign").hidden = mood !== "closed";
+    $("booth-sub").textContent = { closed: "the market is closed", down: "sweating a red day", approved: "toasting an approved pick",
+      denied: "a request denied", neutral: "watching the tape" }[mood];
+    if (booth && REDUCE) booth.draw(bMood, 0, etNow(), bData);
+  }
+  var REDUCE = !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+  function boothTick() {
+    if (!booth || document.hidden) return;
+    booth.draw(bMood, frame++, etNow(), bData);
+    if (typed < bLine.length) { typed = Math.min(bLine.length, typed + 2); $("booth-line").textContent = bLine.slice(0, typed); }
+  }
+  try { if (window.Booth && $("booth-cv").getContext) booth = window.Booth.make($("booth-cv")); } catch (e) { booth = null; }
 
   function renderNotes() {
     var box = $("notes-body"), notes = (desk && desk.notes) || [];
@@ -1169,7 +1506,7 @@ details[open] summary { margin-bottom:10px; }
       dot.className = fresh ? "dot live" : "dot stale"; text.textContent = fresh ? "AT THE DESK" : "DESK QUIET"; }
     else { dot.className = "dot"; text.textContent = "MARKET CLOSED"; }
   }
-  function render() { renderTiles(); renderToday(); renderNotes(); renderRecord(); renderRules(); renderJournal(); status();
+  function render() { renderTiles(); renderToday(); renderBooth(); renderNotes(); renderRecord(); renderRules(); renderJournal(); status();
     if (desk && desk.updated) $("foot").textContent = "Dionysus runs on " + (desk.model || "a local model") +
       " on the team's Mac mini; every figure in his notes is checked against Midas's records. Updated " +
       ago((Date.now() - new Date(desk.updated).getTime()) / 1000) + "; this page checks every minute."; }
@@ -1181,7 +1518,7 @@ details[open] summary { margin-bottom:10px; }
     Promise.all([a, b]).then(render);
   }
   function clock() { try { $("clock").textContent = new Date().toLocaleTimeString("en-US", { timeZone: "America/New_York", hour12: false }) + " ET"; } catch (e) {} }
-  poll(); clock(); setInterval(poll, 60000); setInterval(function () { clock(); if (desk) status(); }, 1000);
+  poll(); clock(); setInterval(poll, 60000); setInterval(boothTick, REDUCE ? 30000 : 120); boothTick(); setInterval(function () { clock(); if (desk) status(); }, 1000);
 })();
 </script></body></html>
 """
