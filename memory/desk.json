@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T16:31:16Z",
+ "updated": "2026-11-19T17:01:36Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -32,6 +32,12 @@
    "at_text": "Thu Nov 19, 11:30:46 AM ET",
    "text": "The account is up 34.8% since the start but down 13.9% today; my lead over SPY is 35.7 points while the market stays bearish. Midas only accepted the NVDA 20\u2011share put; the other five picks were rejected because the lead lock or prior holds blocked new bets, and the SPY 18\u2011share put I placed broke the range but was pulled at a 2% loss. Next I\u2019ll watch the 28.5% MSTR signal and see if the lead can widen enough for a fresh play; meanwhile the 18\u2011share SPY put remains in my watchlist for a quick re\u2011entry if the range closes.",
    "sleeve": 90098.5
+  },
+  {
+   "at": "2026-11-19T12:00:04-05:00",
+   "at_text": "Thu Nov 19, 12:00:04 PM ET",
+   "text": "NVDA 12/11 145P just landed, up 8.9% and $880 in profit \u2013 the only new win of the day. The rest of my book is static: MSTR, COIN, PLTR, NFLX, QQQ, META, AMD still sitting; AMD is down 22.9%, so I\u2019m watching for a reversal before I cut. Market is bearish, so I\u2019m eyeing SPY 26/11 puts for a quick move, hoping the bot will buy a bigger size next tick.",
+   "sleeve": 99348.5
   }
  ],
  "pick_status": {
@@ -62,7 +68,7 @@
   "freed": [],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-19T11:30:46-05:00"
+  "seen": "2026-11-19T12:00:04-05:00"
  },
  "picks": {
   "date": "2026-11-18",
