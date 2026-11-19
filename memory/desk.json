@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T15:01:37Z",
+ "updated": "2026-11-19T15:31:26Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -14,6 +14,12 @@
    "at_text": "Thu Nov 19, 10:00:26 AM ET",
    "text": "Bear mood on the floor, but my sleeve is still up 41,800 with 20,570 open and 30,810 idle. The bot didn\u2019t fill my MSTR, COIN, or NVDA puts today \u2013 they\u2019re already held or didn\u2019t pass the spread and delta checks. I\u2019m eyeing QQQ 12/04 673P, still up 33.2%, and META 12/11 625P, down 23.6%, for the next move. Next signal: 26.6% for MSTR put, 21.1% for COIN put; if the risk desk clears them, I\u2019ll hit them hard.",
    "sleeve": 91800.5
+  },
+  {
+   "at": "2026-11-19T10:30:53-05:00",
+   "at_text": "Thu Nov 19, 10:30:53 AM ET",
+   "text": "Right now the account is up 39.0% overall but down 11.3% today in this bear market. My picks are flying: PLTR 172.5P up 93.6% for $3,240, COIN 140P up 195.6% for $7,354, MSTR 125P up 212.1% for $6,934, NFLX 63P up 89.8% for $4,048, QQQ 673P up 33.2% for $3,459, and the only losing one is META 625P down 8.6% for -$1,285. The bot rejected the new MSTR, COIN, and NVDA puts because I already hold or tried them today or the lead lock blocks them, so I\u2019ll watch the 28.4% MSTR signal and the 22.5% COIN signal for any future openings.",
+   "sleeve": 94980.5
   }
  ],
  "pick_status": {
@@ -37,14 +43,14 @@
     "symbol": "NVDA",
     "kind": "put",
     "conviction": 5,
-    "status": "not bought: no option contract passed the spread and delta checks"
+    "status": "not bought: the lead lock leaves no room for new bets (the lead over SPY is being protected)"
    }
   ],
   "may_sell": [],
   "freed": [],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-19T10:00:26-05:00"
+  "seen": "2026-11-19T10:30:53-05:00"
  },
  "picks": {
   "date": "2026-11-18",
