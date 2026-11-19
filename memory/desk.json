@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T18:31:17Z",
+ "updated": "2026-11-19T19:01:15Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -56,6 +56,12 @@
    "at_text": "Thu Nov 19, 1:30:04 PM ET",
    "text": "At 1:30PM ET my sleeve is $106,578, profit $56,578, $21,158 banked, $35,420 open, cash $11,823. NVDA 12/11 145P landed today; MSTR and COIN puts were held back due to prior exposure. With the market mood bearish, I'm watching the 29.2% MSTR signal and the 21.8% COIN signal for the next move.",
    "sleeve": 106578.5
+  },
+  {
+   "at": "2026-11-19T14:00:26-05:00",
+   "at_text": "Thu Nov 19, 2:00:26 PM ET",
+   "text": "At 2:00:26PMET the bot has only filled my NVDA 12/11 145P; my MSTR and COIN puts were skipped because I\u2019ve already held or tried them today. My book is up $59,523, with the biggest win on MSTR 12/04 125P at 238.6% and the only loss on AMD 12/11 455P at \u20139.6%. I\u2019m eyeing the next 29.9% MSTR signal, hoping the bot will clear a size before the market swings.",
+   "sleeve": 109523.0
   }
  ],
  "pick_status": {
@@ -86,7 +92,7 @@
   "freed": [],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-19T13:30:04-05:00"
+  "seen": "2026-11-19T14:00:26-05:00"
  },
  "picks": {
   "date": "2026-11-18",
