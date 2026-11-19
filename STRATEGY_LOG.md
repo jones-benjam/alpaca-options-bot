@@ -481,6 +481,12 @@ trending, not on skill.
 - **Effect on trading:** Up to one setting can differ from config.py each
   day, always inside the limits.
 
+## Changes Dionysus made to Midas's settings
+
+Written automatically. Dionysus may change one setting a day, inside hard limits that Midas checks itself (see TUNING_LIMITS in config.py). A change starts the next trading day; a person can veto it before then with `mac_mini/veto.sh DIAL`, and it is undone automatically if the three-week trades opened after it clearly lose.
+
+- **2026-11-18**: Dionysus set CORE_TRAIL_FROM from 1.0 to 1.25, starting 2026-11-20. Start trailing later so winners run longer; aligns with note about cutting winners early.
+
 ## Daily record
 
 How to read the table:
@@ -509,4 +515,4 @@ How to read the table:
 | 2026-11-13 | $122,912 | +3.21% | $74,425 | +5.81% | +$24,425 | -0.38% | +2.57% | 8 PLTR 11/27 172.5P (-0%), 7 COIN 11/27 140P (+48%), 6 MSTR 12/04 125P (+46%), 3 MSFT 12/04 540P (+10%), 46 NFLX 12/04 63P (+14%) | Sold 2 AMD 12/04 565C at $31.00 (-$50); Bought 17 QQQ 11/13 679P at $2.50; Sold 8 QQQ 11/13 679P at $5.22 (+$2,176); Sold 9 QQQ 11/13 679P at $4.50 (+$1,800) |
 | 2026-11-16 | $141,024 | +14.74% | $93,759 | +25.98% | +$43,759 | -1.89% | +0.63% | 8 PLTR 11/27 172.5P (+67%), 4 COIN 11/27 140P (+113%), 3 MSTR 12/04 125P (+109%), 3 MSFT 12/04 540P (+20%), 46 NFLX 12/04 63P (+57%), 6 QQQ 12/04 673P (+33%) | Sold 3 MSTR 12/04 125P at $19.45 (+$2,565); Sold 3 COIN 11/27 140P at $18.60 (+$2,760); Bought 6 QQQ 12/04 673P at $17.37; Bought 25 SPY 11/16 745P at $2.03; Sold 25 SPY 11/16 745P at $1.96 (-$175) |
 | 2026-11-17 | $162,719 | +15.38% | $115,922 | +23.64% | +$65,922 | -1.03% | -0.41% | 4 PLTR 11/27 172.5P (+94%), 4 COIN 11/27 140P (+156%), 3 MSTR 12/04 125P (+157%), 2 MSFT 12/04 540P (+101%), 23 NFLX 12/04 63P (+98%), 6 QQQ 12/04 673P (+61%), 15 GOOGL 12/11 280P (-2%), 5 META 12/11 625P (+0%), 3 AMD 12/11 505P (-10%) | Bought 30 SPY 11/17 735P at $1.88; Sold 15 SPY 11/17 735P at $3.84 (+$2,940); Sold 1 MSFT 12/04 540P at $38.65 (+$1,865); Sold 4 PLTR 11/27 172.5P at $16.30 (+$3,060); Sold 15 SPY 11/17 735P at $5.34 (+$5,190); Sold 23 NFLX 12/04 63P at $3.70 (+$4,002); Bought 15 GOOGL 12/11 280P at $10.75; Bought 5 META 12/11 625P at $30.00; Bought 3 AMD 12/11 505P at $48.25 |
-| 2026-11-18 (preliminary) | $147,053 | -9.63% | $100,017 | -13.72% | +$50,017 | -0.28% | -0.69% | 4 PLTR 11/27 172.5P (+82%), 4 COIN 11/27 140P (+170%), 3 MSTR 12/04 125P (+211%), 2 MSFT 12/04 540P (+67%), 23 NFLX 12/04 63P (+71%), 6 QQQ 12/04 673P (+33%), 15 GOOGL 12/11 280P (-32%), 5 META 12/11 625P (-7%) | Bought 23 SPY 11/18 727P at $1.98; Sold 23 SPY 11/18 727P at $0.98 (-$2,300); Sold 3 AMD 12/11 505P at $29.60 (-$5,595) |
+| 2026-11-18 | $156,697 | -3.70% | $109,911 | -5.19% | +$59,911 | -0.28% | -0.69% | 4 PLTR 11/27 172.5P (+92%), 4 COIN 11/27 140P (+205%), 3 MSTR 12/04 125P (+215%), 2 MSFT 12/04 540P (+91%), 23 NFLX 12/04 63P (+82%), 6 QQQ 12/04 673P (+55%), 15 GOOGL 12/11 280P (-22%), 5 META 12/11 625P (+11%) | Bought 23 SPY 11/18 727P at $1.98; Sold 23 SPY 11/18 727P at $0.98 (-$2,300); Sold 3 AMD 12/11 505P at $29.60 (-$5,595) |

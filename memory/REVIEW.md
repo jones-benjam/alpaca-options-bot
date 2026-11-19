@@ -1,11 +1,11 @@
 # Review of the bot's trades
 
-Generated Wed Nov 18, 2026, 11:17 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Thu Nov 19, 2026, 8:30 AM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
 
-- **Sleeve:** $106,198 on $50,000 of capital (+$56,198).
+- **Sleeve:** $105,009 on $50,000 of capital (+$55,009).
 - **Closed trades:** 12, of which 5 made money (42%).
 - **Banked profit or loss:** +$30,735.
 - **Typical winner and loser:** +$5,558 against -$1,615.
@@ -15,7 +15,7 @@ This report is produced by fixed rules, not by an AI model. It describes what ha
 ## Things to look at first
 
 - **One-way book:** all 8 open bets are puts. A sharp move the other way would hit every one of them together.
-- **Short of real cash:** the shared account has $11,229 in cash, less than one full-size bet ($21,240). New bets will be smaller or skipped.
+- **Short of real cash:** the shared account has $11,228 in cash, less than one full-size bet ($21,002). New bets will be smaller or skipped.
 
 ## Open bets
 
@@ -24,11 +24,11 @@ This report is produced by fixed rules, not by an AI model. It describes what ha
 | 4 PLTR 11/27 172.5P | $8.65 | $16.75 | +94% |
 | 4 COIN 11/27 140P | $9.40 | $29.02 | +209% |
 | 3 MSTR 12/04 125P | $10.90 | $35.55 | +226% |
-| 2 MSFT 12/04 540P | $20.00 | $34.78 | +74% |
+| 2 MSFT 12/04 540P | $20.00 | $27.48 | +37% |
 | 23 NFLX 12/04 63P | $1.96 | $3.72 | +90% |
 | 6 QQQ 12/04 673P | $17.37 | $23.13 | +33% |
-| 15 GOOGL 12/11 280P | $10.75 | $8.74 | -19% |
-| 5 META 12/11 625P | $30.00 | $29.06 | -3% |
+| 15 GOOGL 12/11 280P | $10.75 | $4.62 | -57% |
+| 5 META 12/11 625P | $30.00 | $23.58 | -21% |
 
 ## Where the profit and loss came from
 
@@ -71,6 +71,8 @@ Closed trades only. With this few trades these tables show what happened, not wh
 | trend flipped | 2 | 0 of 2 | -$7,163 |
 
 ## What the bot did with the AI trader's suggestions
+
+Dionysus is the AI trader; Midas is the bot and its rules.
 
 Picks of 3/5 or more are tried first the next trading day, if the rules still approve them. 
 

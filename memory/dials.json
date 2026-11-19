@@ -1,4 +1,15 @@
 {
- "history": [],
- "updated": "2026-11-19T04:50:35Z"
+ "history": [
+  {
+   "dial": "CORE_TRAIL_FROM",
+   "from": 1.0,
+   "to": 1.25,
+   "why": "Start trailing later so winners run longer; aligns with note about cutting winners early.",
+   "by": "Dionysus",
+   "proposed": "2026-11-18",
+   "effective": "2026-11-20",
+   "status": "pending"
+  }
+ ],
+ "updated": "2026-11-19T13:31:35Z"
 }
