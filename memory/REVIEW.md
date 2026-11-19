@@ -1,34 +1,36 @@
 # Review of the bot's trades
 
-Generated Thu Nov 19, 2026, 8:30 AM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Thu Nov 19, 2026, 4:02 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
 
-- **Sleeve:** $105,009 on $50,000 of capital (+$55,009).
-- **Closed trades:** 12, of which 5 made money (42%).
-- **Banked profit or loss:** +$30,735.
-- **Typical winner and loser:** +$5,558 against -$1,615.
-- **Best and worst:** #1 NVDA +$8,460, #19 AMD -$5,595.
+- **Sleeve:** $118,526 on $50,000 of capital (+$68,526).
+- **Closed trades:** 15, of which 6 made money (40%).
+- **Banked profit or loss:** +$21,158.
+- **Typical winner and loser:** +$5,021 against -$2,373.
+- **Best and worst:** #1 NVDA +$8,460, #17 GOOGL -$9,975.
 - **Market mood now:** bear.
 
 ## Things to look at first
 
+- **Stops that sold well past the 50% line:** #17 GOOGL (-62%). The price moved through the stop faster than the bot could sell.
+- **Losing streak:** the last 4 closed trades all lost money.
 - **One-way book:** all 8 open bets are puts. A sharp move the other way would hit every one of them together.
-- **Short of real cash:** the shared account has $11,228 in cash, less than one full-size bet ($21,002). New bets will be smaller or skipped.
+- **Short of real cash:** the shared account has $2,859 in cash, less than one full-size bet ($23,705). New bets will be smaller or skipped.
 
 ## Open bets
 
 | Bet | Paid | Now | Result so far |
 |---|---|---|---|
-| 4 PLTR 11/27 172.5P | $8.65 | $16.75 | +94% |
-| 4 COIN 11/27 140P | $9.40 | $29.02 | +209% |
-| 3 MSTR 12/04 125P | $10.90 | $35.55 | +226% |
-| 2 MSFT 12/04 540P | $20.00 | $27.48 | +37% |
-| 23 NFLX 12/04 63P | $1.96 | $3.72 | +90% |
-| 6 QQQ 12/04 673P | $17.37 | $23.13 | +33% |
-| 15 GOOGL 12/11 280P | $10.75 | $4.62 | -57% |
-| 5 META 12/11 625P | $30.00 | $23.58 | -21% |
+| 4 PLTR 11/27 172.5P | $8.65 | $19.55 | +126% |
+| 4 COIN 11/27 140P | $9.40 | $31.52 | +235% |
+| 3 MSTR 12/04 125P | $10.90 | $39.31 | +261% |
+| 23 NFLX 12/04 63P | $1.96 | $4.80 | +145% |
+| 6 QQQ 12/04 673P | $17.37 | $35.09 | +102% |
+| 5 META 12/11 625P | $30.00 | $41.29 | +38% |
+| 20 NVDA 12/11 145P | $4.95 | $7.40 | +49% |
+| 3 AMD 12/11 455P | $30.05 | $23.13 | -23% |
 
 ## Where the profit and loss came from
 
@@ -38,37 +40,37 @@ Closed trades only. With this few trades these tables show what happened, not wh
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| same-day bet | 8 | 4 of 8 | +$15,236 |
-| three-week bet | 4 | 1 of 4 | +$1,247 |
+| same-day bet | 9 | 4 of 9 | +$15,164 |
+| three-week bet | 6 | 2 of 6 | -$6,393 |
 
 ### By who chose it
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| the rules alone | 12 | 5 of 12 | +$16,483 |
+| the rules alone | 15 | 6 of 15 | +$8,771 |
 
 ### By direction
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| puts (bets on a fall) | 7 | 3 of 7 | +$10,928 |
 | calls (bets on a rise) | 5 | 2 of 5 | +$5,555 |
+| puts (bets on a fall) | 10 | 4 of 10 | +$3,216 |
 
 ### By the market's mood when the bet was placed
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| falling | 9 | 3 of 9 | +$9,308 |
 | mixed | 3 | 2 of 3 | +$7,175 |
+| falling | 12 | 4 of 12 | +$1,596 |
 
 ### By the reason it was sold
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| took profit on half, then trailing stop | 5 | 5 of 5 | +$27,791 |
-| breakeven stop | 2 | 0 of 2 | -$225 |
-| stop loss | 3 | 0 of 3 | -$3,920 |
+| took profit on half, then trailing stop | 6 | 6 of 6 | +$30,126 |
+| breakeven stop | 3 | 0 of 3 | -$297 |
 | trend flipped | 2 | 0 of 2 | -$7,163 |
+| stop loss | 4 | 0 of 4 | -$13,895 |
 
 ## What the bot did with the AI trader's suggestions
 
@@ -78,9 +80,9 @@ Picks of 3/5 or more are tried first the next trading day, if the rules still ap
 
 | Picked | Suggestion | Conviction | What happened |
 |---|---|---|---|
-| 2026-11-18 | MSTR put | 5/5 | Waiting for the next trading day |
-| 2026-11-18 | COIN put | 5/5 | Waiting for the next trading day |
-| 2026-11-18 | NVDA put | 4/5 | Waiting for the next trading day |
+| 2026-11-18 | MSTR put | 5/5 | Not bought; still a signal at the next close (slots, cash, lead-lock room or contract ran out) |
+| 2026-11-18 | COIN put | 5/5 | Not bought; still a signal at the next close (slots, cash, lead-lock room or contract ran out) |
+| 2026-11-18 | NVDA put | 4/5 | Bought, trade #22: open, no sale yet |
 
 ## The trader's own picks, scored against the rules
 
@@ -88,7 +90,9 @@ Neither set is traded. Each pick is judged on what the stock did afterwards, in 
 
 | | Picks scored | Right after 1 day | Average 1-day move | Average 5-day move |
 |---|---|---|---|---|
-| The rules' top three | 9 | 9 of 9 | +4.65% | too early |
+| Midas (AI persona) | 3 | 3 of 3 | +3.13% | too early |
+| Quill (AI persona) | 1 | 1 of 1 | +3.23% | too early |
+| The rules' top three | 12 | 12 of 12 | +4.27% | too early |
 
 ## Where the rest of the memory lives
 
