@@ -1,6 +1,6 @@
 {
- "updated": "2026-11-19T04:09:28Z",
- "name": "Midas",
+ "updated": "2026-11-19T04:35:12Z",
+ "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [],
  "pick_status": {},
@@ -48,8 +48,54 @@
   "I missed the benefit of trailing stops; all winners were cut early, so next time I'll keep the trailing trail longer."
  ],
  "proposals": [],
+ "who": {
+  "ai": "Dionysus",
+  "bot": "Midas"
+ },
+ "free_up": [],
+ "stats": {
+  "picks": {
+   "ai": {
+    "scored": 0,
+    "right": 0,
+    "avg_move_pct": null
+   },
+   "rules": {
+    "scored": 9,
+    "right": 9,
+    "avg_move_pct": 4.65
+   }
+  },
+  "trades": {
+   "ai": {
+    "open": 0,
+    "closed": 0,
+    "won": 0,
+    "profit": 0
+   },
+   "rules": {
+    "open": 8,
+    "closed": 4,
+    "won": 1,
+    "profit": 1247.0
+   }
+  }
+ },
  "scoreboard": {
-  "who_chose": [],
+  "who_chose": [
+   [
+    "",
+    "Trades",
+    "Won",
+    "Profit"
+   ],
+   [
+    "the rules alone",
+    "12",
+    "5 of 12",
+    "+$16,483"
+   ]
+  ],
   "picks_vs_rules": [
    [
     "",
