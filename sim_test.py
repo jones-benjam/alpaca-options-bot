@@ -378,6 +378,10 @@ def test_ai_picks():
     assert said.get(("AAPL", "put")) == "puts are off in a bull market", "a rejected pick is explained"
     ev = next(e for e in led.events if e["side"] == "buy" and parse_und(e["symbol"]) == "SPY" and e["tag"] == "core")
     assert live._reason(ev).endswith("AI pick 4/5"), "the dashboard says the AI chose it"
+    b.room = 0.0
+    assert b.short_of(50_000).startswith("the lead lock"), "a full lead lock is named as the limit"
+    b.room = float("inf")
+    assert b.short_of(50_000) == "not enough cash for a proper-size bet", "otherwise it is cash"
 
     tmp = Path(tempfile.mkdtemp())
     memory.PICKS, memory.CANDIDATES = tmp / "p.csv", tmp / "c.csv"

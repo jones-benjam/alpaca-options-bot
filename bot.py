@@ -725,6 +725,13 @@ class Bot:
             self.ai_said.add((today, und, kind, why))
             log(f"AI pick {und} {kind} not bought: {why}")
 
+    def short_of(self, equity):
+        """Why there is no money for a proper-size bet. The lead lock is named when
+        it is what binds, so the AI trader learns the real limit, not 'cash'."""
+        if self.room < C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * equity:
+            return "the lead lock leaves no room for new bets (the lead over SPY is being protected)"
+        return "not enough cash for a proper-size bet"
+
     def ai_rejection(self, und, kind, view, regime):
         """Why the rules do not approve an AI pick right now, in plain words."""
         v = view.get(und)
@@ -790,8 +797,8 @@ class Bot:
                 money = min(money, max(0.0, cash - C.ODTE_RISK_PCT * equity))
             if money < C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * equity:
                 if conv:
-                    self.ai_note(today, und, kind, "not enough cash for a proper-size bet")
-                break  # not enough cash left for a proper-size bet
+                    self.ai_note(today, und, kind, self.short_of(equity))
+                break  # not enough cash (or lead-lock room) left for a proper-size bet
             qty = int(money // (pick["ask"] * 100))
             if qty < 1:
                 continue
