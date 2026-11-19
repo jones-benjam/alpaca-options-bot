@@ -430,6 +430,34 @@ trending, not on skill.
 - **Effect on trading:** Changes which approved signals are bought first.
   It never adds a trade the rules would not make.
 
+### Thu Nov 19, 2026, 12:00 am: Dionysus may free cash from a winner for a strong pick
+- **Names:** The AI trader is now called **Dionysus**; **Midas** is the bot
+  and its rules. Picks made under his old name still count.
+- **What:** With his picks each evening, Dionysus may name up to two of
+  Midas's open three-week bets that he would sell part of to pay for a pick.
+  The next day Midas sells part of one only when all of these hold: the pick
+  is rated 4 or 5 and the rules approve it; a contract for it passed the
+  checks; cash or lead-lock room is the only thing in the way; the named bet
+  is up at least 10% with a believable quote; and the sale frees enough for a
+  proper-size bet. It sells only as many contracts as needed, at most once a
+  day, then buys the pick.
+- **What stays the same:** Midas still never buys anything its rules reject.
+  Stops, sizing, the kill switch, the lead lock and the end date are
+  unchanged.
+- **Why:** On Nov 18 cash and the lead lock blocked new bets, so Dionysus's
+  picks could not be bought at all. This lets a strong pick replace part of
+  an older winner.
+- **Risk:** LESSONS.md says the profit so far came from letting winners run.
+  Selling part of a winner early works against that, so the rule is narrow,
+  each sale is tagged ("sold to fund Dionysus's pick") and the review shows
+  how those trades do. `AI_FREE_UP=0` turns it off.
+- **Also:** Dionysus's page (`/dionysus` on the live dashboard; the old
+  `/midas` link still works) now explains who is who and how a pick becomes a
+  trade, says in plain words what Midas did with each pick, and compares his
+  record with the rules'.
+- **Effect on trading:** Can sell part of one winning bet a day, to buy a
+  rule-approved pick rated 4 or 5.
+
 ## Daily record
 
 How to read the table:

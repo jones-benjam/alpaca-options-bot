@@ -21,6 +21,7 @@ TZ = dt.timezone(dt.timedelta(hours=-5))
 
 class FakeAlpaca:
     trend = 1  # +1 builds a rising market, -1 a falling one
+    track_cash = False  # when True, fills move the account's cash (the free-up test needs it)
 
     def __init__(self):
         self.now = dt.datetime(2026, 11, 10, 10, 30, tzinfo=TZ)
@@ -80,6 +81,8 @@ class FakeAlpaca:
         }
         if ok:
             self.pos[symbol] = self.pos.get(symbol, 0) + (qty if side == "buy" else -qty)
+            if self.track_cash:
+                self.cash += (-1 if side == "buy" else 1) * px * qty * 100
         self.o.append(order)
         self.now += dt.timedelta(seconds=1)
         return order
@@ -355,7 +358,7 @@ def test_ai_picks():
     picks_csv = (
         "date,name,symbol,direction,conviction,why\n"
         "2026-11-06,Midas,QQQ,call,5,too old: replaced by the newer day below\n"
-        "2026-11-09,Midas,SPY,call,4,rule-approved: goes first\n"
+        "2026-11-09,Dionysus,SPY,call,4,rule-approved: goes first\n"
         "2026-11-09,Midas,AAPL,put,5,puts are off in a rising market: rejected\n"
         "2026-11-09,Midas,MSFT,call,2,below the minimum conviction: ignored\n"
         "2026-11-09,Midas,IWM,call,2,low, but Quill agrees: lifted to 3\n"
@@ -377,7 +380,7 @@ def test_ai_picks():
     said = {(u, k): why for _, u, k, why in b.ai_said}
     assert said.get(("AAPL", "put")) == "puts are off in a bull market", "a rejected pick is explained"
     ev = next(e for e in led.events if e["side"] == "buy" and parse_und(e["symbol"]) == "SPY" and e["tag"] == "core")
-    assert live._reason(ev).endswith("AI pick 4/5"), "the dashboard says the AI chose it"
+    assert live._reason(ev).endswith("Dionysus's pick 4/5"), "the dashboard says Dionysus chose it"
     b.room = 0.0
     assert b.short_of(50_000).startswith("the lead lock"), "a full lead lock is named as the limit"
     b.room = float("inf")
@@ -408,6 +411,55 @@ def test_ai_picks():
     C.AI_PICKS = True
     bot.fetch_ai_picks = lambda: ""
     print("\n--- AI picks: approved ones first and tagged, rejected ones explained, safe fallbacks ---")
+
+
+def test_free_up():
+    """Short of cash, Midas sells part of a winner Dionysus named, just enough to buy his strong pick."""
+    C.CORE_SLOTS = 4
+    bot.fetch_ai_picks, bot.fetch_free_up = (lambda: ""), (lambda: "")
+    b, f, step = harness(trend=1)
+    f.track_cash = True
+    led, _ = step("rules fill the slots")
+    held = unds(led)
+    target = next(s for s in C.UNIVERSE if s not in held and s not in ("SPY", "QQQ"))
+    nvda = next(p for p in led.pos.values() if p.und == "NVDA" and p.tag == "core")
+    before = nvda.qty
+    C.CORE_SLOTS = len(held) + 1   # one slot free, so cash is the only thing in the way
+    f.cash = 300.0   # the shared account is out of cash
+    bot.fetch_ai_picks = lambda: f"date,name,symbol,direction,conviction,why\n2026-11-09,Dionysus,{target},call,5,strong\n"
+    bot.fetch_free_up = lambda: ("date,name,symbol,direction,why\n2026-11-09,Dionysus,TSLA,call,up a little only\n"
+                                 "2026-11-09,Dionysus,NVDA,call,biggest winner\n")
+    b.ai["for"] = b.fu["for"] = ""
+    led, _ = step(f"cash gone, Dionysus rates {target} 5/5 and names TSLA and NVDA: NVDA is up 50%, TSLA only 5%",
+                  NVDA=1.5, TSLA=1.05)
+    after = next(p for p in led.pos.values() if p.und == "NVDA" and p.tag == "core").qty
+    sold = [e for e in led.events if e["side"] == "sell" and e["meta"] == "x_fund"]
+    assert target in unds(led), "the strong pick was bought with the freed cash"
+    assert sold and parse_und(sold[0]["symbol"]) == "NVDA", "only the named winner in profit was sold"
+    assert 0 < before - after < before, "only part of the winner was sold, not all of it"
+    assert any(why.startswith("up only") for _, u, _, why in b.fu_said if u == "TSLA"), "TSLA (+5%) was spared"
+    status = {p["symbol"]: p["status"] for p in live_status(b, led, f)["picks"]}
+    assert status[target].startswith("bought after selling"), "the page says what was sold for it"
+    second = next(s for s in C.UNIVERSE if s not in unds(led) and s not in ("SPY", "QQQ"))
+    C.CORE_SLOTS += 1
+    f.cash = 300.0
+    bot.fetch_ai_picks = lambda: f"date,name,symbol,direction,conviction,why\n2026-11-09,Dionysus,{second},call,5,again\n"
+    b.ai["for"] = ""
+    led, _ = step("cash gone again the same day: no second sale")
+    assert len([e for e in led.events if e["meta"] == "x_fund"]) == len(sold), "at most one free-up a day"
+    assert second not in unds(led), "so the second pick waits"
+    C.AI_FREE_UP = False
+    f.cash, b.freed, b.ai["for"], b.fu_said = 300.0, {}, "", set()
+    led, _ = step("free-up switched off")
+    assert len([e for e in led.events if e["meta"] == "x_fund"]) == len(sold), "AI_FREE_UP=0 stops it"
+    C.AI_FREE_UP, C.CORE_SLOTS = True, 3
+    bot.fetch_ai_picks = bot.fetch_free_up = lambda: ""
+    print(f"\n--- free-up: sold {before - after} of {before} NVDA (+50%) to buy {target}; TSLA (+5%) spared; once a day ---")
+
+
+def live_status(b, led, f):
+    import live
+    return live._ai_status(b, led, f.now)
 
 
 def parse_und(symbol):
@@ -481,10 +533,12 @@ def test_live_dashboard():
     server = live.start_server(0)
     port = server.server_address[1]
     page = urllib.request.urlopen(f"http://127.0.0.1:{port}/", timeout=5).read().decode()
-    midas = urllib.request.urlopen(f"http://127.0.0.1:{port}/midas", timeout=5).read().decode()
-    assert "<title>Midas's Desk</title>" in midas and "desk.json" in midas, "the /midas page is served"
-    assert 'href="midas"' in page, "the dashboard links to it"
-    assert "innerHTML" not in midas, "the AI's words are set as text, never as HTML"
+    desk = urllib.request.urlopen(f"http://127.0.0.1:{port}/dionysus", timeout=5).read().decode()
+    old = urllib.request.urlopen(f"http://127.0.0.1:{port}/midas", timeout=5).read().decode()
+    assert "<title>Dionysus Desk</title>" in desk and "desk.json" in desk, "Dionysus's page is served"
+    assert old == desk, "the old /midas link still works"
+    assert 'href="dionysus"' in page, "the dashboard links to it"
+    assert "innerHTML" not in desk, "the AI's words are set as text, never as HTML"
     state = _json.loads(urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state", timeout=5).read())
     health = urllib.request.urlopen(f"http://127.0.0.1:{port}/healthz", timeout=5).read()
     cors = urllib.request.urlopen(f"http://127.0.0.1:{port}/api/state", timeout=5).headers.get("Access-Control-Allow-Origin")
@@ -500,7 +554,7 @@ def test_live_dashboard():
 
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
-    bot.fetch_ai_picks = lambda: ""  # no network: no AI picks unless a test supplies them
+    bot.fetch_ai_picks = bot.fetch_free_up = lambda: ""  # no network: nothing from Dionysus unless a test supplies it
     test_default_sizing()
     test_lead_lock()
     test_live_dashboard()
@@ -515,6 +569,7 @@ def main():
     test_trade_memory()
     test_shadow_scoring()
     test_ai_picks()
+    test_free_up()
     print("\nALL SIMULATION CHECKS PASSED")
 
 

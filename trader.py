@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
-"""The bot's voice: a trader with a personality, played by a local AI model.
+"""Dionysus, the AI trader: a personality played by a local AI model.
+
+Two names, so it is always clear who did what: Midas is the bot and its fixed
+rules (bot.py, on Fly.io); Dionysus is the AI trader (this file, on the Mac mini).
 
     python3 trader.py check      # is Ollama running and the model downloaded?
     python3 trader.py diary      # write today's diary entry in memory/DIARY.md
@@ -39,7 +42,9 @@ the bot's own files. He is told to use only those, and each entry is checked:
 any dollar amount or percentage he writes that is not in the facts is flagged.
 
 Settings (environment variables, or mac_mini/config.env):
-    TRADER_NAME   his name                      (default: Midas)
+    TRADER_NAME   his name                      (default: Dionysus; Midas is the bot)
+    TRADER_ALIASES  his earlier names, so picks made under them still count as his
+                  (default: Midas, his name before Nov 19)
     MODEL         the Ollama model to use       (default: gpt-oss:20b)
     PERSONA_FILE  personality file in memory/   (default: PERSONA.md)
     THINK         how hard the model reasons before answering, for models that
@@ -72,6 +77,9 @@ DIARY, PERSONA = MEMORY / "DIARY.md", MEMORY / "PERSONA.md"
 NOTES, PICKS, LAST = MEMORY / "TRADER_NOTES.md", MEMORY / "shadow_picks.csv", MEMORY / "last_facts.txt"
 CANDIDATES, NEWS = MEMORY / "candidates.csv", MEMORY / "news.csv"
 PICK_FIELDS = ["date", "name", "symbol", "direction", "conviction", "why"]
+FREE_UP = MEMORY / "free_up.csv"     # open bets he says Midas may sell to fund his picks
+FREE_UP_FIELDS = ["date", "name", "symbol", "direction", "why"]
+SCORES = MEMORY / "shadow_scores.csv"
 PROPOSALS = MEMORY / "PROPOSALS.md"
 # The rule settings he may suggest changing. The kill switch, the lead lock,
 # the end date and the safety checks are deliberately not on this list.
@@ -103,7 +111,8 @@ def settings():
                 key, value = line.split("=", 1)
                 os.environ.setdefault(key.strip(), value.strip().strip("'\""))
     return {
-        "name": os.environ.get("TRADER_NAME", "Midas"),
+        "name": os.environ.get("TRADER_NAME", "Dionysus"),
+        "aliases": os.environ.get("TRADER_ALIASES", "Midas").replace(",", " ").split(),
         "model": os.environ.get("MODEL", "gpt-oss:20b"),
         "url": os.environ.get("OLLAMA_URL", "http://localhost:11434").rstrip("/"),
         "persona": os.environ.get("PERSONA_FILE", "PERSONA.md"),
@@ -258,6 +267,8 @@ def persona(cfg):
     path = MEMORY / cfg.get("persona", "PERSONA.md")
     text = path.read_text() if path.exists() else "You are {name}, an obsessive options trader."
     text = text.replace("{name}", cfg["name"])
+    text += ("\n\nThe bot whose trades you suggest is called Midas. Midas follows fixed rules and "
+             "decides whether your picks are bought; you are not Midas.")
     notes = recent_notes()
     if notes:
         text += "\n\n## Notes you wrote to yourself (your long-term memory)\n\n" + notes
@@ -350,15 +361,31 @@ PICK_SCHEMA = {
                 "required": ["symbol", "direction", "conviction", "why"],
             },
         },
+        "free_up": {
+            "type": "array", "maxItems": 2,
+            "items": {
+                "type": "object",
+                "properties": {
+                    "symbol": {"type": "string"},
+                    "direction": {"type": "string", "enum": ["call", "put"]},
+                    "why": {"type": "string"},
+                },
+                "required": ["symbol", "direction", "why"],
+            },
+        },
     },
     "required": ["picks"],
 }
 
 
-def picks(cfg, day=None):
-    """Record the trades he would make. They are never placed; they are scored
-    later against the rules' own top picks (see memory.py)."""
+def picks(cfg, day=None, main=True):
+    """Record the trades he would make. Midas tries them first the next trading
+    day if its rules approve; they are also scored against the rules' own top
+    picks (see memory.py). `main` is False for the rival personas, whose picks
+    are only scored and who may not name bets to sell."""
     day, label, fact_text = facts(day)
+    held = sorted({(t["underlying"], t["direction"]) for t in read_csv(TRADES)
+                   if t.get("status") == "open" and t.get("engine") == "core"})
     menu = {(c["symbol"], c["direction"]) for c in read_csv(CANDIDATES) if c["date"] == day}
     if not menu:
         print(f"No signals recorded for {day} yet, so there is nothing for him to pick from.")
@@ -366,20 +393,28 @@ def picks(cfg, day=None):
     task = (
         "From TODAY'S SIGNALS in the facts, choose up to three you would trade tomorrow. You may "
         "only choose a symbol and direction that appear in that list, and you may choose none. "
-        "These are real now: tomorrow the bot tries your picks of conviction 3 or more before "
-        "its own, if its rules still approve them in the morning, and they take the scarce cash "
-        "first. So be selective, and weigh what your notes say worked. Give each a conviction "
+        "These are real now: tomorrow Midas, the bot, tries your picks of conviction 3 or more "
+        "before its own, if its rules still approve them in the morning, and they take the scarce "
+        "cash first. So be selective, and weigh what your notes say worked. Give each a conviction "
         "from 1 (a punt) to 5 (you would bet the desk) and one sentence saying why, in your own "
-        "voice. Answer in JSON only.\n\n"
+        "voice.\n"
+        + ("Cash or the lead lock may stop even an approved pick. In 'free_up' you may name up to "
+           "two of the bet(s) Midas holds now, listed below, that you would sell part of to fund a "
+           "pick of conviction 4 or 5. Midas sells only if that is the one thing in the way, only "
+           "if the bet is in profit, and only as much as needed. Name none if every open bet should "
+           "keep running: the team's notes say the profit has come from letting winners run.\n"
+           "BETS MIDAS HOLDS NOW: " + ", ".join(f"{u} {d}" for u, d in held) + "\n" if main and held else "")
+        + "Answer in JSON only.\n\n"
         f"FACTS\n{fact_text}"
     )
     show_work("picks", label, fact_text)
     messages = [{"role": "system", "content": persona(cfg)}, {"role": "user", "content": task}]
-    chosen = []
+    chosen, sell = [], []
     for attempt in range(2):
         raw = ask(cfg, messages, temperature=0.6, schema=PICK_SCHEMA)
         try:
-            chosen = json.loads(raw).get("picks", [])
+            answer = json.loads(raw)
+            chosen, sell = answer.get("picks", []), answer.get("free_up", []) or []
             break
         except (ValueError, AttributeError):
             messages += [{"role": "assistant", "content": raw},
@@ -407,7 +442,32 @@ def picks(cfg, day=None):
         print(f"{cfg['name']} picked nothing for {day}.")
     if dropped:
         print(f"Ignored (not among the day's signals): {', '.join(dropped)}")
+    if main:
+        record_free_up(cfg, day, sell, held)
     return rows
+
+
+def record_free_up(cfg, day, sell, held):
+    """Save the open bets he says Midas may sell to fund his picks (memory/free_up.csv).
+    Only bets Midas really holds count; anything else is ignored."""
+    names, dropped = [], []
+    for c in (sell or [])[:2]:
+        key = (str(c.get("symbol", "")).upper(), c.get("direction"))
+        if key in held and key not in [(r["symbol"], r["direction"]) for r in names]:
+            why = "".join(ch for ch in str(c.get("why", "")) if ch.isprintable())[:200]
+            names.append({"date": day, "name": cfg["name"], "symbol": key[0], "direction": key[1], "why": why})
+        else:
+            dropped.append(f"{key[0]} {key[1]}")
+    keep = [r for r in read_csv(FREE_UP) if not (r["date"] == day and r.get("name") == cfg["name"])]
+    with FREE_UP.open("w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=FREE_UP_FIELDS)
+        w.writeheader()
+        w.writerows(sorted(keep + names, key=lambda r: (r["date"], r["name"])))
+    for r in names:
+        print(f"{cfg['name']} says Midas may sell part of {r['symbol']} {r['direction']} to fund a pick: {r['why']}")
+    if dropped:
+        print(f"Ignored (Midas does not hold these): {', '.join(dropped)}")
+    return names
 
 
 def reflect(cfg):
@@ -421,6 +481,8 @@ def reflect(cfg):
     seen = feed.get("pick_status") or {}
     live = "; ".join(f"{p['symbol']} {p['kind']} ({p['conviction']}/5): {p['status']}"
                      for p in seen.get("picks") or [])
+    if seen.get("freed"):
+        live += ". Winners sold to fund your picks: " + "; ".join(seen["freed"])
     today_notes = "\n".join(f"- {n['at_text']}: {n['text']}" for n in (feed.get("notes") or [])
                             if str(n.get("at", ""))[:10] == day)
     material = (
@@ -586,7 +648,7 @@ def live_facts(snap):
     if ai:
         out.append("WHAT THE BOT DID WITH MY PICKS TODAY: " + "; ".join(
             f"{p['symbol']} {p['kind']} ({p['conviction']}/5): {p['status']}" for p in ai) + ".")
-    moves = [line for line in (snap.get("log") or []) if re.search(r"\b(BUY|SELL|AI pick|KILL)\b", line)][-8:]
+    moves = [line for line in (snap.get("log") or []) if re.search(r"\b(BUY|SELL|FREE UP|KILL)\b|Dionysus's pick", line)][-8:]
     if moves:
         out.append("LATEST ORDERS AND NOTES FROM THE BOT:\n" + "\n".join(moves))
     return "\n".join(out)
@@ -617,6 +679,28 @@ def read_desk():
         return {}
 
 
+def desk_stats(mine_names):
+    """His record against the rules', in a few plain numbers for the page."""
+    def picks_for(rows):
+        judged = [float(r["move_1d_pct"]) for r in rows if r.get("move_1d_pct") not in ("", None)]
+        return {"scored": len(judged), "right": sum(x > 0 for x in judged),
+                "avg_move_pct": round(sum(judged) / len(judged), 2) if judged else None}
+    scores = read_csv(SCORES)
+    trades = read_csv(TRADES)
+
+    def trades_for(source):
+        mine = [t for t in trades if (t.get("source") or "rules") == source and t.get("engine") == "core"]
+        closed = [t for t in mine if t.get("status") == "closed" and t.get("profit") not in ("", None)]
+        return {"open": sum(t.get("status") == "open" for t in mine), "closed": len(closed),
+                "won": sum(float(t["profit"]) > 0 for t in closed),
+                "profit": round(sum(float(t["profit"]) for t in closed), 2)}
+    return {
+        "picks": {"ai": picks_for([r for r in scores if r.get("who") in mine_names | {"trader"}]),
+                  "rules": picks_for([r for r in scores if r.get("who") == "rules"])},
+        "trades": {"ai": trades_for("ai"), "rules": trades_for("rules")},
+    }
+
+
 def write_desk(cfg, note=None, pick_status=None):
     """Rebuild memory/desk.json: his live notes plus everything the /midas page shows.
     `pick_status` is the bot's live word on today's picks (bought, or not and why);
@@ -627,6 +711,7 @@ def write_desk(cfg, note=None, pick_status=None):
         pick_status = feed.get("pick_status") or {}
     if note:
         notes = (notes + [note])[-DESK_KEEP:]
+    mine_names = {cfg["name"], *cfg.get("aliases", [])}
     rows = [r for r in read_csv(PICKS) if r.get("symbol")]
     last = max((r["date"] for r in rows), default="")
     entry = recent_entries(1)
@@ -650,6 +735,10 @@ def write_desk(cfg, note=None, pick_status=None):
         "diary": {"heading": head.lstrip("# ").strip(), "text": diary_text},
         "self_notes": [b[2:] for b in recent_notes(8).splitlines()],
         "proposals": proposals[-6:],
+        "who": {"ai": cfg["name"], "bot": "Midas"},
+        "free_up": [{k: r.get(k, "") for k in ("symbol", "direction", "why")} for r in read_csv(FREE_UP)
+                    if r["date"] == last and r.get("name") in mine_names],
+        "stats": desk_stats(mine_names),
         "scoreboard": {"who_chose": md_table(REVIEW, "By who chose it"),
                        "picks_vs_rules": md_table(REVIEW, "The trader's own picks, scored against the rules")},
     }
@@ -713,13 +802,14 @@ def nightly(cfg):
         print(f"Diary for {label} is already written.")
     else:  # also rewrites a preliminary entry once the day's official figures are in
         diary(cfg)
-    done = {(r["date"], r.get("name") or cfg["name"]) for r in read_csv(PICKS)}
-    for who in [cfg] + [dict(cfg, name=n, persona=f) for n, f in cfg.get("rivals", [])]:
+    alias = {a: cfg["name"] for a in cfg.get("aliases", [])}
+    done = {(r["date"], alias.get(r.get("name") or cfg["name"], r.get("name") or cfg["name"])) for r in read_csv(PICKS)}
+    for i, who in enumerate([cfg] + [dict(cfg, name=n, persona=f) for n, f in cfg.get("rivals", [])]):
         if (day, who["name"]) in done:
             print(f"{who['name']}'s picks for {day} are already recorded.")
         else:
             print()
-            picks(who)
+            picks(who, main=(i == 0))
     noted = NOTES.read_text() if NOTES.exists() else ""
     if f"## {day}" not in noted:
         print()  # look back over the day, once
@@ -836,6 +926,9 @@ def selftest():
     ])
     menu = [(c["symbol"], c["direction"]) for c in read_csv(CANDIDATES)]
     first = menu[-1] if menu else ("SPY", "put")
+    open_bets = [(t["underlying"], t["direction"]) for t in read_csv(TRADES)
+                 if t.get("status") == "open" and t.get("engine") == "core"]
+    held_one = open_bets[0] if open_bets else ("NONE", "call")
     desk_replies = iter([
         "Sleeve at $9,999,999 and climbing.",                           # an invented figure
         "Sleeve at $106,198. My NVDA put is stuck on cash; MSTR is in.",
@@ -852,7 +945,7 @@ def selftest():
             {"symbol": "MSTR", "kind": "put", "conviction": 5, "status": "bought"},
             {"symbol": "NVDA", "kind": "put", "conviction": 5,
              "status": "not bought: not enough cash for a proper-size bet"}]},
-        "log": ["10:01 BUY  3 x MSTR... AI pick 5/5", "10:01 AI pick NVDA put not bought: not enough cash"],
+        "log": ["10:01 BUY  3 x MSTR... Dionysus's pick 5/5", "10:01 Dionysus's pick NVDA put not bought: not enough cash"],
     }
 
     class Stub(BaseHTTPRequestHandler):
@@ -887,6 +980,9 @@ def selftest():
                 text = json.dumps({"picks": [
                     {"symbol": first[0], "direction": first[1], "conviction": 9, "why": "It is moving."},
                     {"symbol": "ZZZZ", "direction": "call", "conviction": 5, "why": "Made up."},
+                ], "free_up": [
+                    {"symbol": held_one[0], "direction": held_one[1], "why": "Biggest winner, can spare some."},
+                    {"symbol": "ZZZZ", "direction": "put", "why": "Not even held."},
                 ]})
             elif "notes to yourself" in asked:
                 text = "- I cut losers fast and it worked.\n- I made $888,888 once.\n- I want more size than is wise."
@@ -899,12 +995,12 @@ def selftest():
 
     server = HTTPServer(("127.0.0.1", 0), Stub)
     threading.Thread(target=server.serve_forever, daemon=True).start()
-    cfg = {"name": "Midas", "model": "stub-model", "url": f"http://127.0.0.1:{server.server_port}",
+    cfg = {"name": "Dionysus", "aliases": ["Midas"], "model": "stub-model", "url": f"http://127.0.0.1:{server.server_port}",
            "live": f"http://127.0.0.1:{server.server_port}"}
-    global DIARY, NOTES, PICKS, LAST, PROPOSALS, DESK
+    global DIARY, NOTES, PICKS, LAST, PROPOSALS, DESK, FREE_UP
     tmp = Path(tempfile.mkdtemp())
     DIARY, NOTES, PICKS, LAST = tmp / "DIARY.md", tmp / "NOTES.md", tmp / "picks.csv", tmp / "last.txt"
-    PROPOSALS, DESK = tmp / "PROPOSALS.md", tmp / "desk.json"
+    PROPOSALS, DESK, FREE_UP = tmp / "PROPOSALS.md", tmp / "desk.json", tmp / "free_up.csv"
 
     assert check(cfg), "check should find the stand-in model"
     day, label, fact_text = facts()
@@ -922,6 +1018,9 @@ def selftest():
         rows = picks(cfg)
         assert [(r["symbol"], r["direction"]) for r in rows] == [first], "only real signals can be picked"
         assert rows[0]["conviction"] == 5, "conviction is clamped to the 1-5 scale"
+        named = [(r["symbol"], r["direction"]) for r in read_csv(FREE_UP)]
+        assert named == ([held_one] if open_bets else []), "only bets Midas really holds may be named to sell"
+        assert "you are not Midas" in persona(cfg), "he knows Midas is the bot, not him"
 
     note = desk(cfg)
     assert note and "9,999,999" not in note["text"] and "$106,198" in note["text"], \
@@ -946,11 +1045,13 @@ def selftest():
     assert not {"KILL_FLOOR_PCT", "LOCK_MARGIN_PCT", "END_DATE"} & set(DIALS), "risk limits are off limits"
     feed = write_desk(cfg)
     assert feed["proposals"][-1]["status"] == "waiting for a human" and feed["self_notes"], \
-        "the /midas page gets his proposals and notes"
+        "his page gets his proposals and notes"
+    assert feed["who"] == {"ai": "Dionysus", "bot": "Midas"} and "picks" in feed["stats"], "his page gets his record"
     assert feed["notes"] and feed["pick_status"].get("picks"), "rebuilding the feed keeps the live notes"
     server.shutdown()
     print(f"\nSELFTEST PASSED for {label}: invented figures caught, made-up picks rejected, "
-          "notes carried forward, unsafe rule proposals dropped, live desk notes checked and fed back")
+          "notes carried forward, unsafe rule proposals dropped, live desk notes checked and fed back, "
+          "only real open bets named to sell")
 
 
 def main():

@@ -1,5 +1,5 @@
 #!/bin/zsh
-# Midas's live desk notes. Scheduled every 30 minutes by install_schedule.sh; when
+# Dionysus's live desk notes (the AI trader). Scheduled every 30 minutes by install_schedule.sh; when
 # the market is closed it only checks and exits, so it is safe to run any time.
 #
 #   1. Read the bot's live data from the dashboard (no keys needed).
@@ -23,7 +23,7 @@ cat "${TMPDIR:-/tmp}/optbot-desk.out"
 
 git add memory/desk.json
 git diff --cached --quiet && exit 0
-git commit -q -m "Midas desk note, $(date '+%Y-%m-%d %H:%M')"
+git commit -q -m "Dionysus desk note, $(date '+%Y-%m-%d %H:%M')"
 if ! git pull --rebase --autostash -q origin main; then
   git rebase --abort 2>/dev/null || true
   echo "Could not combine with GitHub's latest; the next note will try again."

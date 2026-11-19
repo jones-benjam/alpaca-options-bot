@@ -81,14 +81,16 @@ ODTE_ENTRY_FROM = "10:00"
 ODTE_ENTRY_TO = "14:00"
 ODTE_EXIT_AT = "15:00"      # flat well before expiry
 
-# ---- AI trader's suggestions (core engine only) -------------------------------
-# Each evening the trader persona (a local AI model on the Mac mini, trader.py)
-# suggests up to three trades from the day's signals, with a conviction of 1-5.
-# The next trading day the bot tries those first, but only if its own rules
-# still approve them; it never buys anything the rules reject, and sizing,
-# stops and every guard rail are unchanged. Set AI_PICKS=0 to turn this off.
+# ---- Dionysus, the AI trader (core engine only) -------------------------------
+# Two names, so it is always clear who did what: Midas is this bot and its fixed
+# rules; Dionysus is the AI trader (a local model on the Mac mini, trader.py).
+# Each evening Dionysus suggests up to three trades from the day's signals, with a
+# conviction of 1-5. The next trading day Midas tries those first, but only if its
+# own rules still approve them; it never buys anything the rules reject, and
+# sizing, stops and every guard rail are unchanged. AI_PICKS=0 turns this off.
 AI_PICKS = _env("AI_PICKS", True, bool)
-AI_TRADER = _env("AI_TRADER", "Midas")          # whose picks count (others only add agreement)
+AI_TRADER = _env("AI_TRADER", "Dionysus")       # whose picks count (others only add agreement)
+AI_TRADER_ALIASES = _env("AI_TRADER_ALIASES", "Midas")  # his earlier name, on picks made before Nov 19
 AI_MIN_CONVICTION = _env("AI_MIN_CONVICTION", 3, int)  # weaker picks are ignored
 AI_PICKS_URL = _env(
     "AI_PICKS_URL",
@@ -96,6 +98,28 @@ AI_PICKS_URL = _env(
 )
 AI_MAX_AGE_DAYS = 4             # older picks are stale (covers a long weekend)
 AI_REFRESH_SECONDS = 900        # look again this often until the day's picks arrive
+
+# Freeing cash for a strong pick. Dionysus may name up to two of Midas's open
+# three-week bets that are in profit, to sell if cash (or lead-lock room) is what
+# stops a pick. Midas sells only when ALL of these hold: the pick is rated
+# AI_FREE_UP_MIN_CONVICTION or more and its rules approve it; a contract for it
+# passed the checks; money is the only thing in the way; the named bet is up at
+# least AI_FREE_UP_MIN_GAIN with a believable quote; and the sale would free
+# enough for a proper-size bet. It sells only as many contracts as needed, at
+# most AI_FREE_UP_MAX_PER_DAY times a day. AI_FREE_UP=0 turns this off.
+AI_FREE_UP = _env("AI_FREE_UP", True, bool)
+AI_FREE_UP_MIN_CONVICTION = _env("AI_FREE_UP_MIN_CONVICTION", 4, int)
+AI_FREE_UP_MIN_GAIN = _env("AI_FREE_UP_MIN_GAIN", 0.10, float)   # +10% or better on what was paid
+AI_FREE_UP_MAX_PER_DAY = _env("AI_FREE_UP_MAX_PER_DAY", 1, int)
+AI_FREE_UP_URL = _env(
+    "AI_FREE_UP_URL",
+    "https://raw.githubusercontent.com/jones-benjam/alpaca-options-bot/main/memory/free_up.csv",
+)
+
+
+def ai_names():
+    """Every name Dionysus's own picks may carry (his current and earlier names)."""
+    return {AI_TRADER} | {n.strip() for n in AI_TRADER_ALIASES.replace(",", " ").split() if n.strip()}
 
 # ---- Engine -----------------------------------------------------------------
 LOOP_SECONDS = _env("LOOP_SECONDS", 60, int)

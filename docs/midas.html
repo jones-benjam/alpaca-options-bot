@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Midas's Desk</title>
+<title>Dionysus Desk</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
 <style>
@@ -163,56 +163,109 @@ h3 { color:var(--gold); font:9px/1.4 var(--px); margin:16px 0 6px; }
 .foot { color:var(--muted); font-size:17px; }
 @media (prefers-reduced-motion: reduce) { .layer, .hero, .hero .fa, .dot.live { animation:none; } .hero .fb { display:none; } .tape-track { animation:none; } .tape { overflow-x:auto; } }
 
-.intro { color:var(--ink2); font-size:19px; margin:0; max-width:1100px; }
-.intro b { color:var(--gold); font-weight:400; }
+.logo.ai { background:var(--buy); }
+.lede { color:var(--ink); font-size:21px; margin:0; max-width:1100px; line-height:1.3; }
+.lede b { color:var(--gold); font-weight:400; } .lede i { color:var(--buy); font-style:normal; }
+.steps { display:grid; gap:12px; grid-template-columns:repeat(4, minmax(0, 1fr)); counter-reset:step; }
+@media (max-width: 900px) { .steps { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 520px) { .steps { grid-template-columns:minmax(0, 1fr); } }
+.step { background:#11100d; padding:10px 10px 9px; box-shadow:0 0 0 2px var(--frame); }
+.step .when { color:var(--gold); font:8.5px/1.6 var(--px); }
+.step .what { color:var(--ink); font-size:19px; margin-top:4px; line-height:1.2; }
+.step .what i { color:var(--buy); font-style:normal; }
+.kpis.k5 { grid-template-columns:repeat(5, minmax(0, 1fr)); }
+@media (max-width: 1100px) { .kpis.k5 { grid-template-columns:repeat(3, minmax(0, 1fr)); } }
+@media (max-width: 560px) { .kpis.k5 { grid-template-columns:repeat(2, minmax(0, 1fr)); } }
+.kv.sm { font-size:12px; line-height:2.2; }
 .notes { max-height:760px; overflow:auto; }
 .note { border-left:4px solid var(--frame); background:#11100d; padding:7px 10px 8px; margin:0 0 10px; }
-.note.latest { border-left-color:var(--gold); background:#17150f; }
+.note.latest { border-left-color:var(--buy); background:#0f1618; }
 .note time { display:block; color:var(--gold); font:8.5px/1.6 var(--px); margin-bottom:4px; }
 .note p { margin:0; font-size:20px; line-height:1.25; white-space:pre-wrap; word-break:break-word; }
-.st { font:8px/1 var(--px); padding:4px 6px; border:2px solid var(--frame); white-space:nowrap; display:inline-block; }
+.card { background:#11100d; box-shadow:0 0 0 2px var(--frame); padding:10px; margin:0 0 12px; }
+.card .top-line { display:flex; flex-wrap:wrap; align-items:baseline; gap:4px 12px; }
+.card .sym { font:13px/1.4 var(--px); color:var(--ink); }
+.card .dir { color:var(--ink2); font-size:19px; }
+.dots { color:var(--gold); letter-spacing:2px; font-size:19px; margin-left:auto; white-space:nowrap; }
+.verdict { margin-top:8px; display:flex; gap:10px; align-items:flex-start; }
+.verdict .st { flex:none; }
+.verdict p { margin:0; color:var(--ink2); font-size:19px; line-height:1.2; }
+.why { margin:6px 0 0; color:var(--muted); font-size:18px; white-space:normal; max-width:none; }
+.st { font:8px/1 var(--px); padding:5px 6px; border:2px solid var(--frame); white-space:nowrap; display:inline-block; }
 .st.bought { color:var(--buy); border-color:#2d5466; } .st.wait { color:var(--warn); border-color:#6b5a1d; }
 .st.no { color:var(--muted); }
-td.wrap, .wrap { white-space:normal; color:var(--ink2); min-width:180px; }
-td.wrap .st { white-space:normal; line-height:1.5; }
+.vs { display:grid; grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); gap:12px; }
+.side-card { background:#11100d; box-shadow:0 0 0 2px var(--frame); padding:10px; }
+.side-card h4 { margin:0 0 8px; font:9px/1.5 var(--px); color:var(--gold); } .side-card.ai h4 { color:var(--buy); }
+.side-card .big { font-size:18px; } .side-card .lbl { text-align:left; margin:2px 0 10px; }
+.explain { color:var(--muted); font-size:17px; margin:10px 0 0; }
 .prose { white-space:pre-wrap; word-break:break-word; font-size:19px; color:var(--ink2); margin:0; }
-ul.plain { margin:0; padding-left:20px; } ul.plain li { margin:0 0 6px; color:var(--ink2); }
-.stack { display:grid; gap:16px; min-width:0; align-content:start; }
+ul.plain { margin:0; padding-left:20px; } ul.plain li { margin:0 0 7px; color:var(--ink2); }
+.gloss { display:grid; grid-template-columns:auto 1fr; gap:6px 14px; margin:0; }
+.gloss dt { color:var(--gold); font:8.5px/1.8 var(--px); } .gloss dd { margin:0; color:var(--ink2); font-size:19px; }
+details summary { cursor:pointer; color:var(--gold); font:9px/1.6 var(--px); }
+details[open] summary { margin-bottom:10px; }
 </style></head><body>
 <header class="top">
-  <span class="logo">MIDAS</span>
-  <span class="cmd">MSBC 5220 <b>TRADER'S DESK</b></span>
+  <span class="logo ai">DIONYSUS</span>
+  <span class="cmd">THE AI TRADER <b>· WORKS WITH MIDAS</b></span>
   <nav class="fkeys" aria-label="Pages and sections">
-    <a href="./"><b>1</b>LIVE BOT</a><a href="#notes"><b>2</b>NOTES</a><a href="#picks"><b>3</b>PICKS</a><a href="#score"><b>4</b>SCORE</a><a href="#diary"><b>5</b>DIARY</a><a href="#rules"><b>6</b>RULES</a>
+    <a href="./"><b>1</b>MIDAS LIVE</a><a href="#today"><b>2</b>TODAY</a><a href="#notes"><b>3</b>NOTES</a><a href="#record"><b>4</b>RECORD</a><a href="#journal"><b>5</b>JOURNAL</a><a href="#rules"><b>6</b>RULES</a>
   </nav>
   <span class="status"><span class="dot" id="statusdot"></span><span id="statustext">CONNECTING</span><span id="clock"></span></span>
 </header>
 <main>
-  <p class="intro"><b>Midas</b> is the bot's trader persona: a local AI model on the team's Mac mini. While the market is open he
-    writes a desk note every 30 minutes from the bot's live data. Each evening he picks up to three trades; the bot tries the
-    ones he rates 3/5 or more first the next day, <b>but only if its own rules approve them</b>. His notes are commentary;
-    every dollar figure and percentage in them is checked against the bot's records.</p>
+  <p class="lede"><i>Dionysus</i> is an AI trader running on the team's Mac mini. He suggests trades;
+    <b>Midas</b>, the bot, decides. Midas only buys a suggestion its own fixed rules approve, and it controls
+    every limit on risk. This page shows what Dionysus said, what Midas did about it, and how he is doing.</p>
+
+  <section class="panel" aria-labelledby="how-h"><div class="ph" id="how-h">HOW A SUGGESTION BECOMES A TRADE</div>
+    <div class="pb"><div class="steps">
+      <div class="step"><div class="when">1 · EACH EVENING</div><div class="what"><i>Dionysus</i> studies the day and suggests up to 3 trades, each rated 1 to 5.</div></div>
+      <div class="step"><div class="when">2 · 9:45 AM ET</div><div class="what"><b>Midas</b> checks each rated 3 or more against its rules. Approved ones go first.</div></div>
+      <div class="step"><div class="when">3 · IF CASH IS SHORT</div><div class="what">For a 4 or 5, Midas may sell part of a winning bet Dionysus named, just enough to pay for it.</div></div>
+      <div class="step"><div class="when">4 · EACH NIGHT</div><div class="what"><i>Dionysus</i> reads how it went and writes lessons he uses next time.</div></div>
+    </div></div>
+  </section>
+
+  <div class="kpis k5" id="tiles" aria-label="Right now">
+    <div class="kpi"><div class="kl">MARKET</div><div class="kv" id="t-mkt">…</div><div class="ks" id="t-mkt-s"></div></div>
+    <div class="kpi"><div class="kl">LAST NOTE</div><div class="kv" id="t-note">…</div><div class="ks" id="t-note-s"></div></div>
+    <div class="kpi"><div class="kl">TODAY'S PICKS</div><div class="kv" id="t-picks">…</div><div class="ks" id="t-picks-s"></div></div>
+    <div class="kpi"><div class="kl">PICKS RIGHT</div><div class="kv" id="t-rec">…</div><div class="ks" id="t-rec-s"></div></div>
+    <div class="kpi"><div class="kl">HIS TRADES' PROFIT</div><div class="kv" id="t-pnl">…</div><div class="ks" id="t-pnl-s"></div></div>
+  </div>
+
   <div class="row r2">
-    <section class="panel" id="notes"><div class="ph">DESK NOTES <span class="sub" id="notes-sub"></span></div>
+    <section class="panel" id="today"><div class="ph">TODAY: HIS PICKS AND WHAT MIDAS DID <span class="sub" id="today-sub"></span></div>
+      <div class="pb" id="today-body"><p class="empty">Loading…</p></div></section>
+    <section class="panel" id="notes"><div class="ph">LIVE NOTES FROM THE DESK <span class="sub">every 30 min while the market is open</span></div>
       <div class="pb notes" id="notes-body"><p class="empty">Loading…</p></div></section>
-    <div class="stack">
-      <section class="panel" id="picks"><div class="ph">HIS PICKS <span class="sub" id="picks-sub"></span></div>
-        <div class="pb scroll" id="picks-body"><p class="empty">Loading…</p></div></section>
-      <section class="panel" id="score"><div class="ph">SCOREBOARD <span class="sub">his calls against the rules</span></div>
-        <div class="pb scroll" id="score-body"><p class="empty">Loading…</p></div></section>
-    </div>
   </div>
+
   <div class="row r2">
-    <section class="panel" id="diary"><div class="ph">DIARY <span class="sub" id="diary-sub"></span></div>
-      <div class="pb" id="diary-body"><p class="empty">Loading…</p></div></section>
-    <div class="stack">
-      <section class="panel"><div class="ph">NOTES TO HIMSELF <span class="sub">his long-term memory</span></div>
-        <div class="pb" id="self-body"><p class="empty">Loading…</p></div></section>
-      <section class="panel" id="rules"><div class="ph">RULE CHANGES HE SUGGESTS <span class="sub">a person decides</span></div>
-        <div class="pb" id="rules-body"><p class="empty">Loading…</p></div></section>
-    </div>
+    <section class="panel" id="record"><div class="ph">HIS RECORD VS MIDAS'S RULES <span class="sub">is he adding anything?</span></div>
+      <div class="pb" id="record-body"><p class="empty">Loading…</p></div></section>
+    <section class="panel" id="rules"><div class="ph">RULE CHANGES HE SUGGESTS <span class="sub">a person approves or declines each</span></div>
+      <div class="pb" id="rules-body"><p class="empty">Loading…</p></div></section>
   </div>
-  <p class="foot" id="foot">Notes refresh every minute; a new one can take up to 5 minutes to arrive.</p>
+
+  <div class="row r2">
+    <section class="panel" id="journal"><div class="ph">HIS DIARY <span class="sub" id="diary-sub"></span></div>
+      <div class="pb" id="diary-body"><p class="empty">Loading…</p></div></section>
+    <section class="panel"><div class="ph">LESSONS HE HAS WRITTEN FOR HIMSELF <span class="sub">read back before every pick</span></div>
+      <div class="pb" id="self-body"><p class="empty">Loading…</p></div></section>
+  </div>
+
+  <section class="panel"><div class="pb"><details><summary>WHAT THE WORDS MEAN</summary><dl class="gloss">
+    <dt>CALL / PUT</dt><dd>A call is a bet a stock rises; a put is a bet it falls. The most a bet can lose is what was paid for it.</dd>
+    <dt>CONVICTION</dt><dd>How sure Dionysus is, from 1 (a punt) to 5 (he would bet the desk). Midas ignores 1 and 2.</dd>
+    <dt>THREE-WEEK BET</dt><dd>Midas's main kind of trade: an option that expires in about three weeks. Dionysus's picks are always this kind.</dd>
+    <dt>SLEEVE</dt><dd>The $50,000 of the class account that Midas manages.</dd>
+    <dt>LEAD LOCK</dt><dd>A rule that protects the account's lead over SPY: when the lead is thin, Midas stops opening new bets.</dd>
+    <dt>RIGHT AFTER 1 DAY</dt><dd>A pick counts as right if the stock moved its way by the next day's close, whether or not it was traded.</dd>
+  </dl></details></div></section>
+  <p class="foot" id="foot">The page checks for news every minute; a new note can take up to 5 minutes to appear.</p>
 </main>
 <script>window.OPTBOT_API = "https://msbc5220-optbot.fly.dev"; window.OPTBOT_FALLBACK = true;</script>
 <script>
@@ -226,87 +279,153 @@ ul.plain { margin:0; padding-left:20px; } ul.plain li { margin:0 0 6px; color:va
     if (text != null) e.textContent = String(text); if (parent) parent.appendChild(e); return e; }
   function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); return n; }
   function empty(n, text) { el("p", "empty", clear(n), text); }
+  function set(id, text, cls) { var n = $(id); n.textContent = text; if (cls !== undefined) n.className = cls; }
   function ago(s) { s = Math.max(0, Math.round(s)); return s < 60 ? s + "s ago" : s < 3600 ? Math.round(s / 60) + "m ago" : s < 172800 ? Math.round(s / 3600) + "h ago" : Math.round(s / 86400) + "d ago"; }
-  function table(parent, rows, wrapCols) {
-    if (!rows || rows.length < 2) return false;
-    var t = el("table", "", parent), h = el("tr", "", el("thead", "", t)), b = el("tbody", "", t);
-    rows[0].forEach(function (c) { el("th", "", h, c); });
-    rows.slice(1).forEach(function (r) { var tr = el("tr", "", b);
-      r.forEach(function (c, i) { el("td", (wrapCols || []).indexOf(i) >= 0 ? "wrap" : (i ? "n" : ""), tr, c); }); });
-    return true;
+  function money(x) { return (x < 0 ? "-$" : "+$") + Math.abs(Math.round(x)).toLocaleString("en-US"); }
+  function cap(t) { t = String(t || ""); return t.charAt(0).toUpperCase() + t.slice(1); }
+  function dots(n) { n = Math.max(0, Math.min(5, +n || 0)); return "●●●●●".slice(0, n) + "○○○○○".slice(0, 5 - n); }
+  function dir(k) { return k === "call" ? "call · bets it rises" : k === "put" ? "put · bets it falls" : k; }
+  var PLAIN = [
+    [/^already held/, "Midas already holds this bet, so there was nothing new to buy."],
+    [/^every slot is full/, "All of Midas's three-week slots were in use."],
+    [/^the lead lock/, "Buying would have put the lead over SPY at risk, so Midas held back."],
+    [/^not enough cash/, "There was not enough cash for a full-size bet."],
+    [/are off in a/, "The market's mood rules this direction out today."],
+    [/^the trend no longer/, "By the morning the stock's trend no longer backed it."],
+    [/^momentum is below/, "The move was too small for Midas's rules by the morning."],
+    [/^too close to its earnings/, "The company reports earnings soon; Midas avoids that risk."],
+    [/^no option contract/, "No option on it was cheap and liquid enough to buy."],
+    [/^not in the bot/, "It is not on Midas's list of stocks."]];
+  function verdict(status) {
+    status = String(status || "");
+    if (status.indexOf("bought") === 0)
+      return { cls: "bought", word: "BOUGHT", text: status.length > 6 ? cap(status.slice(7)) + "." : "Midas's rules approved it and it was bought." };
+    if (status.indexOf("not bought: ") === 0) {
+      var why = status.slice(12), plain = PLAIN.filter(function (p) { return p[0].test(why); })[0];
+      return { cls: "no", word: "SKIPPED", text: plain ? plain[1] : cap(why) + "." };
+    }
+    return { cls: "wait", word: "WAITING", text: "Midas checks it after 9:45 ET." };
+  }
+  function etNow() { var p = new Date().toLocaleString("en-US", { timeZone: "America/New_York", hour12: false, hour: "2-digit", minute: "2-digit" }).split(":");
+    return { h: +p[0] % 24, m: +p[1] }; }
+  function nextNote() { var t = etNow(), m = t.m < 1 ? 1 : t.m < 31 ? 31 : 61, h = t.h + (m === 61 ? 1 : 0); m = m === 61 ? 1 : m;
+    return (h > 12 ? h - 12 : h) + ":" + (m < 10 ? "0" : "") + m + (h >= 12 ? " PM" : " AM") + " ET"; }
+
+  function renderTiles() {
+    var open = snap && snap.market_open, notes = (desk && desk.notes) || [], last = notes[notes.length - 1];
+    set("t-mkt", open ? "OPEN" : snap ? "CLOSED" : "?"); set("t-mkt-s", open ? "Midas is trading" : "opens 9:30 AM ET on weekdays");
+    set("t-note", last ? ago((Date.now() - new Date(last.at).getTime()) / 1000) : "NONE YET", last ? "kv" : "kv sm");
+    set("t-note-s", open ? "next about " + nextNote() : "next after the open");
+    var live = (snap && snap.ai && snap.ai.picks) || [], latest = (desk && desk.picks && desk.picks.rows) || [];
+    if (live.length) {
+      var b = live.filter(function (p) { return verdict(p.status).cls === "bought"; }).length,
+          sk = live.filter(function (p) { return verdict(p.status).cls === "no"; }).length;
+      set("t-picks", live.length + " TRIED"); set("t-picks-s", b + " bought · " + sk + " skipped · " + (live.length - b - sk) + " waiting");
+    } else {
+      var mine = latest.filter(function (r) { return r.name === ((desk.who || {}).ai || "Dionysus") || r.name === "Midas"; });
+      set("t-picks", mine.length ? mine.length + " READY" : "NONE", mine.length ? "kv" : "kv sm");
+      set("t-picks-s", mine.length ? "Midas checks them after 9:45 ET" : "he suggests some each evening");
+    }
+    var st = (desk && desk.stats) || {}, pa = (st.picks || {}).ai || {}, pr = (st.picks || {}).rules || {};
+    if (pa.scored) { set("t-rec", pa.right + " OF " + pa.scored); set("t-rec-s", "rules alone: " + (pr.right || 0) + " of " + (pr.scored || 0)); }
+    else { set("t-rec", "NOT YET", "kv sm"); set("t-rec-s", "a pick is judged a day later"); }
+    var ta = (st.trades || {}).ai || {};
+    if (ta.closed) { set("t-pnl", money(ta.profit), "kv " + (ta.profit >= 0 ? "up" : "dn")); set("t-pnl-s", ta.won + " of " + ta.closed + " closed trades won"); }
+    else { set("t-pnl", ta.open ? ta.open + " OPEN" : "NONE YET", "kv sm"); set("t-pnl-s", ta.open ? "none closed yet" : "no trade from his picks yet"); }
+  }
+
+  function pickCard(box, sym, kind, conv, why, v) {
+    var c = el("article", "card", box), t = el("div", "top-line", c);
+    el("span", "sym", t, sym); el("span", "dir", t, dir(kind));
+    var d = el("span", "dots", t, dots(conv)); d.setAttribute("aria-label", "conviction " + conv + " of 5"); d.title = "conviction " + conv + " of 5";
+    if (v) { var vr = el("div", "verdict", c); el("span", "st " + v.cls, vr, v.word); el("p", "", vr, v.text); }
+    if (why) el("p", "why", c, "Why he picked it: " + why);
+  }
+  function renderToday() {
+    var box = clear($("today-body")), live = snap && snap.ai, latest = (desk && desk.picks) || {}, rows = latest.rows || [];
+    var me = (desk && desk.who && desk.who.ai) || "Dionysus", whyOf = {};
+    rows.forEach(function (r) { if (r.name === me || r.name === "Midas") whyOf[r.symbol + " " + r.direction] = r.why; });
+    if (live && live.enabled === false) el("p", "empty", box, "Midas is not using his picks right now (switched off).");
+    if (live && live.picks && live.picks.length) {
+      $("today-sub").textContent = "picked " + live.day;
+      live.picks.forEach(function (p) { pickCard(box, p.symbol, p.kind, p.conviction, whyOf[p.symbol + " " + p.kind], verdict(p.status)); });
+      (live.freed || []).forEach(function (f) { el("p", "explain", box, "To pay for his pick, Midas " + f + "."); });
+    } else {
+      var mine = rows.filter(function (r) { return r.name === me || r.name === "Midas"; });
+      $("today-sub").textContent = latest.date ? "picked " + latest.date : "";
+      if (!mine.length) { if (!box.firstChild) empty(box, "No picks yet. He suggests some each evening after the close."); }
+      else mine.forEach(function (r) { pickCard(box, r.symbol, r.direction, r.conviction, r.why,
+        +r.conviction >= 3 ? verdict("") : { cls: "no", word: "IGNORED", text: "Rated under 3, so Midas will not consider it." }); });
+    }
+    var fu = (desk && desk.free_up) || [];
+    if (fu.length) {
+      el("h3", "", box, "WINNERS HE WOULD SELL TO PAY FOR A 4 OR 5");
+      var ul = el("ul", "plain", box);
+      fu.forEach(function (f) { el("li", "", ul, f.symbol + " " + f.direction + ": " + f.why); });
+      el("p", "explain", box, "Midas sells part of one only if cash or the lead lock is the one thing stopping an approved pick, the bet is in profit, and only as much as needed. At most once a day.");
+    }
+    var rivals = rows.filter(function (r) { return r.name !== me && r.name !== "Midas"; });
+    if (rivals.length) el("p", "explain", box, "Also picking, for comparison only (never traded): " +
+      rivals.map(function (r) { return r.name + " " + r.symbol + " " + r.direction + " " + r.conviction + "/5"; }).join(", ") + ".");
   }
 
   function renderNotes() {
     var box = $("notes-body"), notes = (desk && desk.notes) || [];
-    if (!notes.length) { empty(box, "No desk notes yet. The first comes during the next market session."); return; }
+    if (!notes.length) { empty(box, "No notes yet. While the market is open he writes one every 30 minutes, about what is moving and how his picks are doing."); return; }
     clear(box);
     notes.slice().reverse().forEach(function (n, i) {
       var d = el("article", "note" + (i === 0 ? " latest" : ""), box);
       el("time", "", d, (n.at_text || n.at || "") + (n.at ? " · " + ago((Date.now() - new Date(n.at).getTime()) / 1000) : ""));
       el("p", "", d, n.text);
     });
-    $("notes-sub").textContent = notes.length + " latest";
   }
 
-  function renderPicks() {
-    var box = clear($("picks-body")), live = snap && snap.ai, shown = false;
-    if (live && live.picks && live.picks.length) {
-      el("h3", "", box, "BEING TRIED TODAY · PICKED " + (live.day || ""));
-      var t = el("table", "", box), h = el("tr", "", el("thead", "", t)), b = el("tbody", "", t);
-      ["PICK", "CONVICTION", "WHAT THE BOT DID"].forEach(function (c) { el("th", "", h, c); });
-      live.picks.forEach(function (p) { var tr = el("tr", "", b);
-        el("td", "", tr, p.symbol + " " + p.kind); el("td", "n", tr, p.conviction + "/5");
-        var cls = p.status === "bought" ? "bought" : p.status.indexOf("not bought") === 0 ? "no" : "wait";
-        el("span", "st " + cls, el("td", "wrap", tr), p.status.toUpperCase()); });
-      shown = true;
-    } else if (live && live.enabled === false) {
-      el("p", "empty", box, "The bot is not using his picks right now (AI_PICKS is off).");
-    }
-    var latest = desk && desk.picks;
-    if (latest && latest.rows && latest.rows.length && (!live || latest.date !== live.day)) {
-      el("h3", "", box, (shown ? "NEXT SESSION · " : "LATEST PICKS · ") + "PICKED " + latest.date);
-      var rows = [["WHO", "PICK", "CONV.", "WHY"]].concat(latest.rows.map(function (r) {
-        return [r.name, r.symbol + " " + r.direction, r.conviction + "/5", r.why]; }));
-      table(box, rows, [3]); shown = true;
-    }
-    if (!shown && !box.firstChild) empty(box, "No picks yet.");
-    $("picks-sub").textContent = live && live.day ? "the bot read them this morning" : "tried after 9:45 ET";
+  function sideCard(vs, cls, title, p, t) {
+    var c = el("div", "side-card " + cls, vs); el("h4", "", c, title);
+    el("div", "big", c, p && p.scored ? p.right + " of " + p.scored : "—");
+    el("div", "lbl", c, p && p.scored ? "picks right after 1 day" + (p.avg_move_pct != null ? " (avg " + (p.avg_move_pct >= 0 ? "+" : "") + p.avg_move_pct + "%)" : "") : "no picks judged yet");
+    var big = el("div", "big", c, t && t.closed ? money(t.profit) : "—"); if (t && t.closed) big.className = "big " + (t.profit >= 0 ? "up" : "dn");
+    el("div", "lbl", c, t && t.closed ? t.won + " of " + t.closed + " closed three-week trades won" + (t.open ? ", " + t.open + " open" : "") : (t && t.open ? t.open + " open, none closed yet" : "no trades yet"));
+  }
+  function renderRecord() {
+    var box = clear($("record-body")), st = (desk && desk.stats) || {}, vs = el("div", "vs", box);
+    sideCard(vs, "ai", "DIONYSUS'S PICKS", (st.picks || {}).ai, (st.trades || {}).ai);
+    sideCard(vs, "", "MIDAS'S RULES ALONE", (st.picks || {}).rules, (st.trades || {}).rules);
+    el("p", "explain", box, "Top line: every pick is judged on whether the stock moved its way by the next close, traded or not (the rules' side counts their top three signals each day). " +
+      "Bottom line: real three-week trades, split by who chose them. Midas's side includes everything since Nov 9; Dionysus's picks started counting on Nov 19, so give it a couple of weeks before reading much into it.");
   }
 
-  function renderScore() {
-    var box = clear($("score-body")), s = (desk && desk.scoreboard) || {}, any = false;
-    if (s.who_chose && s.who_chose.length > 1) { el("h3", "", box, "CLOSED TRADES: HIS PICKS VS THE RULES ALONE"); any = table(box, s.who_chose); }
-    if (s.picks_vs_rules && s.picks_vs_rules.length > 1) { el("h3", "", box, "EVERY PICK, JUDGED ON THE STOCK'S MOVE"); any = table(box, s.picks_vs_rules) || any; }
-    if (!any) empty(box, "Nothing to score yet: his picks need a few days to be judged.");
-  }
-
-  function renderDiary() {
-    var box = $("diary-body"), d = desk && desk.diary;
-    if (!d || !d.text) { empty(box, "No diary entry yet."); return; }
-    clear(box); el("p", "prose", box, d.text); $("diary-sub").textContent = d.heading || "";
-    var self = $("self-body"), notes = (desk && desk.self_notes) || [];
-    if (!notes.length) empty(self, "None yet."); else { var ul = el("ul", "plain", clear(self)); notes.slice().reverse().forEach(function (n) { el("li", "", ul, n); }); }
-    var rules = $("rules-body"), props = (desk && desk.proposals) || [];
-    if (!props.length) { empty(rules, "No suggestions yet. He may suggest up to three each Friday."); return; }
-    var ul2 = el("ul", "plain", clear(rules));
-    props.slice().reverse().forEach(function (p) { var li = el("li", "", ul2);
-      el("span", "st " + (p.status === "approved" ? "bought" : p.status === "declined" ? "no" : "wait"), li, p.status.toUpperCase());
+  function renderRules() {
+    var box = $("rules-body"), props = (desk && desk.proposals) || [];
+    if (!props.length) { empty(box, "None yet. On Fridays he may suggest up to three small changes to Midas's settings. Nothing changes unless a person approves; the risk limits are off limits to him."); return; }
+    var ul = el("ul", "plain", clear(box));
+    props.slice().reverse().forEach(function (p) { var li = el("li", "", ul);
+      el("span", "st " + (p.status === "approved" ? "bought" : p.status === "declined" ? "no" : "wait"), li,
+        p.status === "waiting for a human" ? "WAITING FOR YOU" : p.status.toUpperCase());
       li.appendChild(document.createTextNode(" " + p.text)); });
+  }
+
+  function renderJournal() {
+    var box = $("diary-body"), d = desk && desk.diary;
+    if (!d || !d.text) empty(box, "No diary entry yet."); else { clear(box); el("p", "prose", box, d.text); $("diary-sub").textContent = d.heading || ""; }
+    var self = $("self-body"), notes = (desk && desk.self_notes) || [];
+    if (!notes.length) { empty(self, "None yet."); return; }
+    var ul = el("ul", "plain", clear(self)); notes.slice().reverse().forEach(function (n) { el("li", "", ul, n); });
+    el("p", "explain", self, "These are his own opinions, written by the model. They can be wrong; they shape his picks, never Midas's rules.");
   }
 
   function status() {
     var dot = $("statusdot"), text = $("statustext"), notes = (desk && desk.notes) || [];
     var lastAt = notes.length ? new Date(notes[notes.length - 1].at).getTime() : 0;
-    var noteAge = lastAt ? ago((Date.now() - lastAt) / 1000) : "none yet";
     if (!desk) { dot.className = "dot stale"; text.textContent = "CANNOT REACH HIS DESK · RETRYING"; return; }
     if (snap && snap.market_open) { var fresh = lastAt && Date.now() - lastAt < 50 * 60000;
-      dot.className = fresh ? "dot live" : "dot stale"; text.textContent = (fresh ? "AT THE DESK" : "DESK QUIET") + " · LAST NOTE " + noteAge; }
-    else { dot.className = "dot"; text.textContent = "MARKET CLOSED · LAST NOTE " + noteAge; }
+      dot.className = fresh ? "dot live" : "dot stale"; text.textContent = fresh ? "AT THE DESK" : "DESK QUIET"; }
+    else { dot.className = "dot"; text.textContent = "MARKET CLOSED"; }
   }
-  function render() { renderNotes(); renderPicks(); renderScore(); renderDiary(); status();
-    if (desk && desk.updated) $("foot").textContent = "Written by " + (desk.name || "Midas") + " (" + (desk.model || "local model") +
-      ") on the team's Mac mini. Feed updated " + ago((Date.now() - new Date(desk.updated).getTime()) / 1000) +
-      "; the page checks every minute, and a new note can take up to 5 minutes to arrive."; }
+  function render() { renderTiles(); renderToday(); renderNotes(); renderRecord(); renderRules(); renderJournal(); status();
+    if (desk && desk.updated) $("foot").textContent = "Dionysus runs on " + (desk.model || "a local model") +
+      " on the team's Mac mini; every figure in his notes is checked against Midas's records. Updated " +
+      ago((Date.now() - new Date(desk.updated).getTime()) / 1000) + "; this page checks every minute."; }
   function poll() {
     var a = fetch(DESK + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw r; return r.json(); })
       .then(function (d) { desk = d; }).catch(function () {});

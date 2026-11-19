@@ -44,14 +44,16 @@ STATE_PATH = Path(C.STATE_FILE) if C.STATE_FILE else Path(__file__).with_name("s
 LOG_PATH = Path(__file__).with_name("STRATEGY_LOG.md")
 LEGACY_PATH = Path(__file__).with_name("memory") / "legacy_tags.json"
 AI_PICKS_PATH = Path(__file__).with_name("memory") / "shadow_picks.csv"
+AI_FREE_UP_PATH = Path(__file__).with_name("memory") / "free_up.csv"
 # Why an order was placed is written into its id, so the record lives at the
 # broker and survives restarts. Entries: e_<regime>_<signal in 1/100 of a %>,
-# plus _ai<conviction> when the AI trader suggested it.
+# plus _ai<conviction> when Dionysus (the AI trader) suggested it.
 # Exits: x_<one of the codes below>.
 EXIT_CODES = {
     "stop loss": "stop", "trailing stop": "trail", "breakeven stop": "be",
     "trend flipped": "flip", "time stop": "time", "earnings report tonight": "earn",
     "take profit on half": "half", "expiry-day time exit": "exp", "flatten": "flat",
+    "freed cash for Dionysus's pick": "fund",
 }
 try:  # reasons for orders placed before ids carried them, reconstructed from the logs
     LEGACY = json.loads(LEGACY_PATH.read_text()) if LEGACY_PATH.exists() else {}
@@ -66,13 +68,42 @@ def order_meta(client_order_id):
     return LEGACY.get(client_order_id, "")
 
 
-def fetch_ai_picks():
-    """The AI trader's picks file as text. On the Mac mini it is on disk; on a
+def _ai_file(path, url):
+    """One of Dionysus's files as text. On the Mac mini it is on disk; on a
     cloud host it is read from GitHub, where the Mac mini saves it."""
-    if AI_PICKS_PATH.exists():
-        return AI_PICKS_PATH.read_text()
-    with urllib.request.urlopen(C.AI_PICKS_URL, timeout=10) as resp:
+    if path.exists():
+        return path.read_text()
+    with urllib.request.urlopen(url, timeout=10) as resp:
         return resp.read().decode()
+
+
+def fetch_ai_picks():
+    return _ai_file(AI_PICKS_PATH, C.AI_PICKS_URL)
+
+
+def fetch_free_up():
+    return _ai_file(AI_FREE_UP_PATH, C.AI_FREE_UP_URL)
+
+
+def parse_free_up(text, today):
+    """The open bets Dionysus said may be sold to fund his picks, from his latest
+    list made before `today`, in his order: [(symbol, call|put)]."""
+    rows = [r for r in csv.DictReader(io.StringIO(text))
+            if r.get("symbol") and (r.get("date") or "") < today and (r.get("name") or C.AI_TRADER) in C.ai_names()]
+    if not rows:
+        return []
+    day = max(r["date"] for r in rows)
+    try:
+        if (dt.date.fromisoformat(today) - dt.date.fromisoformat(day)).days > C.AI_MAX_AGE_DAYS:
+            return []
+    except ValueError:
+        return []
+    out = []
+    for r in rows:
+        key = (r["symbol"].strip().upper(), (r.get("direction") or "").strip())
+        if r["date"] == day and key not in out:
+            out.append(key)
+    return out[:2]
 
 
 def parse_ai_picks(text, today):
@@ -97,7 +128,7 @@ def parse_ai_picks(text, today):
             conv = int(r.get("conviction") or 0)
         except ValueError:
             continue
-        if (r.get("name") or C.AI_TRADER) == C.AI_TRADER:
+        if (r.get("name") or C.AI_TRADER) in C.ai_names():
             mine[key] = max(mine.get(key, 0), conv)
         else:
             others.add(key)
@@ -235,8 +266,11 @@ class Bot:
         self.spy_base = None               # SPY's last close before the contest began
         self.room = float("inf")           # how much more the lead lock lets the bot invest
         self.qnow = None      # set while the market is open, to age-check quotes
-        self.ai = {"for": "", "at": 0.0, "picks": {}, "day": None}  # the AI trader's picks for today
+        self.ai = {"for": "", "at": 0.0, "picks": {}, "day": None}  # Dionysus's picks for today
         self.ai_said = set()  # (day, symbol, direction, reason) already logged
+        self.fu = {"for": "", "at": 0.0, "list": []}  # bets Dionysus said may be sold to fund a pick
+        self.freed = {}       # day -> [(pick symbol, kind, what was sold)], at most AI_FREE_UP_MAX_PER_DAY
+        self.fu_said = set()  # (day, symbol, direction, reason) already logged for free-up checks
         self.state = {"peaks": {}, "synthetic": []}
         if STATE_PATH.exists():
             try:
@@ -695,11 +729,11 @@ class Bot:
         real_cash = float(acct.get("cash") or 0)
         return max(0.0, min(pct * equity, cash * 0.98, power, real_cash * 0.98, self.room))
 
-    # ---- the AI trader's suggestions ---------------------------------------------
+    # ---- Dionysus's suggestions ---------------------------------------------------
     def ai_picks(self, today):
-        """The AI trader's picks to try first today, {(symbol, kind): conviction}.
+        """Dionysus's picks to try first today, {(symbol, kind): conviction}.
         Read once a day; until they arrive, looked for again every 15 minutes.
-        Any failure means no picks: the bot then trades on its rules alone."""
+        Any failure means no picks: Midas then trades on its rules alone."""
         if not C.AI_PICKS:
             return {}
         a = self.ai
@@ -710,20 +744,94 @@ class Bot:
         except Exception as err:
             picks, day = {}, None
             if a["for"] != today:
-                log(f"AI picks unavailable ({err}); trading on the rules alone")
+                log(f"Dionysus's picks unavailable ({err}); trading on the rules alone")
         if picks and picks != a["picks"]:
-            log(f"AI picks from {day}, tried first if the rules agree: " + ", ".join(
+            log(f"Dionysus's picks from {day}, tried first if the rules agree: " + ", ".join(
                 f"{s} {k} ({c}/5)" for (s, k), c in sorted(picks.items(), key=lambda x: -x[1])))
         elif day is not None and a["for"] != today:
-            log(f"no usable AI picks for today (latest from {day or 'never'}); trading on the rules alone")
+            log(f"no usable picks from Dionysus for today (latest from {day or 'never'}); trading on the rules alone")
         self.ai = {"for": today, "at": time.time(), "picks": picks, "day": day}
         return picks
 
+    def free_up_list(self, today):
+        """The open bets Dionysus said may be sold to fund his picks today."""
+        f = self.fu
+        if f["for"] == today and (f["list"] or time.time() - f["at"] < C.AI_REFRESH_SECONDS):
+            return f["list"]
+        try:
+            names = parse_free_up(fetch_free_up(), today)
+        except Exception:
+            names = []
+        if names and names != f["list"]:
+            log("Dionysus says these may be sold to fund his picks: " + ", ".join(f"{s} {k}" for s, k in names))
+        self.fu = {"for": today, "at": time.time(), "list": names}
+        return names
+
     def ai_note(self, today, und, kind, why):
-        """Log, once a day, why an AI pick was not bought."""
+        """Log, once a day, why one of Dionysus's picks was not bought."""
         if (today, und, kind, why) not in self.ai_said:
             self.ai_said.add((today, und, kind, why))
-            log(f"AI pick {und} {kind} not bought: {why}")
+            log(f"Dionysus's pick {und} {kind} not bought: {why}")
+
+    def fu_note(self, today, und, kind, why):
+        """Log, once a day, why a bet Dionysus named was not sold to fund his pick."""
+        if (today, und, kind, why) not in self.fu_said:
+            self.fu_said.add((today, und, kind, why))
+            log(f"{und} {kind} not sold to fund Dionysus's pick: {why}")
+
+    def free_up(self, today, led, und, kind, conv, short):
+        """Sell part of a winning bet Dionysus named, just enough to cover `short`
+        dollars so his pick can be bought. Returns True once something sold."""
+        if not (C.AI_FREE_UP and conv >= C.AI_FREE_UP_MIN_CONVICTION):
+            return False
+        if len(self.freed.get(today, [])) >= C.AI_FREE_UP_MAX_PER_DAY:
+            return False
+        named = self.free_up_list(today.isoformat())
+        if not named:
+            return False
+        quotes = self.api.option_snapshots(list(led.pos))
+        for s, k in named:
+            p = next((p for p in led.pos.values() if p.tag == "core" and (p.und, p.kind) == (s, k)), None)
+            if p is None or p.und == und:
+                continue
+            q = read_quote(quotes.get(p.symbol), self.qnow)
+            if not quote_ok(q):
+                self.fu_note(today, s, k, "no believable quote")
+                continue
+            bid, _, mid = q
+            gain = mid / p.avg - 1
+            if gain < C.AI_FREE_UP_MIN_GAIN:
+                self.fu_note(today, s, k, f"up only {gain:+.0%}, under {C.AI_FREE_UP_MIN_GAIN:+.0%}")
+                continue
+            n = min(p.qty, math.ceil(short / (bid * 100)) + 1)   # one extra for slippage
+            if n * bid * 100 < short:
+                self.fu_note(today, s, k, "even all of it would not fund the pick")
+                continue
+            log(f"FREE UP for Dionysus's {und} {kind} ({conv}/5): selling {n} of {p.qty} {p.label()} "
+                f"({gain:+.0%}), a winner he named, to free about ${n * bid * 100:,.0f}")
+            self.freed.setdefault(today, []).append((und, kind, f"{n} of {p.label()}"))
+            return self.sell(p, n, "freed cash for Dionysus's pick", mid) > 0
+        return False
+
+    def money_gap(self, need, equity, cash):
+        """Dollars a sale must raise so a bet of `need` fits. Every limit a sale
+        raises counts (sleeve cash after the same-day reserve, the account's real
+        cash, buying power, lead-lock room), unclipped, with 5% to spare. None if
+        a sale cannot help (the bet is bigger than one slot allows)."""
+        if C.CORE_SLOT_PCT * equity < need:
+            return None
+        acct = self.api.account()
+        limits = [cash * 0.98, float(acct.get("options_buying_power") or 0),
+                  float(acct.get("cash") or 0) * 0.98, self.room]
+        if C.ODTE_ENABLED:
+            limits.append(cash - C.ODTE_RISK_PCT * equity)
+        return max(0.0, need - min(limits)) * 1.05
+
+    def core_money(self, equity, cash):
+        money = self.budget(C.CORE_SLOT_PCT, equity, cash)
+        if C.ODTE_ENABLED:  # always keep enough back for one same-day bet
+            money = min(money, max(0.0, cash - C.ODTE_RISK_PCT * equity))
+        return money
 
     def short_of(self, equity):
         """Why there is no money for a proper-size bet. The lead lock is named when
@@ -792,10 +900,16 @@ class Bot:
                 if conv:
                     self.ai_note(today, und, kind, "no option contract passed the spread and delta checks")
                 continue
-            money = self.budget(C.CORE_SLOT_PCT, equity, cash)
-            if C.ODTE_ENABLED:  # always keep enough back for one same-day bet
-                money = min(money, max(0.0, cash - C.ODTE_RISK_PCT * equity))
-            if money < C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * equity:
+            money = self.core_money(equity, cash)
+            need = C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * equity
+            gap = self.money_gap(need, equity, cash) if money < need and conv else None
+            if gap and self.free_up(today, led, und, kind, conv, gap) and not self.dry:
+                # Part of a winner Dionysus named was sold for this pick: look again.
+                led = self.build_ledger(now)
+                equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos))
+                self.lead_lock(view, equity, cash)
+                money, need = self.core_money(equity, cash), C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * equity
+            if money < need:
                 if conv:
                     self.ai_note(today, und, kind, self.short_of(equity))
                 break  # not enough cash (or lead-lock room) left for a proper-size bet
@@ -806,7 +920,7 @@ class Bot:
             note = (
                 f"{kind} on {und}, momentum {strength:+.1%}, delta {pick['delta']:+.2f}, "
                 f"{pick['dte']} DTE, ask ${pick['ask']:.2f}, about ${qty * pick['ask'] * 100:,.0f}"
-                + (f", AI pick {conv}/5" if conv else "")
+                + (f", Dionysus's pick {conv}/5" if conv else "")
             )
             meta = f"e_{regime}_{int(round(strength * 10000))}" + (f"_ai{conv}" if conv else "")
             if self.buy(und, pick["symbol"], qty, "core", note, meta):

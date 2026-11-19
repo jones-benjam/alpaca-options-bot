@@ -39,7 +39,7 @@ echo "Scheduled. It will run at 6:00 pm on weekdays and 6:30 am Tuesday to Satur
 echo "Run it now with:   $REPO/mac_mini/nightly.sh"
 echo "Its log is at:     $REPO/mac_mini/nightly.log"
 
-# Midas's live desk notes: on the hour and half hour, every day. The script checks
+# Dionysus's live desk notes: on the hour and half hour, every day. The script checks
 # whether the market is open and exits at once when it is not, so the clock and
 # time zone do not matter. To remove it:
 #   launchctl bootout gui/$(id -u)/com.optbot.desk; rm ~/Library/LaunchAgents/com.optbot.desk.plist
