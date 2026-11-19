@@ -837,6 +837,13 @@ def next_trading_day(day):
     return d.isoformat()
 
 
+def start_day(day, today=None):
+    """When a change decided now starts: the trading day after both the data's day
+    and today. The 6:30 am run still sees yesterday's data, and a change it makes
+    must not start that same morning: a person gets a night to veto it."""
+    return next_trading_day(max(day, today or dt.date.today().isoformat()))
+
+
 def settings_now(data, day):
     """Midas's settings as of `day`: config.py's values, then each of his changes
     in force (pending or active, started by `day`), in order."""
@@ -973,7 +980,7 @@ def tune(cfg):
         print("Ignored: the reason used figures that are not in the records.")
         return None
     entry = {"dial": dial, "from": old, "to": new, "why": why, "by": cfg["name"],
-             "proposed": day, "effective": next_trading_day(day), "status": "pending"}
+             "proposed": day, "effective": start_day(day), "status": "pending"}
     hist.append(entry)
     write_dials(data)
     log_setting_change(f"**{day}**: {cfg['name']} set {dial} from {old} to {new}, starting "
@@ -1255,6 +1262,9 @@ def selftest():
     assert change and (change["dial"], change["to"], change["status"]) == ("CORE_STOP", -0.45, "pending"), \
         "he may change one setting, inside its limits"
     assert change["effective"] > daily_rows()[-1]["date"], "a change starts on the next trading day"
+    assert change["effective"] > dt.date.today().isoformat(), "never the same day it was made"
+    assert start_day("2026-11-18", today="2026-11-19") == "2026-11-20", "the 6:30 am run's change waits a night"
+    assert start_day("2026-11-20", today="2026-11-20") == "2026-11-23", "a Friday change starts Monday"
     assert tune(cfg) is None, "only one change a day"
     assert "set CORE_STOP from -0.5 to -0.45" in LOG.read_text(), "every change is written in the strategy log"
     assert not C.tuning_step_ok("CORE_SLOTS", 10, 30) and not C.tuning_step_ok("CORE_STOP", -0.5, -0.9), "hard limits"
