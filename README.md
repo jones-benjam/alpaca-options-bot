@@ -38,7 +38,8 @@ two positions per direction).
 - While a 0DTE position is open the bot checks exits every 10 seconds instead
   of every 60, because same-day options can fall through a stop in seconds.
 
-**AI trader's picks (core engine only).**
+**Dionysus, the AI trader (core engine only).** Midas is the bot; Dionysus
+is the local AI model that suggests trades to it.
 - Each evening the trader persona on the Mac mini (`trader.py`, a local model)
   picks up to three of the day's signals with a conviction from 1 to 5, saved
   to `memory/shadow_picks.csv` on GitHub.
@@ -46,6 +47,9 @@ two positions per direction).
   its rules still approve them. It never buys anything the rules reject, and
   sizing, stops and guard rails are unchanged. Missing or stale picks mean the
   rules trade alone. `AI_PICKS=0` turns it off.
+- If cash or the lead lock blocks a rule-approved pick rated 4 or 5, Midas may
+  sell part of a winning bet Dionysus named (up 10% or more), just enough to
+  fund it, once a day (`AI_FREE_UP`).
 - Trades it chose carry `_ai<conviction>` in the order id. `memory/REVIEW.md`
   compares them with the rules' own trades. The persona reflects daily and, on
   Fridays, suggests rule changes in `memory/PROPOSALS.md` for a person to

@@ -270,7 +270,8 @@ JS = """
 
 EXIT_WORDS = {"stop": "stop loss", "trail": "trailing stop", "be": "back to break-even", "flip": "trend reversed",
               "time": "close to expiry", "earn": "before earnings", "half": "half sold at double",
-              "exp": "expiry day", "flat": "closed out", "writeoff": "closed outside the bot", "expired": "expired"}
+              "exp": "expiry day", "flat": "closed out", "writeoff": "closed outside the bot", "expired": "expired",
+              "fund": "sold to fund Dionysus's pick"}
 
 
 def tile(label, value, detail="", cls=""):
@@ -410,7 +411,8 @@ def write_live_page():
     config = (f'<script>window.OPTBOT_API = {json.dumps(LIVE_API)}; '
               'window.OPTBOT_FALLBACK = true;</script>')
     LIVE_OUT.write_text(live.PAGE.replace("<!--CONFIG-->", config, 1))
-    (LIVE_OUT.parent / "midas.html").write_text(live.MIDAS_PAGE.replace("<!--CONFIG-->", config, 1))
+    for name in ("dionysus.html", "midas.html"):   # midas.html: the old link
+        (LIVE_OUT.parent / name).write_text(live.DESK_PAGE.replace("<!--CONFIG-->", config, 1))
     (LIVE_OUT.parent / ".nojekyll").write_text("")   # serve the files as they are
 
 

@@ -34,6 +34,7 @@ EXIT_WORDS = {
     "flip": "trend flipped", "time": "time stop", "earn": "sold before earnings",
     "half": "took profit on half", "exp": "expiry-day exit", "flat": "flattened",
     "writeoff": "closed outside the bot", "expired": "expired", "other": "other",
+    "fund": "sold to fund Dionysus's pick",
     "": "not recorded",
 }
 ENGINES = {"core": "three-week bet", "odte": "same-day bet"}
@@ -248,13 +249,14 @@ def ai_section(trades, days=10):
     approve the next trading day, so 'not bought' usually means the signal
     faded, or slots, cash or contracts ran out (the bot's log says which)."""
     lines = ["## What the bot did with the AI trader's suggestions", "",
+             "Dionysus is the AI trader; Midas is the bot and its rules.", "",
              f"Picks of {C.AI_MIN_CONVICTION}/5 or more are tried first the next trading day, "
              "if the rules still approve them. " + ("" if C.AI_PICKS else "**Turned off (AI_PICKS=0).**"), ""]
     picks = []
     if PICKS.exists():
         with PICKS.open() as f:
             picks = [r for r in csv.DictReader(f) if r.get("symbol")
-                     and (r.get("name") or C.AI_TRADER) == C.AI_TRADER
+                     and (r.get("name") or C.AI_TRADER) in C.ai_names()
                      and int(r.get("conviction") or 0) >= C.AI_MIN_CONVICTION]
     if not picks:
         return lines + ["No suggestions yet.", ""]
@@ -390,7 +392,7 @@ def write_review(trades, led, bot, now, regime, is_open, scores=()):
                   "not what works.", ""]
         lines += breakdown("By kind of bet", closed, lambda t: t["engine"], ENGINES)
         lines += breakdown("By who chose it", closed, lambda t: t.get("source") or "rules",
-                           {"ai": "AI trader's pick, approved by the rules", "rules": "the rules alone"})
+                           {"ai": "Dionysus's pick, approved by the rules", "rules": "the rules alone"})
         lines += breakdown("By direction", closed, lambda t: t["direction"],
                            {"call": "calls (bets on a rise)", "put": "puts (bets on a fall)"})
         lines += breakdown("By the market's mood when the bet was placed", closed, lambda t: t["regime"],
