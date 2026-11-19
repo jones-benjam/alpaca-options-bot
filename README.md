@@ -8,6 +8,8 @@ is hard-coded.
 The bot's name is Midas. Its orders still carry the original `optbot-` tag,
 because the bot rebuilds its trade history from that tag every time it starts.
 
+**Where this is going: [ROADMAP.md](ROADMAP.md)** (Dionysus, the AI trader, earns control of Midas in stages).
+
 **Start here: [STRATEGY_LOG.md](STRATEGY_LOG.md).** It explains the strategy
 in plain English, lists every change to it with the date and reason, and has
 a row for each trading day's results. A scheduled job on GitHub adds the row

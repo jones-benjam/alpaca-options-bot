@@ -117,6 +117,45 @@ AI_FREE_UP_URL = _env(
 )
 
 
+# Dionysus may change Midas's settings. Each evening he may set ONE of the dials
+# below to a new value, taking effect the next trading day; a person can veto it
+# before then (mac_mini/veto.sh), and the Mac mini undoes a change automatically
+# if the three-week trades opened after it clearly lose. Midas re-checks every
+# value itself: it must lie inside the hard limits here and move at most one step
+# from the value before it, and at most one change may start on a given day.
+# Anything else in the file is ignored. Only these dials: the kill switch, the
+# lead lock, the end date, the same-day engine and the safety checks are not on
+# the list. AI_TUNING=0 turns this off and restores every value above.
+AI_TUNING = _env("AI_TUNING", True, bool)
+AI_TUNING_URL = _env(
+    "AI_TUNING_URL",
+    "https://raw.githubusercontent.com/jones-benjam/alpaca-options-bot/main/memory/dials.json",
+)
+# dial: (lowest, highest, largest step; None means 25% of the value before it)
+TUNING_LIMITS = {
+    "CORE_MIN_STRENGTH": (0.01, 0.06, None),
+    "CORE_DELTA": (0.20, 0.50, None),
+    "CORE_DTE_TARGET": (14, 30, 4),
+    "CORE_STOP": (-0.65, -0.35, None),
+    "CORE_TP1": (1.00, 3.00, None),
+    "CORE_TRAIL_FROM": (0.50, 2.00, None),
+    "CORE_TRAIL": (0.25, 0.55, None),
+    "CORE_SLOTS": (6, 12, 2),
+    "CORE_SLOT_PCT": (0.10, 0.25, None),
+    "AI_MIN_CONVICTION": (3, 5, 1),
+}
+TUNING_MIN_CLOSED_TRADES = 8      # no change until the bot has closed this many trades
+TUNING_COOLDOWN_DAYS = 5          # a dial changed or undone is left alone this many days
+
+
+def tuning_step_ok(dial, old, new):
+    """Is `new` inside the hard limits and no more than one step from `old`?"""
+    lo, hi, step = TUNING_LIMITS[dial]
+    if not lo <= new <= hi or new == old:
+        return False
+    return abs(new - old) <= (step if step is not None else abs(old) * 0.25) + 1e-9
+
+
 def ai_names():
     """Every name Dionysus's own picks may carry (his current and earlier names)."""
     return {AI_TRADER} | {n.strip() for n in AI_TRADER_ALIASES.replace(",", " ").split() if n.strip()}

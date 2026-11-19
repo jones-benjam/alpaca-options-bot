@@ -45,6 +45,7 @@ LOG_PATH = Path(__file__).with_name("STRATEGY_LOG.md")
 LEGACY_PATH = Path(__file__).with_name("memory") / "legacy_tags.json"
 AI_PICKS_PATH = Path(__file__).with_name("memory") / "shadow_picks.csv"
 AI_FREE_UP_PATH = Path(__file__).with_name("memory") / "free_up.csv"
+AI_DIALS_PATH = Path(__file__).with_name("memory") / "dials.json"
 # Why an order was placed is written into its id, so the record lives at the
 # broker and survives restarts. Entries: e_<regime>_<signal in 1/100 of a %>,
 # plus _ai<conviction> when Dionysus (the AI trader) suggested it.
@@ -83,6 +84,45 @@ def fetch_ai_picks():
 
 def fetch_free_up():
     return _ai_file(AI_FREE_UP_PATH, C.AI_FREE_UP_URL)
+
+
+def fetch_dials():
+    return _ai_file(AI_DIALS_PATH, C.AI_TUNING_URL)
+
+
+def parse_dials(text, today, base):
+    """The settings Dionysus has set for `today`, as ({dial: value}, [notes]).
+
+    Midas trusts nothing in the file: a change counts only if its dial is on the
+    list, its start date has come, it is still pending or active (not vetoed or
+    undone), and its value is inside the hard limits and one step at most from
+    the value before it (`base` for the first change to a dial). If more than one
+    change would start today, none of today's do."""
+    data = json.loads(text) if text.strip() else {}
+    notes, live = [], []
+    for i, h in enumerate(data.get("history") or []):
+        if (isinstance(h, dict) and h.get("dial") in C.TUNING_LIMITS and h.get("status") in ("pending", "active")
+                and str(h.get("effective", "9999")) <= today):
+            live.append((str(h["effective"]), i, h))
+    starting = [h for e, _, h in live if e == today]
+    if len(starting) > 1:
+        notes.append(f"{len(starting)} changes would start today; only one may, so none of them do")
+        live = [x for x in live if x[0] != today]
+    values = {}
+    for _, _, h in sorted(live):
+        dial = h["dial"]
+        prev = values.get(dial, base[dial])
+        try:
+            new = float(h.get("to"))
+        except (TypeError, ValueError):
+            notes.append(f"{dial}: not a number")
+            continue
+        new = int(round(new)) if isinstance(base[dial], int) else round(new, 4)
+        if C.tuning_step_ok(dial, prev, new):
+            values[dial] = new
+        else:
+            notes.append(f"{dial} {prev} to {new}: outside the limits or too big a step, ignored")
+    return values, notes
 
 
 def parse_free_up(text, today):
@@ -271,6 +311,9 @@ class Bot:
         self.fu = {"for": "", "at": 0.0, "list": []}  # bets Dionysus said may be sold to fund a pick
         self.freed = {}       # day -> [(pick symbol, kind, what was sold)], at most AI_FREE_UP_MAX_PER_DAY
         self.fu_said = set()  # (day, symbol, direction, reason) already logged for free-up checks
+        self.dials_for = ""   # the day Dionysus's settings were last applied
+        self.dials = {}       # dial -> value Dionysus set, in force today
+        self.dial_orig = {}   # dial -> config.py's value, to restore when his change ends
         self.state = {"peaks": {}, "synthetic": []}
         if STATE_PATH.exists():
             try:
@@ -753,6 +796,33 @@ class Bot:
         self.ai = {"for": today, "at": time.time(), "picks": picks, "day": day}
         return picks
 
+    def apply_dials(self, today):
+        """Once a day, before trading: put Dionysus's checked settings in force,
+        and restore config.py's value for any dial he no longer sets."""
+        if self.dials_for == today:
+            return
+        self.dials_for = today
+        base = {d: self.dial_orig.get(d, getattr(C, d)) for d in C.TUNING_LIMITS}
+        values, notes = {}, []
+        if C.AI_TUNING:
+            try:
+                values, notes = parse_dials(fetch_dials(), today, base)
+            except Exception as err:
+                log(f"Dionysus's settings unavailable ({err}); keeping today's as they are")
+                return
+        for note in notes:
+            log(f"Dionysus's settings: {note}")
+        for d in C.TUNING_LIMITS:
+            if d in values:
+                self.dial_orig.setdefault(d, getattr(C, d))
+                setattr(C, d, values[d])
+            elif d in self.dial_orig:
+                setattr(C, d, self.dial_orig.pop(d))
+        if values or values != self.dials:
+            log("settings in force today: " + (", ".join(f"{d} {base[d]} -> {v} (set by Dionysus)"
+                                                        for d, v in values.items()) or "all as in config.py"))
+        self.dials = values
+
     def free_up_list(self, today):
         """The open bets Dionysus said may be sold to fund his picks today."""
         f = self.fu
@@ -991,6 +1061,7 @@ class Bot:
         self.qnow = now if market_open else None
         self.to_close = 24 * 60.0 if to_close is None else to_close
         today, hhmm = now.date().isoformat(), now.strftime("%H:%M")
+        self.apply_dials(today)   # Dionysus's settings change only between trading days
         if not self.dry:
             self.cancel_stale()
         led = self.build_ledger(now)

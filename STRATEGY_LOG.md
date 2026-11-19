@@ -458,6 +458,29 @@ trending, not on skill.
 - **Effect on trading:** Can sell part of one winning bet a day, to buy a
   rule-approved pick rated 4 or 5.
 
+### Thu Nov 19, 2026, 1:00 am: Dionysus may change Midas's settings
+- **What:** Each evening Dionysus may change ONE of Midas's settings for the
+  next trading day: the lowest momentum for a new bet, how far out of the
+  money, days to expiry, the stop loss, the take-profit and trailing levels,
+  the number of slots, the bet size, or the lowest rating of his that Midas
+  acts on.
+- **Limits:** Each dial has a hard floor and ceiling and a largest step
+  (`TUNING_LIMITS` in config.py). Midas re-checks every value itself and
+  applies settings only between trading days. At most one change starts on
+  a given day, a dial rests 5 days after a change, and nothing changes before
+  the bot has closed 8 trades. The kill switch, the lead lock, the end date,
+  the same-day engine and the safety checks are not on his list.
+- **Oversight:** A change shows on his page the evening before it starts.
+  `mac_mini/veto.sh DIAL` cancels it. The Mac mini undoes it automatically if
+  three or more three-week trades opened after it average a loss at least 10
+  points worse than before. `AI_TUNING=0` turns this off and restores every
+  value in config.py. Each change is logged in its own section below.
+- **Why:** This is the first step toward the long-term goal in ROADMAP.md:
+  let Dionysus find and explain a better strategy, and take more control as
+  he earns it.
+- **Effect on trading:** Up to one setting can differ from config.py each
+  day, always inside the limits.
+
 ## Daily record
 
 How to read the table:

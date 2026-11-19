@@ -224,7 +224,7 @@ details[open] summary { margin-bottom:10px; }
       <div class="step"><div class="when">1 · EACH EVENING</div><div class="what"><i>Dionysus</i> studies the day and suggests up to 3 trades, each rated 1 to 5.</div></div>
       <div class="step"><div class="when">2 · 9:45 AM ET</div><div class="what"><b>Midas</b> checks each rated 3 or more against its rules. Approved ones go first.</div></div>
       <div class="step"><div class="when">3 · IF CASH IS SHORT</div><div class="what">For a 4 or 5, Midas may sell part of a winning bet Dionysus named, just enough to pay for it.</div></div>
-      <div class="step"><div class="when">4 · EACH NIGHT</div><div class="what"><i>Dionysus</i> reads how it went and writes lessons he uses next time.</div></div>
+      <div class="step"><div class="when">4 · EACH NIGHT</div><div class="what"><i>Dionysus</i> reads how it went, writes lessons, and may change one of Midas's settings for the next day.</div></div>
     </div></div>
   </section>
 
@@ -246,7 +246,7 @@ details[open] summary { margin-bottom:10px; }
   <div class="row r2">
     <section class="panel" id="record"><div class="ph">HIS RECORD VS MIDAS'S RULES <span class="sub">is he adding anything?</span></div>
       <div class="pb" id="record-body"><p class="empty">Loading…</p></div></section>
-    <section class="panel" id="rules"><div class="ph">RULE CHANGES HE SUGGESTS <span class="sub">a person approves or declines each</span></div>
+    <section class="panel" id="rules"><div class="ph">MIDAS'S SETTINGS HE HAS CHANGED <span class="sub">one at a time, inside hard limits</span></div>
       <div class="pb" id="rules-body"><p class="empty">Loading…</p></div></section>
   </div>
 
@@ -395,14 +395,35 @@ details[open] summary { margin-bottom:10px; }
       "Bottom line: real three-week trades, split by who chose them. Midas's side includes everything since Nov 9; Dionysus's picks started counting on Nov 19, so give it a couple of weeks before reading much into it.");
   }
 
+  var DIAL_WORDS = { CORE_MIN_STRENGTH: "lowest momentum for a new bet", CORE_DELTA: "how far out of the money it buys",
+    CORE_DTE_TARGET: "days to expiry for new bets", CORE_STOP: "stop loss", CORE_TP1: "sell half once up this much",
+    CORE_TRAIL_FROM: "start the trailing stop once up this much", CORE_TRAIL: "trailing stop distance",
+    CORE_SLOTS: "most three-week bets at once", CORE_SLOT_PCT: "size of each bet (share of the sleeve)",
+    AI_MIN_CONVICTION: "lowest rating of his that Midas acts on" };
   function renderRules() {
-    var box = $("rules-body"), props = (desk && desk.proposals) || [];
-    if (!props.length) { empty(box, "None yet. On Fridays he may suggest up to three small changes to Midas's settings. Nothing changes unless a person approves; the risk limits are off limits to him."); return; }
-    var ul = el("ul", "plain", clear(box));
-    props.slice().reverse().forEach(function (p) { var li = el("li", "", ul);
-      el("span", "st " + (p.status === "approved" ? "bought" : p.status === "declined" ? "no" : "wait"), li,
-        p.status === "waiting for a human" ? "WAITING FOR YOU" : p.status.toUpperCase());
-      li.appendChild(document.createTextNode(" " + p.text)); });
+    var box = clear($("rules-body")), hist = ((desk && desk.tuning) || {}).history || [], live = snap && snap.ai;
+    if (live && live.tuning === false) el("p", "empty", box, "Switched off: Midas is using its own settings (AI_TUNING=0).");
+    var now = (live && live.settings) || [];
+    if (now.length) {
+      el("h3", "", box, "IN FORCE TODAY");
+      var ul0 = el("ul", "plain", box);
+      now.forEach(function (x) { el("li", "", ul0, (DIAL_WORDS[x.dial] || x.dial) + ": " + x.value + " (Midas's own setting: " + x.was + ")"); });
+    }
+    if (!hist.length) {
+      el("p", "empty", box, "No changes yet. Each evening he may change one of Midas's settings for the next trading day, " +
+        "inside hard limits that Midas checks itself. The kill switch, the lead lock and the end date are off limits to him.");
+      return;
+    }
+    el("h3", "", box, "HIS CHANGES, NEWEST FIRST");
+    var ul = el("ul", "plain", box);
+    hist.slice().reverse().forEach(function (h) {
+      var li = el("li", "", ul), st = h.status, word = { pending: "STARTS " + h.effective, active: "IN FORCE",
+        undone: "UNDONE", vetoed: "VETOED" }[st] || String(st).toUpperCase();
+      el("span", "st " + (st === "active" ? "bought" : st === "pending" ? "wait" : "no"), li, word);
+      li.appendChild(document.createTextNode(" " + (DIAL_WORDS[h.dial] || h.dial) + ": " + h.from + " → " + h.to + ". " + (h.why || "") +
+        (st === "undone" && h.undone_why ? " Undone automatically: " + h.undone_why + "." : "") +
+        (st === "pending" ? " To veto before it starts: mac_mini/veto.sh " + h.dial : "")));
+    });
   }
 
   function renderJournal() {
