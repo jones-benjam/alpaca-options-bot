@@ -219,6 +219,33 @@ def test_lifecycle():
     C.KILL_FLOOR_PCT = floor
 
 
+def test_late_trail():
+    """In a bet's last days the trailing stop tightens from 40% to 25%."""
+    today, exp = dt.date(2026, 11, 19), dt.date(2026, 12, 11)
+    end = C.END_DATE
+    C.END_DATE = ""
+    assert bot.must_sell_by(exp) == dt.date(2026, 12, 7) and bot.core_trail(exp, today) == C.CORE_TRAIL
+    assert bot.core_trail(dt.date(2026, 11, 27), today) == C.CORE_TRAIL_LATE, "time stop on Nov 23 is close"
+    C.END_DATE = "2026-12-02"
+    assert bot.must_sell_by(exp) == dt.date(2026, 12, 2), "the end date comes first"
+    assert bot.core_trail(exp, dt.date(2026, 11, 26)) == C.CORE_TRAIL_LATE, "the end date is close"
+    C.END_DATE = ""
+    for late in (False, True):
+        b, f, step = harness(trend=1)
+        led, _ = step("bull market: expect core calls")
+        if late:  # the end date is now 5 days off, so every core bet is in its last days
+            C.END_DATE = (f.now.date() + dt.timedelta(days=5)).isoformat()
+        step("TSLA option +150%", TSLA=2.5)
+        led, _ = step("TSLA 30% off its best for two passes", ticks=2, TSLA=1.75)
+        if late:
+            assert "TSLA" not in unds(led), "late in a bet's life a 30% drop from its best sells it"
+        else:
+            assert "TSLA" in unds(led), "normally a 30% drop from its best is inside the 40% trail"
+        C.END_DATE = ""
+    C.END_DATE = end
+    print("\n--- trailing stop: 40% normally, 25% in a bet's last days ---")
+
+
 def test_odte_follows_regime():
     b, f, step = harness(trend=-1)  # falling market: the bot should read "bear"
 
@@ -591,12 +618,66 @@ def test_live_dashboard():
     print("\n--- live dashboard: snapshot published, page and JSON served ---")
 
 
+def test_archive():
+    """The daily market archive: once a day, near the close, or late if missed."""
+    import archive
+
+    class Api:
+        def __init__(self):
+            self.clock_now = {"is_open": True, "timestamp": "2026-11-19T15:00:00-05:00",
+                              "next_close": "2026-11-19T16:00:00-05:00"}
+
+        def clock(self):
+            return self.clock_now
+
+        def stock_snapshots(self, symbols):
+            return {s: {"latestTrade": {"p": 100.0}, "dailyBar": {"t": "2026-11-19T05:00:00Z", "c": 100.0},
+                        "prevDailyBar": {"c": 99.0}} for s in symbols}
+
+        def option_chain(self, und, **f):
+            cp = "C" if f["type"] == "call" else "P"
+            return {f"{und}261204{cp}00100000": {"latestQuote": {"bp": 2.0, "ap": 2.2}, "impliedVolatility": 0.5,
+                                                  "greeks": {"delta": 0.5 if cp == "C" else -0.5}}}
+
+    real = archive.ARCHIVE, archive.midas_view
+    archive.ARCHIVE = Path(tempfile.mkdtemp())
+    archive.midas_view = lambda: {"regime": "bear"}
+    api = Api()
+    real_now = archive.dt.datetime
+    class Now(real_now):
+        @classmethod
+        def now(cls, tz=None):
+            return real_now(2026, 11, 19, 20, 0, tzinfo=dt.timezone.utc)  # 3:00 pm ET
+    archive.dt.datetime = Now
+    try:
+        assert archive.run("near", api) is None, "an hour before the close: not yet"
+        assert archive.run("late", api) is None, "the late run never saves while the market is open"
+        Now.now = classmethod(lambda cls, tz=None: real_now(2026, 11, 19, 20, 30, tzinfo=dt.timezone.utc))
+        assert archive.run("near", api), "half an hour before the close: saved"
+        assert archive.run("near", api) is None, "once a day"
+        day = archive.load("2026-11-19")
+        assert len(day["chains"]["SPY"]["rows"]) == 2 and day["chains"]["SPY"]["rows"][0]["iv"] == 0.5
+        assert day["settings"]["CORE_TRAIL"] == C.CORE_TRAIL and day["midas"]["regime"] == "bear"
+        assert not day["late"] and day["minutes_to_close"] == 30
+        archive.path_for("2026-11-19").unlink()
+        api.clock_now = {"is_open": False, "timestamp": "2026-11-19T20:00:00-05:00",
+                         "next_close": "2026-11-20T16:00:00-05:00"}
+        assert archive.run("near", api) is None, "the desk run does nothing after the close"
+        assert archive.run("late", api) and archive.load("2026-11-19")["late"], "the nightly run fills a missed day"
+    finally:
+        archive.ARCHIVE, archive.midas_view = real
+        archive.dt.datetime = real_now
+    print("\n--- market archive: near the close once a day, or late if missed ---")
+
+
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
     bot.fetch_ai_picks = bot.fetch_free_up = bot.fetch_dials = lambda: ""  # no network: nothing from Dionysus unless a test supplies it
     test_default_sizing()
     test_lead_lock()
     test_live_dashboard()
+    test_late_trail()
+    test_archive()
     # The scenarios below use the original, smaller setup and exits to stay short.
     C.SLEEVE_START, C.CORE_SLOTS, C.CORE_SLOT_PCT = 25_000.0, 3, 0.28
     C.CORE_TP1, C.CORE_TRAIL, C.CORE_TRAIL_FROM = 1.0, 0.30, 1.0

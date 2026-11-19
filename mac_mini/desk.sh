@@ -5,6 +5,8 @@
 #   1. Read the bot's live data from the dashboard (no keys needed).
 #   2. Have him write a two-to-four sentence note, number-checked like the diary.
 #   3. Save memory/desk.json to GitHub; the /midas page shows it within minutes.
+#   4. In the last run before the close, also save the day's market archive
+#      (archive.py: option chains and Midas's view, for the strategy lab).
 #
 # The notes are commentary only: nothing here changes what the bot trades.
 cd "$(dirname "$0")/.."
@@ -14,14 +16,23 @@ LOCK="${TMPDIR:-/tmp}/optbot-desk.lock"
 mkdir "$LOCK" 2>/dev/null || exit 0      # the previous note is still being written
 trap 'rmdir "$LOCK"' EXIT
 
+if [ -f .env ]; then                     # only near the close; otherwise it does nothing
+  python3 archive.py > "${TMPDIR:-/tmp}/optbot-archive.out" 2>&1 || echo "archive failed" >> "${TMPDIR:-/tmp}/optbot-archive.out"
+  if [ -s "${TMPDIR:-/tmp}/optbot-archive.out" ]; then
+    echo "=== $(date '+%Y-%m-%d %H:%M:%S') market archive ==="
+    cat "${TMPDIR:-/tmp}/optbot-archive.out"
+  fi
+fi
+
 python3 trader.py desk > "${TMPDIR:-/tmp}/optbot-desk.out" 2>&1
 code=$?
-if [ $code = 2 ]; then exit 0; fi        # market closed or bot unreachable: nothing to say
-echo "=== $(date '+%Y-%m-%d %H:%M:%S') desk note ==="
-cat "${TMPDIR:-/tmp}/optbot-desk.out"
-[ $code = 0 ] || exit $code
+if [ $code != 2 ]; then                  # 2: market closed or bot unreachable, nothing to say
+  echo "=== $(date '+%Y-%m-%d %H:%M:%S') desk note ==="
+  cat "${TMPDIR:-/tmp}/optbot-desk.out"
+  [ $code = 0 ] || exit $code
+fi
 
-git add memory/desk.json
+git add memory/desk.json archive
 git diff --cached --quiet && exit 0
 git commit -q -m "Dionysus desk note, $(date '+%Y-%m-%d %H:%M')"
 if ! git pull --rebase --autostash -q origin main; then

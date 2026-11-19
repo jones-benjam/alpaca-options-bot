@@ -289,6 +289,19 @@ class Ledger:
         self.events = []      # every fill, with the reason it was placed (the trade memory)
 
 
+def must_sell_by(expiry):
+    """The last day the bot will hold a three-week bet: its time stop or END_DATE."""
+    last = expiry - dt.timedelta(days=C.CORE_MIN_DTE_EXIT)
+    return min(last, dt.date.fromisoformat(C.END_DATE)) if C.END_DATE else last
+
+
+def core_trail(expiry, today):
+    """The trailing stop for a three-week bet: tighter in its last few days."""
+    if (must_sell_by(expiry) - today).days <= C.CORE_LATE_DAYS:
+        return min(C.CORE_TRAIL, C.CORE_TRAIL_LATE)
+    return C.CORE_TRAIL
+
+
 class Bot:
     def __init__(self, dry):
         self.api = Alpaca()
@@ -687,6 +700,8 @@ class Bot:
                 (C.ODTE_STOP, C.ODTE_TP1, C.ODTE_TRAIL) if odte else (C.CORE_STOP, C.CORE_TP1, C.CORE_TRAIL)
             )
             dte = (p.expiry - today).days
+            if not odte:
+                trail = core_trail(p.expiry, today)
             reason, qty = None, p.qty
             sane = quote_ok(q)  # price rules only act on a believable quote
             if flatten:

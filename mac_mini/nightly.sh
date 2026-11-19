@@ -16,6 +16,7 @@ git pull --rebase --autostash -q origin main
 if [ -f .env ]; then
   python3 bot.py journal || echo "journal failed; carrying on"
   python3 bot.py memory  || echo "memory refresh failed; carrying on"
+  python3 archive.py --late || echo "market archive failed; carrying on"   # only if the desk run missed the day
 fi
 
 if python3 trader.py check; then
@@ -26,7 +27,7 @@ fi
 
 python3 dashboard.py || echo "dashboard failed; carrying on"
 
-git add STRATEGY_LOG.md memory docs
+git add STRATEGY_LOG.md memory docs archive
 if git diff --cached --quiet; then
   echo "Nothing new to save."
   exit 0
