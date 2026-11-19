@@ -93,7 +93,8 @@ DIALS = {
     "CORE_STOP": "stop loss as a share of what was paid (-0.5 means sell at -50%)",
     "CORE_TP1": "sell half once up this much (2.0 means +200%)",
     "CORE_TRAIL_FROM": "start the trailing stop once up this much (1.0 means +100%)",
-    "CORE_TRAIL": "trailing stop: sell if it falls this far from its best (0.4 means 40%)",
+    "CORE_TRAIL": "trailing stop: sell if it falls this far from its best (0.4 means 40%; "
+                  "Midas uses 25% or less in a bet's last 6 days)",
     "CORE_SLOTS": "most three-week bets held at once",
     "CORE_SLOT_PCT": "size of each three-week bet, as a share of the sleeve",
     "AI_MIN_CONVICTION": "your lowest conviction the bot will act on (1 to 5)",

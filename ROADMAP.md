@@ -36,6 +36,11 @@ evidence, not by the calendar. At every stage:
 
 ## Stage 2: the strategy lab (next)
 
+- **Started 2026-11-19: the daily market archive** (`archive/`, see its
+  README). Option chains with quotes, implied volatility and greeks, plus
+  Midas's view of each day, saved before the close. The lab tests contract
+  choice and exits against real option prices, not only stock prices.
+
 - Dionysus writes **strategy specs**: structured descriptions built from a
   menu of building blocks, with a plain-English explanation of the idea. The
   blocks include signal (momentum windows, trend filters, breakouts, mean

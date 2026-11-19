@@ -48,6 +48,10 @@ CORE_TP1 = 2.00             # at +200% sell half (let winners run) ...
 CORE_TRAIL_FROM = 1.00      # ... and once a bet has been up 100% ...
 CORE_TRAIL = 0.40           # ... exit if it falls 40% from its best price
 CORE_MIN_DTE_EXIT = 4       # never hold into the final days
+# In a bet's last days (the time stop above, or END_DATE, is this close) the
+# trailing stop tightens: a big winner gives back less while the clock runs out.
+CORE_LATE_DAYS = 6          # calendar days before the bot must sell
+CORE_TRAIL_LATE = _env("CORE_TRAIL_LATE", 0.25, float)
 CORE_MAX_SPREAD = 0.15      # skip contracts with spread > 15% of mid
 CORE_ENTRY_FROM = "09:45"   # Eastern time
 CORE_ENTRY_TO = "15:45"

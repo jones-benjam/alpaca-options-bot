@@ -498,6 +498,25 @@ trending, not on skill.
 - **Effect on trading:** Trading rules are unchanged. Picks that Midas can
   act on are more likely, and fewer settings changes get through.
 
+### Thu Nov 19, 2026, 3:45 pm: Tighter trailing stop in a bet's last days, and a daily market archive
+- **What:** A three-week bet's trailing stop tightens from 40% to 25% from its
+  best price once the bot must sell it within 6 days. That deadline is its
+  time stop (4 days before expiry) or the contest's end on Dec 2, whichever
+  comes first. Separately, the Mac mini now saves a daily market archive
+  about half an hour before the close: option chains with quotes, implied
+  volatility and greeks for every stock Midas watches, plus Midas's own view
+  of the day (see `archive/README.md`).
+- **Why:** A big winner close to its forced sale has little time left to
+  recover, so giving back 40% of its best price is costly. At its best of
+  +230%, the COIN put would sell at about +98% with a 40% trailing stop and
+  about +148% with a 25% one. From about Nov 26 every open bet is within 6
+  days of the Dec 2 close-out, so gains are protected as the contest ends.
+  The archive starts the record the strategy lab needs. Quotes and greeks for
+  whole chains cannot be downloaded again later.
+- **Effect on trading:** Exits for bets in their last days come sooner. The
+  archive only reads market data. `CORE_TRAIL_LATE` (0.25) can be changed as
+  a Fly secret.
+
 ## Changes Dionysus made to Midas's settings
 
 Written automatically. Dionysus may change one setting a day, inside hard limits that Midas checks itself (see TUNING_LIMITS in config.py). A change starts the next trading day; a person can veto it before then with `mac_mini/veto.sh DIAL`, and it is undone automatically if the three-week trades opened after it clearly lose.
