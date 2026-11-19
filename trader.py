@@ -8,7 +8,9 @@ rules (bot.py, on Fly.io); Dionysus is the AI trader (this file, on the Mac mini
     python3 trader.py diary      # write today's diary entry in memory/DIARY.md
     python3 trader.py picks      # record the trades HE would make (never placed)
     python3 trader.py reflect    # add to his long-term notes (run daily)
-    python3 trader.py propose    # suggest rule changes for a human to approve (run Fridays)
+    python3 trader.py tune       # change ONE of Midas's settings, within hard limits (nightly)
+    python3 trader.py veto DIAL  # a person cancels his latest change to DIAL (mac_mini/veto.sh)
+    python3 trader.py propose    # suggest wider rule changes for a human to approve
     python3 trader.py nightly    # diary + picks + notes, and proposals on Fridays
     python3 trader.py desk       # a live desk note from the bot's live data (market hours)
     python3 trader.py chat       # talk to him about the bot's trades
@@ -80,6 +82,7 @@ PICK_FIELDS = ["date", "name", "symbol", "direction", "conviction", "why"]
 FREE_UP = MEMORY / "free_up.csv"     # open bets he says Midas may sell to fund his picks
 FREE_UP_FIELDS = ["date", "name", "symbol", "direction", "why"]
 SCORES = MEMORY / "shadow_scores.csv"
+DIALS_FILE = MEMORY / "dials.json"     # the settings changes he makes to Midas (see tune)
 PROPOSALS = MEMORY / "PROPOSALS.md"
 # The rule settings he may suggest changing. The kill switch, the lead lock,
 # the end date and the safety checks are deliberately not on this list.
@@ -739,6 +742,7 @@ def write_desk(cfg, note=None, pick_status=None):
         "free_up": [{k: r.get(k, "") for k in ("symbol", "direction", "why")} for r in read_csv(FREE_UP)
                     if r["date"] == last and r.get("name") in mine_names],
         "stats": desk_stats(mine_names),
+        "tuning": {"history": read_dials()["history"][-10:]},
         "scoreboard": {"who_chose": md_table(REVIEW, "By who chose it"),
                        "picks_vs_rules": md_table(REVIEW, "The trader's own picks, scored against the rules")},
     }
@@ -794,6 +798,204 @@ def desk(cfg):
     print(f"{cfg['name']} at the desk, {note['at_text']}:\n{text}")
     return note
 
+# ---- changing Midas's settings ------------------------------------------------------
+TUNE_SCHEMA = {
+    "type": "object",
+    "properties": {
+        "change": {
+            "type": "object",
+            "properties": {
+                "dial": {"type": "string", "enum": sorted(DIALS)},
+                "value": {"type": "number"},
+                "why": {"type": "string"},
+            },
+            "required": ["dial", "value", "why"],
+        },
+        "keep_why": {"type": "string"},
+    },
+}
+
+
+def read_dials():
+    try:
+        data = json.loads(DIALS_FILE.read_text()) if DIALS_FILE.exists() else {}
+    except ValueError:
+        data = {}
+    data.setdefault("history", [])
+    return data
+
+
+def write_dials(data):
+    data["updated"] = dt.datetime.now(dt.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+    DIALS_FILE.write_text(json.dumps(data, indent=1) + "\n")
+
+
+def next_trading_day(day):
+    d = dt.date.fromisoformat(day) + dt.timedelta(days=1)
+    while d.weekday() >= 5:
+        d += dt.timedelta(days=1)
+    return d.isoformat()
+
+
+def settings_now(data, day):
+    """Midas's settings as of `day`: config.py's values, then each of his changes
+    in force (pending or active, started by `day`), in order."""
+    import config as C
+
+    values = {d: getattr(C, d) for d in C.TUNING_LIMITS}
+    for h in sorted((h for h in data["history"] if h.get("status") in ("pending", "active")
+                     and h.get("effective", "9999") <= day), key=lambda h: h["effective"]):
+        values[h["dial"]] = h["to"]
+    return values
+
+
+def log_setting_change(text):
+    """Add a line to STRATEGY_LOG.md under 'Changes Dionysus made to Midas's settings',
+    just above the daily record. Nothing else in the file is touched."""
+    if not LOG.exists():
+        return
+    body, head = LOG.read_text(), "## Changes Dionysus made to Midas's settings"
+    if head not in body:
+        intro = (f"{head}\n\nWritten automatically. Dionysus may change one setting a day, inside hard "
+                 "limits that Midas checks itself (see TUNING_LIMITS in config.py). A change starts the "
+                 "next trading day; a person can veto it before then with `mac_mini/veto.sh DIAL`, and it "
+                 "is undone automatically if the three-week trades opened after it clearly lose.\n\n")
+        body = body.replace("## Daily record", intro + "## Daily record", 1)
+    i = body.index("## Daily record")
+    before = body[:i].rstrip("\n")
+    gap = "\n" if before.splitlines()[-1].startswith("- ") else "\n\n"
+    LOG.write_text(before + gap + f"- {text}\n\n" + body[i:])
+
+
+def review_changes(day):
+    """Start pending changes whose day has come, and undo any that clearly hurt:
+    three or more three-week trades opened since it began, averaging a loss and
+    at least 10 points worse than the trades before it. Rule-based, not the model."""
+    data, changed = read_dials(), []
+    closed = [t for t in read_csv(TRADES) if t.get("engine") == "core" and t.get("status") == "closed"
+              and t.get("profit_pct") not in ("", None)]
+    for h in data["history"]:
+        if h.get("status") == "pending" and h.get("effective", "9999") <= day:
+            h["status"] = "active"
+            changed.append(h)
+        if h.get("status") != "active":
+            continue
+        after = [float(t["profit_pct"]) for t in closed if t["opened"][:10] >= h["effective"]]
+        before = [float(t["profit_pct"]) for t in closed if t["opened"][:10] < h["effective"]]
+        if len(after) >= 3:
+            a, b = sum(after) / len(after), (sum(before) / len(before) if before else 0.0)
+            if a < 0 and a < b - 10:
+                h.update(status="undone", undone_on=day,
+                         undone_why=f"the {len(after)} three-week trades opened since it began averaged {a:+.0f}%, "
+                                    f"against {b:+.0f}% before")
+                log_setting_change(f"**{day}**: undid {h['dial']} {h['from']} to {h['to']} automatically: "
+                                   f"{h['undone_why']}.")
+                changed.append(h)
+                print(f"Undid {h['dial']} {h['from']} -> {h['to']}: {h['undone_why']}")
+    if changed:
+        write_dials(data)
+    return changed
+
+
+def tune(cfg):
+    """Let him change ONE of Midas's settings, starting the next trading day. Every
+    limit is checked here and again by Midas; anything outside them is dropped."""
+    import config as C
+
+    day, label, _ = facts()
+    review_changes(day)
+    data = read_dials()
+    hist = data["history"]
+    if any(h.get("proposed") == day for h in hist):
+        print(f"{cfg['name']} already changed a setting for {day}.")
+        return None
+    if any(h.get("status") == "pending" for h in hist):
+        print("A change is still waiting to start; one at a time.")
+        return None
+    closed = sum(t.get("status") == "closed" for t in read_csv(TRADES))
+    if closed < C.TUNING_MIN_CLOSED_TRADES:
+        print(f"Only {closed} closed trades; he may change settings from {C.TUNING_MIN_CLOSED_TRADES}.")
+        return None
+    current = settings_now(data, day)
+    cutoff = (dt.date.fromisoformat(day) - dt.timedelta(days=C.TUNING_COOLDOWN_DAYS)).isoformat()
+    resting = {h["dial"] for h in hist if max(h.get("proposed", ""), h.get("undone_on", ""), h.get("vetoed_on", "")) > cutoff}
+    lines = []
+    for d, (lo, hi, step) in C.TUNING_LIMITS.items():
+        if d in resting:
+            continue
+        stp = f"{step}" if step is not None else "25% of its value"
+        lines.append(f"- {d} = {current[d]} (allowed {lo} to {hi}, one step at most {stp}): {DIALS[d]}")
+    if not lines:
+        print("Every setting was changed or undone recently; nothing to tune today.")
+        return None
+    recent = "\n".join(f"- {h.get('proposed')}: {h['dial']} {h['from']} to {h['to']}, {h['status']}"
+                       + (f" ({h['undone_why']})" if h.get("undone_why") else "") for h in hist[-8:])
+    material = (
+        "SETTINGS YOU MAY CHANGE TODAY (name = value now, limits, meaning)\n" + "\n".join(lines) + "\n\n"
+        f"YOUR EARLIER CHANGES AND WHAT HAPPENED\n{recent or 'none yet'}\n\n"
+        f"YOUR NOTES TO YOURSELF\n{recent_notes() or 'none yet'}\n\n"
+        f"THE REVIEW OF MIDAS'S TRADES\n{REVIEW.read_text() if REVIEW.exists() else 'none yet'}\n\n"
+        f"WHAT THE TEAM HAS LEARNED\n{LESSONS.read_text() if LESSONS.exists() else ''}"
+    )
+    task = (
+        "You may change ONE of Midas's settings, or keep them all. The change starts on the next trading "
+        "day; a person may veto it, and it is undone automatically if the trades opened after it clearly "
+        "lose. Change one only when the review gives a concrete reason, and say what it is in one or two "
+        "sentences. Stay inside each setting's limits and step. With few trades, keeping is often right. "
+        "Answer in JSON only: either {\"change\": {...}} or {\"keep_why\": \"...\"}.\n\n" + material
+    )
+    show_work("settings change", label, material)
+    try:
+        answer = json.loads(ask(cfg, [{"role": "system", "content": persona(cfg)},
+                                      {"role": "user", "content": task}], temperature=0.3, schema=TUNE_SCHEMA))
+    except (ValueError, AttributeError):
+        answer = {}
+    c = answer.get("change") if isinstance(answer, dict) else None
+    if not c:
+        print(f"{cfg['name']} keeps Midas's settings: {str((answer or {}).get('keep_why', ''))[:200]}")
+        return None
+    dial = str(c.get("dial", ""))
+    why = "".join(ch for ch in str(c.get("why", "")) if ch.isprintable())[:300]
+    if dial not in C.TUNING_LIMITS or dial in resting:
+        print(f"Ignored: {dial} may not be changed today.")
+        return None
+    try:
+        new = float(c.get("value"))
+    except (TypeError, ValueError):
+        print("Ignored: no number.")
+        return None
+    old = current[dial]
+    new = int(round(new)) if isinstance(getattr(C, dial), int) else round(new, 4)
+    if not C.tuning_step_ok(dial, old, new):
+        print(f"Ignored: {dial} {old} -> {new} is outside the limits or too big a step.")
+        return None
+    if unsupported_numbers(why, material + f" {new}"):
+        print("Ignored: the reason used figures that are not in the records.")
+        return None
+    entry = {"dial": dial, "from": old, "to": new, "why": why, "by": cfg["name"],
+             "proposed": day, "effective": next_trading_day(day), "status": "pending"}
+    hist.append(entry)
+    write_dials(data)
+    log_setting_change(f"**{day}**: {cfg['name']} set {dial} from {old} to {new}, starting "
+                       f"{entry['effective']}. {why}")
+    print(f"{cfg['name']} changes {dial} {old} -> {new} from {entry['effective']}: {why}\n"
+          f"To veto before then: mac_mini/veto.sh {dial}")
+    return entry
+
+
+def veto(dial, who="a person"):
+    """Cancel his latest pending or active change to `dial`; Midas goes back to the value before it."""
+    data = read_dials()
+    for h in reversed(data["history"]):
+        if h.get("dial") == dial and h.get("status") in ("pending", "active"):
+            h.update(status="vetoed", vetoed_on=dt.date.today().isoformat(), vetoed_by=who)
+            write_dials(data)
+            log_setting_change(f"**{h['vetoed_on']}**: {who} vetoed {dial} {h['from']} to {h['to']}.")
+            print(f"Vetoed: {dial} {h['from']} -> {h['to']}. Midas uses {h['from']} again from its next trading day.")
+            return h
+    print(f"No pending or active change to {dial}.")
+    return None
+
 
 def nightly(cfg):
     day, label, _ = facts()
@@ -814,10 +1016,8 @@ def nightly(cfg):
     if f"## {day}" not in noted:
         print()  # look back over the day, once
         reflect(cfg)
-    proposed = PROPOSALS.read_text() if PROPOSALS.exists() else ""
-    if dt.date.fromisoformat(day).weekday() == 4 and f"## {day}" not in proposed:
-        print()  # Friday: suggest rule changes, once
-        propose(cfg)
+    print()  # every evening: he may change one of Midas's settings (and bad changes are undone)
+    tune(cfg)
     write_desk(cfg)  # the /midas page shows tonight's diary, picks, notes and proposals
 
 
@@ -915,6 +1115,7 @@ def chat(cfg):
 
 def selftest():
     """Exercise everything except the real model, using a stand-in server."""
+    global TRADES
     import tempfile
     import threading
     from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -970,7 +1171,10 @@ def selftest():
         def do_POST(self):
             body = json.loads(self.rfile.read(int(self.headers.get("Content-Length", 0))))
             asked = body["messages"][-1]["content"]
-            if "proposals" in (body.get("format") or {}).get("properties", {}):
+            if "change" in (body.get("format") or {}).get("properties", {}):
+                text = json.dumps({"change": {"dial": "CORE_STOP", "value": -0.45,
+                                              "why": "Stops keep firing on losers that later recover."}})
+            elif "proposals" in (body.get("format") or {}).get("properties", {}):
                 text = json.dumps({"proposals": [
                     {"dial": "CORE_STOP", "value": -0.4, "why": "Stops keep firing on losers."},
                     {"dial": "CORE_SLOTS", "value": 30, "why": "More bets."},
@@ -997,10 +1201,13 @@ def selftest():
     threading.Thread(target=server.serve_forever, daemon=True).start()
     cfg = {"name": "Dionysus", "aliases": ["Midas"], "model": "stub-model", "url": f"http://127.0.0.1:{server.server_port}",
            "live": f"http://127.0.0.1:{server.server_port}"}
-    global DIARY, NOTES, PICKS, LAST, PROPOSALS, DESK, FREE_UP
+    global DIARY, NOTES, PICKS, LAST, PROPOSALS, DESK, FREE_UP, DIALS_FILE, LOG
     tmp = Path(tempfile.mkdtemp())
     DIARY, NOTES, PICKS, LAST = tmp / "DIARY.md", tmp / "NOTES.md", tmp / "picks.csv", tmp / "last.txt"
     PROPOSALS, DESK, FREE_UP = tmp / "PROPOSALS.md", tmp / "desk.json", tmp / "free_up.csv"
+    DIALS_FILE, real_log = tmp / "dials.json", LOG
+    LOG = tmp / "STRATEGY_LOG.md"
+    LOG.write_text(real_log.read_text())
 
     assert check(cfg), "check should find the stand-in model"
     day, label, fact_text = facts()
@@ -1043,7 +1250,29 @@ def selftest():
         "only small changes to allowed settings, with honest reasons, are proposed"
     assert "CORE_STOP" in PROPOSALS.read_text() and "777,777" not in PROPOSALS.read_text()
     assert not {"KILL_FLOOR_PCT", "LOCK_MARGIN_PCT", "END_DATE"} & set(DIALS), "risk limits are off limits"
+    import config as C
+    change = tune(cfg)
+    assert change and (change["dial"], change["to"], change["status"]) == ("CORE_STOP", -0.45, "pending"), \
+        "he may change one setting, inside its limits"
+    assert change["effective"] > daily_rows()[-1]["date"], "a change starts on the next trading day"
+    assert tune(cfg) is None, "only one change a day"
+    assert "set CORE_STOP from -0.5 to -0.45" in LOG.read_text(), "every change is written in the strategy log"
+    assert not C.tuning_step_ok("CORE_SLOTS", 10, 30) and not C.tuning_step_ok("CORE_STOP", -0.5, -0.9), "hard limits"
+    assert veto("CORE_STOP")["status"] == "vetoed" and settings_now(read_dials(), "2099-01-01")["CORE_STOP"] == -0.5, \
+        "a veto puts Midas back on its own value"
+    real_trades, TRADES = TRADES, tmp / "trades.csv"
+    TRADES.write_text("id,engine,underlying,direction,opened,status,profit,profit_pct\n"
+                      "1,core,NVDA,put,2026-11-01 10:00,closed,500,40\n2,core,COIN,put,2026-11-02 10:00,closed,300,20\n"
+                      "3,core,MSTR,put,2026-11-11 10:00,closed,-400,-35\n4,core,PLTR,put,2026-11-12 10:00,closed,-300,-30\n"
+                      "5,core,AMD,put,2026-11-12 11:00,closed,-200,-20\n")
+    write_dials({"history": [{"dial": "CORE_TP1", "from": 2.0, "to": 1.6, "proposed": "2026-11-09",
+                              "effective": "2026-11-10", "status": "active"}]})
+    undone = review_changes("2026-11-13")
+    assert undone and undone[0]["status"] == "undone" and "averaged -28%" in undone[0]["undone_why"], \
+        "a change followed by clearly losing trades is undone automatically"
+    TRADES, LOG = real_trades, real_log
     feed = write_desk(cfg)
+    assert feed["tuning"]["history"][-1]["status"] == "undone", "his page shows his changes"
     assert feed["proposals"][-1]["status"] == "waiting for a human" and feed["self_notes"], \
         "his page gets his proposals and notes"
     assert feed["who"] == {"ai": "Dionysus", "bot": "Midas"} and "picks" in feed["stats"], "his page gets his record"
@@ -1051,7 +1280,7 @@ def selftest():
     server.shutdown()
     print(f"\nSELFTEST PASSED for {label}: invented figures caught, made-up picks rejected, "
           "notes carried forward, unsafe rule proposals dropped, live desk notes checked and fed back, "
-          "only real open bets named to sell")
+          "only real open bets named to sell, one setting change a day with veto and automatic undo")
 
 
 def main():
@@ -1067,6 +1296,10 @@ def main():
         reflect(cfg)
     elif cmd == "propose":
         propose(cfg)
+    elif cmd == "tune":
+        tune(cfg)
+    elif cmd == "veto":
+        sys.exit(0 if len(sys.argv) > 2 and veto(sys.argv[2]) else 1)
     elif cmd == "desk":
         sys.exit(0 if desk(cfg) else 2)
     elif cmd == "nightly":

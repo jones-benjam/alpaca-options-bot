@@ -457,6 +457,45 @@ def test_free_up():
     print(f"\n--- free-up: sold {before - after} of {before} NVDA (+50%) to buy {target}; TSLA (+5%) spared; once a day ---")
 
 
+def test_dials():
+    """Midas applies Dionysus's settings once a day, only inside the hard limits, and can be switched off."""
+    import json
+    stop0, slots0 = C.CORE_STOP, C.CORE_SLOTS
+    hist = [
+        {"dial": "CORE_STOP", "from": stop0, "to": round(stop0 * 0.9, 4), "effective": "2026-11-10", "status": "pending"},
+        {"dial": "CORE_SLOTS", "from": slots0, "to": slots0 + 9, "effective": "2026-11-09", "status": "active"},
+        {"dial": "KILL_FLOOR_PCT", "from": 0.3, "to": 0.0, "effective": "2026-11-09", "status": "active"},
+        {"dial": "CORE_TP1", "from": C.CORE_TP1, "to": C.CORE_TP1 * 0.8, "effective": "2026-11-09", "status": "vetoed"},
+    ]
+    bot.fetch_dials = lambda: json.dumps({"history": hist})
+    b, f, step = harness(trend=1)
+    step("Dionysus set the stop loss; he also tried 9 more slots, the kill switch, and a vetoed change")
+    assert C.CORE_STOP == round(stop0 * 0.9, 4), "a change inside the limits is in force"
+    assert C.CORE_SLOTS == slots0 and C.KILL_FLOOR_PCT == 0.30, "too big a step and off-list dials are ignored"
+    settings = live_status(b, b.build_ledger(f.now), f)["settings"]
+    assert settings == [{"dial": "CORE_STOP", "value": C.CORE_STOP, "was": stop0}], "the page shows what is in force"
+    hist[1:] = [{"dial": "CORE_DELTA", "from": C.CORE_DELTA, "to": C.CORE_DELTA * 1.1, "effective": "2026-11-11", "status": "pending"},
+                {"dial": "CORE_TRAIL", "from": C.CORE_TRAIL, "to": C.CORE_TRAIL * 1.1, "effective": "2026-11-11", "status": "pending"}]
+    delta0, trail0 = C.CORE_DELTA, C.CORE_TRAIL
+    step("same day, file changes: nothing moves mid-session")
+    assert C.CORE_DELTA == delta0, "settings change only between trading days"
+    f.now += bot.dt.timedelta(days=1)
+    step("next day: two changes would start at once, so neither does")
+    assert (C.CORE_DELTA, C.CORE_TRAIL) == (delta0, trail0) and C.CORE_STOP == round(stop0 * 0.9, 4)
+    hist[0]["status"] = "vetoed"
+    f.now += bot.dt.timedelta(days=1)
+    step("a person vetoed the stop-loss change")
+    assert C.CORE_STOP == stop0, "a veto restores Midas's own value"
+    hist[0]["status"] = "active"
+    C.AI_TUNING = False
+    f.now += bot.dt.timedelta(days=1)
+    step("AI_TUNING=0")
+    assert C.CORE_STOP == stop0, "the switch restores every value"
+    C.AI_TUNING = True
+    bot.fetch_dials = lambda: ""
+    print("\n--- settings: limits enforced by Midas, once a day, one change at a time, veto and switch work ---")
+
+
 def live_status(b, led, f):
     import live
     return live._ai_status(b, led, f.now)
@@ -554,7 +593,7 @@ def test_live_dashboard():
 
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
-    bot.fetch_ai_picks = bot.fetch_free_up = lambda: ""  # no network: nothing from Dionysus unless a test supplies it
+    bot.fetch_ai_picks = bot.fetch_free_up = bot.fetch_dials = lambda: ""  # no network: nothing from Dionysus unless a test supplies it
     test_default_sizing()
     test_lead_lock()
     test_live_dashboard()
@@ -570,6 +609,7 @@ def main():
     test_shadow_scoring()
     test_ai_picks()
     test_free_up()
+    test_dials()
     print("\nALL SIMULATION CHECKS PASSED")
 
 
