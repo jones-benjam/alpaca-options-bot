@@ -1,6 +1,6 @@
 # Review of the bot's trades
 
-Generated Wed Nov 18, 2026, 9:37 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Wed Nov 18, 2026, 11:17 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
@@ -41,6 +41,12 @@ Closed trades only. With this few trades these tables show what happened, not wh
 | same-day bet | 8 | 4 of 8 | +$15,236 |
 | three-week bet | 4 | 1 of 4 | +$1,247 |
 
+### By who chose it
+
+| | Trades | Won | Profit |
+|---|---|---|---|
+| the rules alone | 12 | 5 of 12 | +$16,483 |
+
 ### By direction
 
 | | Trades | Won | Profit |
@@ -63,6 +69,16 @@ Closed trades only. With this few trades these tables show what happened, not wh
 | breakeven stop | 2 | 0 of 2 | -$225 |
 | stop loss | 3 | 0 of 3 | -$3,920 |
 | trend flipped | 2 | 0 of 2 | -$7,163 |
+
+## What the bot did with the AI trader's suggestions
+
+Picks of 3/5 or more are tried first the next trading day, if the rules still approve them. 
+
+| Picked | Suggestion | Conviction | What happened |
+|---|---|---|---|
+| 2026-11-18 | MSTR put | 5/5 | Waiting for the next trading day |
+| 2026-11-18 | COIN put | 5/5 | Waiting for the next trading day |
+| 2026-11-18 | NVDA put | 4/5 | Waiting for the next trading day |
 
 ## The trader's own picks, scored against the rules
 
