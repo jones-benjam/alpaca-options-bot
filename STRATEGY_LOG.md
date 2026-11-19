@@ -517,6 +517,26 @@ trending, not on skill.
   archive only reads market data. `CORE_TRAIL_LATE` (0.25) can be changed as
   a Fly secret.
 
+### Thu Nov 19, 2026, 7:00 pm: Dionysus gets a face (no rule change)
+- **What:** The top of Dionysus's desk page now shows him as a grizzled old
+  trader in a booth, drawn as pixel art. He has a long grey beard, a vine
+  wreath, a green eyeshade and half-moon glasses, and sits among ledgers,
+  a chalkboard, a wall clock, a banker's lamp and a ticker machine.
+- **It runs on real data:**
+  - The chalkboard shows the account since the start, the lead over SPY and today's move.
+  - The clock shows Eastern time, and the calendar crosses off the contest's trading days.
+  - The ticker arrows follow the stocks Midas watches.
+  - He toasts when Midas buys one of his picks, sweats on a day down 3% or more,
+    frowns when his requests are turned down, and dozes when the market is closed.
+  - His speech line is the first sentence of his latest note, or a short line
+    of his own when there is no fresh note.
+- **His picks are now trade requests:** each one appears as a typed slip that
+  Midas stamps APPROVED, DENIED (with the reason) or PENDING.
+- **A fix:** after a bot restart the page used to show his picks as
+  "waiting" even when Midas had already acted on them. It now falls back to
+  the verdicts in his desk feed.
+- **Effect on trading:** None.
+
 ## Changes Dionysus made to Midas's settings
 
 Written automatically. Dionysus may change one setting a day, inside hard limits that Midas checks itself (see TUNING_LIMITS in config.py). A change starts the next trading day; a person can veto it before then with `mac_mini/veto.sh DIAL`, and it is undone automatically if the three-week trades opened after it clearly lose.
