@@ -1134,16 +1134,19 @@ details[open] summary { margin-bottom:10px; }
     }
     if (!hist.length) {
       el("p", "empty", box, "No changes yet. Each evening he may change one of Midas's settings for the next trading day, " +
-        "inside hard limits that Midas checks itself. The kill switch, the lead lock and the end date are off limits to him.");
+        "inside hard limits that Midas checks itself. Each change must quote figures from Midas's closed trades and pass a " +
+        "separate skeptical review. The kill switch, the lead lock and the end date are off limits to him.");
       return;
     }
     el("h3", "", box, "HIS CHANGES, NEWEST FIRST");
     var ul = el("ul", "plain", box);
     hist.slice().reverse().forEach(function (h) {
       var li = el("li", "", ul), st = h.status, word = { pending: "STARTS " + h.effective, active: "IN FORCE",
-        undone: "UNDONE", vetoed: "VETOED" }[st] || String(st).toUpperCase();
+        undone: "UNDONE", vetoed: "VETOED", rejected: "TURNED DOWN" }[st] || String(st).toUpperCase();
       el("span", "st " + (st === "active" ? "bought" : st === "pending" ? "wait" : "no"), li, word);
       li.appendChild(document.createTextNode(" " + (DIAL_WORDS[h.dial] || h.dial) + ": " + h.from + " → " + h.to + ". " + (h.why || "") +
+        (h.evidence ? " His evidence: " + h.evidence : "") +
+        (h.check_why ? (st === "rejected" ? " Turned down on a second look: " : " Second look: ") + h.check_why : "") +
         (st === "undone" && h.undone_why ? " Undone automatically: " + h.undone_why + "." : "") +
         (st === "pending" ? " To veto before it starts: mac_mini/veto.sh " + h.dial : "")));
     });

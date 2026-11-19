@@ -481,6 +481,23 @@ trending, not on skill.
 - **Effect on trading:** Up to one setting can differ from config.py each
   day, always inside the limits.
 
+### Thu Nov 19, 2026, 3:30 pm: Sharper picks, and setting changes must show their evidence
+- **What:** Dionysus's evening picks now leave out stocks Midas already
+  holds. Midas never adds to one, so on Nov 18 two of his three top-rated
+  picks (MSTR and COIN) were skipped. His settings changes now need evidence.
+  He is shown a record computed from Midas's closed three-week trades:
+  overall, and by how each was sold. Each change must quote figures from
+  that record, and a separate, skeptical review by the model must agree that
+  the figures support moving that setting in that direction.
+- **Why:** His first change (start trailing at +125%) was justified by a note
+  about the stop loss, which is a different rule. As Dionysus gets more
+  control, each change he makes should rest on Midas's real results.
+- **Oversight:** Changes the review turns down show on his page as "TURNED
+  DOWN", with the reviewer's reason, and never reach Midas. They still use
+  up that day's one change.
+- **Effect on trading:** Trading rules are unchanged. Picks that Midas can
+  act on are more likely, and fewer settings changes get through.
+
 ## Changes Dionysus made to Midas's settings
 
 Written automatically. Dionysus may change one setting a day, inside hard limits that Midas checks itself (see TUNING_LIMITS in config.py). A change starts the next trading day; a person can veto it before then with `mac_mini/veto.sh DIAL`, and it is undone automatically if the three-week trades opened after it clearly lose.
