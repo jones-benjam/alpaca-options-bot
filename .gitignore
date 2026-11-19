@@ -5,3 +5,4 @@ __pycache__/
 mac_mini/config.env
 mac_mini/nightly.log
 mac_mini/Modelfile
+mac_mini/desk.log

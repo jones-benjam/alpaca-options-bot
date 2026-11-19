@@ -279,7 +279,7 @@ def ai_section(trades, days=10):
             if nxt is None:
                 what = "Waiting for the next trading day"
             elif key in signals[nxt]:
-                what = "Not bought; still a signal at the next close (slots, cash or contract ran out)"
+                what = "Not bought; still a signal at the next close (slots, cash, lead-lock room or contract ran out)"
             else:
                 what = "Not bought; the rules no longer approved it"
         lines.append(f"| {day} | {p['symbol']} {p['direction']} | {p['conviction']}/5 | {what} |")

@@ -7,6 +7,9 @@ reads the snapshot the bot already made. If the server fails to start, the bot
 keeps trading and logs the reason.
 
     /             the dashboard page (refreshes itself every 15 seconds)
+    /midas        Midas's desk: the AI trader's live notes, picks, diary and
+                  proposals. They come from memory/desk.json on GitHub, which
+                  the Mac mini writes; the bot only serves the page.
     /api/state    the snapshot as JSON
     /healthz      "ok"
 """
@@ -172,6 +175,33 @@ def blotter(led, now):
     return trades[::-1], stats
 
 
+def _ai_status(bot, led, now):
+    """Today's AI picks and what the bot did with each: bought, not bought (why),
+    or still waiting for the rules. Empty until the bot has read them today."""
+    from bot import parse_occ  # late import: bot imports this module
+
+    today = now.date().isoformat()
+    a = getattr(bot, "ai", None) or {}
+    out = {"enabled": C.AI_PICKS, "day": a.get("day") or None, "picks": []}
+    if a.get("for") != today:
+        return out
+    bought = set()
+    for e in led.events:
+        if e["side"] == "buy" and "_ai" in (e.get("meta") or "") \
+                and e["when"].astimezone(now.tzinfo).date().isoformat() == today:
+            und, _, kind, _ = parse_occ(e["symbol"])
+            bought.add((und, kind))
+    said = {}
+    for d, und, kind, why in getattr(bot, "ai_said", ()):
+        if str(d) == today:
+            said[(und, kind)] = why
+    for (und, kind), conv in sorted((a.get("picks") or {}).items(), key=lambda kv: -kv[1]):
+        status = ("bought" if (und, kind) in bought else
+                  f"not bought: {said[(und, kind)]}" if (und, kind) in said else "waiting for the rules")
+        out["picks"].append({"symbol": und, "kind": kind, "conviction": conv, "status": status})
+    return out
+
+
 def publish(bot, now, market_open, led, view, regime, quotes=None, min_gap=15):
     """Build and store the snapshot the page shows. Cheap and failure-proof."""
     import time
@@ -252,6 +282,7 @@ def publish(bot, now, market_open, led, view, regime, quotes=None, min_gap=15):
                         for x, s, k in bot.candidates(view, regime)[:6]],
             "daily": _daily_history(bot, today), "intraday": list(_intraday["points"]),
             "log": list(LOG_LINES)[-25:], "end_date": C.END_DATE,
+            "ai": _ai_status(bot, led, now),
         }
     except Exception as err:
         LOG_LINES.append(f"(dashboard) snapshot failed: {err}")
@@ -286,6 +317,8 @@ class _Handler(BaseHTTPRequestHandler):
                        {"Access-Control-Allow-Origin": "*"})
         elif path in ("/", "/index.html"):
             self._send(200, PAGE, "text/html; charset=utf-8")
+        elif path in ("/midas", "/midas.html"):
+            self._send(200, MIDAS_PAGE, "text/html; charset=utf-8")
         else:
             self._send(404, "not found", "text/plain")
 
@@ -472,7 +505,7 @@ h3 { color:var(--gold); font:9px/1.4 var(--px); margin:16px 0 6px; }
   <span class="logo">MIDAS</span>
   <span class="cmd">MSBC 5220 <b>OPTIONS QUEST</b><span class="go">GO</span></span>
   <nav class="fkeys" aria-label="Sections">
-    <a href="#mon"><b>1</b>MON</a><a href="#pos"><b>2</b>POS</a><a href="#wl"><b>3</b>W/L</a><a href="#blt"><b>4</b>BLOTTER</a><a href="#log"><b>5</b>LOG</a>
+    <a href="#mon"><b>1</b>MON</a><a href="#pos"><b>2</b>POS</a><a href="#wl"><b>3</b>W/L</a><a href="#blt"><b>4</b>BLOTTER</a><a href="#log"><b>5</b>LOG</a><a href="midas"><b>6</b>MIDAS'S DESK</a>
   </nav>
   <span class="status"><span class="dot" id="statusdot"></span><span id="statustext">CONNECTING</span><span id="clock"></span></span>
 </header>
@@ -832,6 +865,169 @@ h3 { color:var(--gold); font:9px/1.4 var(--px); margin:16px 0 6px; }
   }
   drawHero();
   poll(); clock(); setInterval(poll, 15000); setInterval(function () { status(); clock(); }, 1000);
+})();
+</script></body></html>
+"""
+
+
+# ---- /midas: the AI trader's desk ---------------------------------------------------
+# The same look as the dashboard. Everything the model wrote is set with textContent,
+# never as HTML, so nothing in a note can run on the page.
+MIDAS_DESK_URL = "https://raw.githubusercontent.com/jones-benjam/alpaca-options-bot/main/memory/desk.json"
+MIDAS_PAGE = PAGE.split("</style>", 1)[0].replace("<title>Midas Live</title>", "<title>Midas's Desk</title>", 1) + r"""
+.intro { color:var(--ink2); font-size:19px; margin:0; max-width:1100px; }
+.intro b { color:var(--gold); font-weight:400; }
+.notes { max-height:760px; overflow:auto; }
+.note { border-left:4px solid var(--frame); background:#11100d; padding:7px 10px 8px; margin:0 0 10px; }
+.note.latest { border-left-color:var(--gold); background:#17150f; }
+.note time { display:block; color:var(--gold); font:8.5px/1.6 var(--px); margin-bottom:4px; }
+.note p { margin:0; font-size:20px; line-height:1.25; white-space:pre-wrap; word-break:break-word; }
+.st { font:8px/1 var(--px); padding:4px 6px; border:2px solid var(--frame); white-space:nowrap; display:inline-block; }
+.st.bought { color:var(--buy); border-color:#2d5466; } .st.wait { color:var(--warn); border-color:#6b5a1d; }
+.st.no { color:var(--muted); }
+td.wrap, .wrap { white-space:normal; color:var(--ink2); min-width:180px; }
+td.wrap .st { white-space:normal; line-height:1.5; }
+.prose { white-space:pre-wrap; word-break:break-word; font-size:19px; color:var(--ink2); margin:0; }
+ul.plain { margin:0; padding-left:20px; } ul.plain li { margin:0 0 6px; color:var(--ink2); }
+.stack { display:grid; gap:16px; min-width:0; align-content:start; }
+</style></head><body>
+<header class="top">
+  <span class="logo">MIDAS</span>
+  <span class="cmd">MSBC 5220 <b>TRADER'S DESK</b></span>
+  <nav class="fkeys" aria-label="Pages and sections">
+    <a href="./"><b>1</b>LIVE BOT</a><a href="#notes"><b>2</b>NOTES</a><a href="#picks"><b>3</b>PICKS</a><a href="#score"><b>4</b>SCORE</a><a href="#diary"><b>5</b>DIARY</a><a href="#rules"><b>6</b>RULES</a>
+  </nav>
+  <span class="status"><span class="dot" id="statusdot"></span><span id="statustext">CONNECTING</span><span id="clock"></span></span>
+</header>
+<main>
+  <p class="intro"><b>Midas</b> is the bot's trader persona: a local AI model on the team's Mac mini. While the market is open he
+    writes a desk note every 30 minutes from the bot's live data. Each evening he picks up to three trades; the bot tries the
+    ones he rates 3/5 or more first the next day, <b>but only if its own rules approve them</b>. His notes are commentary;
+    every dollar figure and percentage in them is checked against the bot's records.</p>
+  <div class="row r2">
+    <section class="panel" id="notes"><div class="ph">DESK NOTES <span class="sub" id="notes-sub"></span></div>
+      <div class="pb notes" id="notes-body"><p class="empty">Loading…</p></div></section>
+    <div class="stack">
+      <section class="panel" id="picks"><div class="ph">HIS PICKS <span class="sub" id="picks-sub"></span></div>
+        <div class="pb scroll" id="picks-body"><p class="empty">Loading…</p></div></section>
+      <section class="panel" id="score"><div class="ph">SCOREBOARD <span class="sub">his calls against the rules</span></div>
+        <div class="pb scroll" id="score-body"><p class="empty">Loading…</p></div></section>
+    </div>
+  </div>
+  <div class="row r2">
+    <section class="panel" id="diary"><div class="ph">DIARY <span class="sub" id="diary-sub"></span></div>
+      <div class="pb" id="diary-body"><p class="empty">Loading…</p></div></section>
+    <div class="stack">
+      <section class="panel"><div class="ph">NOTES TO HIMSELF <span class="sub">his long-term memory</span></div>
+        <div class="pb" id="self-body"><p class="empty">Loading…</p></div></section>
+      <section class="panel" id="rules"><div class="ph">RULE CHANGES HE SUGGESTS <span class="sub">a person decides</span></div>
+        <div class="pb" id="rules-body"><p class="empty">Loading…</p></div></section>
+    </div>
+  </div>
+  <p class="foot" id="foot">Notes refresh every minute; a new one can take up to 5 minutes to arrive.</p>
+</main>
+<!--CONFIG-->
+<script>
+(function () {
+  "use strict";
+  var API = window.OPTBOT_API || "", DESK = window.MIDAS_DESK || """ + json.dumps(MIDAS_DESK_URL) + r""";
+  var desk = null, snap = null;
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, parent, text) {
+    var e = document.createElement(tag); if (cls) e.className = cls;
+    if (text != null) e.textContent = String(text); if (parent) parent.appendChild(e); return e; }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); return n; }
+  function empty(n, text) { el("p", "empty", clear(n), text); }
+  function ago(s) { s = Math.max(0, Math.round(s)); return s < 60 ? s + "s ago" : s < 3600 ? Math.round(s / 60) + "m ago" : s < 172800 ? Math.round(s / 3600) + "h ago" : Math.round(s / 86400) + "d ago"; }
+  function table(parent, rows, wrapCols) {
+    if (!rows || rows.length < 2) return false;
+    var t = el("table", "", parent), h = el("tr", "", el("thead", "", t)), b = el("tbody", "", t);
+    rows[0].forEach(function (c) { el("th", "", h, c); });
+    rows.slice(1).forEach(function (r) { var tr = el("tr", "", b);
+      r.forEach(function (c, i) { el("td", (wrapCols || []).indexOf(i) >= 0 ? "wrap" : (i ? "n" : ""), tr, c); }); });
+    return true;
+  }
+
+  function renderNotes() {
+    var box = $("notes-body"), notes = (desk && desk.notes) || [];
+    if (!notes.length) { empty(box, "No desk notes yet. The first comes during the next market session."); return; }
+    clear(box);
+    notes.slice().reverse().forEach(function (n, i) {
+      var d = el("article", "note" + (i === 0 ? " latest" : ""), box);
+      el("time", "", d, (n.at_text || n.at || "") + (n.at ? " · " + ago((Date.now() - new Date(n.at).getTime()) / 1000) : ""));
+      el("p", "", d, n.text);
+    });
+    $("notes-sub").textContent = notes.length + " latest";
+  }
+
+  function renderPicks() {
+    var box = clear($("picks-body")), live = snap && snap.ai, shown = false;
+    if (live && live.picks && live.picks.length) {
+      el("h3", "", box, "BEING TRIED TODAY · PICKED " + (live.day || ""));
+      var t = el("table", "", box), h = el("tr", "", el("thead", "", t)), b = el("tbody", "", t);
+      ["PICK", "CONVICTION", "WHAT THE BOT DID"].forEach(function (c) { el("th", "", h, c); });
+      live.picks.forEach(function (p) { var tr = el("tr", "", b);
+        el("td", "", tr, p.symbol + " " + p.kind); el("td", "n", tr, p.conviction + "/5");
+        var cls = p.status === "bought" ? "bought" : p.status.indexOf("not bought") === 0 ? "no" : "wait";
+        el("span", "st " + cls, el("td", "wrap", tr), p.status.toUpperCase()); });
+      shown = true;
+    } else if (live && live.enabled === false) {
+      el("p", "empty", box, "The bot is not using his picks right now (AI_PICKS is off).");
+    }
+    var latest = desk && desk.picks;
+    if (latest && latest.rows && latest.rows.length && (!live || latest.date !== live.day)) {
+      el("h3", "", box, (shown ? "NEXT SESSION · " : "LATEST PICKS · ") + "PICKED " + latest.date);
+      var rows = [["WHO", "PICK", "CONV.", "WHY"]].concat(latest.rows.map(function (r) {
+        return [r.name, r.symbol + " " + r.direction, r.conviction + "/5", r.why]; }));
+      table(box, rows, [3]); shown = true;
+    }
+    if (!shown && !box.firstChild) empty(box, "No picks yet.");
+    $("picks-sub").textContent = live && live.day ? "the bot read them this morning" : "tried after 9:45 ET";
+  }
+
+  function renderScore() {
+    var box = clear($("score-body")), s = (desk && desk.scoreboard) || {}, any = false;
+    if (s.who_chose && s.who_chose.length > 1) { el("h3", "", box, "CLOSED TRADES: HIS PICKS VS THE RULES ALONE"); any = table(box, s.who_chose); }
+    if (s.picks_vs_rules && s.picks_vs_rules.length > 1) { el("h3", "", box, "EVERY PICK, JUDGED ON THE STOCK'S MOVE"); any = table(box, s.picks_vs_rules) || any; }
+    if (!any) empty(box, "Nothing to score yet: his picks need a few days to be judged.");
+  }
+
+  function renderDiary() {
+    var box = $("diary-body"), d = desk && desk.diary;
+    if (!d || !d.text) { empty(box, "No diary entry yet."); return; }
+    clear(box); el("p", "prose", box, d.text); $("diary-sub").textContent = d.heading || "";
+    var self = $("self-body"), notes = (desk && desk.self_notes) || [];
+    if (!notes.length) empty(self, "None yet."); else { var ul = el("ul", "plain", clear(self)); notes.slice().reverse().forEach(function (n) { el("li", "", ul, n); }); }
+    var rules = $("rules-body"), props = (desk && desk.proposals) || [];
+    if (!props.length) { empty(rules, "No suggestions yet. He may suggest up to three each Friday."); return; }
+    var ul2 = el("ul", "plain", clear(rules));
+    props.slice().reverse().forEach(function (p) { var li = el("li", "", ul2);
+      el("span", "st " + (p.status === "approved" ? "bought" : p.status === "declined" ? "no" : "wait"), li, p.status.toUpperCase());
+      li.appendChild(document.createTextNode(" " + p.text)); });
+  }
+
+  function status() {
+    var dot = $("statusdot"), text = $("statustext"), notes = (desk && desk.notes) || [];
+    var lastAt = notes.length ? new Date(notes[notes.length - 1].at).getTime() : 0;
+    var noteAge = lastAt ? ago((Date.now() - lastAt) / 1000) : "none yet";
+    if (!desk) { dot.className = "dot stale"; text.textContent = "CANNOT REACH HIS DESK · RETRYING"; return; }
+    if (snap && snap.market_open) { var fresh = lastAt && Date.now() - lastAt < 50 * 60000;
+      dot.className = fresh ? "dot live" : "dot stale"; text.textContent = (fresh ? "AT THE DESK" : "DESK QUIET") + " · LAST NOTE " + noteAge; }
+    else { dot.className = "dot"; text.textContent = "MARKET CLOSED · LAST NOTE " + noteAge; }
+  }
+  function render() { renderNotes(); renderPicks(); renderScore(); renderDiary(); status();
+    if (desk && desk.updated) $("foot").textContent = "Written by " + (desk.name || "Midas") + " (" + (desk.model || "local model") +
+      ") on the team's Mac mini. Feed updated " + ago((Date.now() - new Date(desk.updated).getTime()) / 1000) +
+      "; the page checks every minute, and a new note can take up to 5 minutes to arrive."; }
+  function poll() {
+    var a = fetch(DESK + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw r; return r.json(); })
+      .then(function (d) { desk = d; }).catch(function () {});
+    var b = fetch(API + "/api/state", { cache: "no-store" }).then(function (r) { return r.json(); })
+      .then(function (s) { snap = s; }).catch(function () {});
+    Promise.all([a, b]).then(render);
+  }
+  function clock() { try { $("clock").textContent = new Date().toLocaleTimeString("en-US", { timeZone: "America/New_York", hour12: false }) + " ET"; } catch (e) {} }
+  poll(); clock(); setInterval(poll, 60000); setInterval(function () { clock(); if (desk) status(); }, 1000);
 })();
 </script></body></html>
 """

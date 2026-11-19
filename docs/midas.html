@@ -1,0 +1,320 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Midas's Desk</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet">
+<style>
+/* CU Boulder colours (gold, black, dark and light gray) in a vintage pixel style: a side-scrolling
+   scene up top, pixel frames, a faint CRT scanline. Green and red still mean only win and loss,
+   and every result also carries a WIN / LOSS label and an arrow, so colour is never the only cue.
+   Buys are cyan, sells gold. Pixel font for labels, a readable terminal font for numbers. */
+:root { color-scheme: dark;
+  --bg:#000; --panel:#0e0e0d; --head:#1b1a16; --frame:#565A5C; --line:#24231f;
+  --gold:#CFB87C; --gold2:#8f7d4a; --ink:#f3ecd9; --ink2:#d2cdbf; --muted:#A2A4A3; --gray:#565A5C;
+  --buy:#7cc8e4; --gain:#5fd068; --loss:#ff5a4e; --warn:#ffcf4a;
+  --gain-bg:rgba(95,208,104,.11); --loss-bg:rgba(255,90,78,.12);
+  --acc:#CFB87C; --spy:#A2A4A3; --wash:rgba(207,184,124,.12);
+  --px:"Press Start 2P", ui-monospace, Menlo, monospace; --tx:"VT323", ui-monospace, Menlo, Consolas, monospace; }
+* { box-sizing:border-box; }
+html, body { background:var(--bg); }
+body { margin:0; color:var(--ink); font:18px/1.25 var(--tx); font-variant-numeric:tabular-nums; -webkit-text-size-adjust:100%; }
+body::after { content:""; position:fixed; inset:0; pointer-events:none; z-index:50;
+  background:repeating-linear-gradient(to bottom, transparent 0 2px, rgba(0,0,0,.16) 2px 3px); }
+a { color:var(--gold); }
+button, select { font:inherit; }
+.top { position:sticky; top:0; z-index:6; display:flex; flex-wrap:wrap; align-items:center; gap:8px 14px; background:#000;
+  border-bottom:3px solid var(--gold); padding:8px max(12px, env(safe-area-inset-right, 0px)) 8px max(12px, env(safe-area-inset-left, 0px)); }
+.logo { background:var(--gold); color:#000; font:11px/1 var(--px); padding:6px 8px; box-shadow:3px 3px 0 var(--gray); }
+.cmd { color:var(--gold); font:9px/1.4 var(--px); white-space:nowrap; } .cmd b { color:var(--ink); font-weight:400; }
+.go { color:#000; background:var(--gain); padding:2px 4px; margin-left:6px; }
+.fkeys { display:flex; gap:6px; flex-wrap:wrap; }
+.fkeys a { text-decoration:none; color:var(--ink2); font:9px/1 var(--px); border:2px solid var(--frame); padding:4px 7px 4px 0; white-space:nowrap; box-shadow:2px 2px 0 #000; }
+.fkeys a b { background:var(--gold); color:#000; padding:4px 5px; margin-right:6px; font-weight:400; }
+.fkeys a:hover, .fkeys a:focus-visible { color:#000; background:var(--gold); border-color:var(--gold); }
+.status { margin-left:auto; display:flex; align-items:center; gap:8px; color:var(--ink2); white-space:nowrap; font-size:19px; }
+.dot { width:10px; height:10px; background:var(--muted); display:inline-block; }
+.dot.live { background:var(--gain); animation:blink 1s steps(1) infinite; } .dot.stale { background:var(--warn); }
+@keyframes blink { 50% { opacity:.25; } }
+#clock { color:var(--gold); }
+
+/* ---- the side-scrolling scene ---- */
+.stage { position:relative; height:150px; overflow:hidden; border-bottom:3px solid #000; image-rendering:pixelated;
+  background:linear-gradient(to bottom, #040404 0 28%, #0c0b09 28% 46%, #17140e 46% 60%, #241f14 60% 72%, #342c1a 72% 84%, #463a20 84% 100%); }
+.stars { position:absolute; top:0; left:0; width:2px; height:2px; background:transparent;
+  box-shadow:40px 12px #d9d2bd, 130px 30px #8d8a80, 210px 8px #d9d2bd, 300px 22px #8d8a80, 420px 14px #d9d2bd, 520px 34px #8d8a80,
+    610px 10px #d9d2bd, 720px 26px #8d8a80, 830px 12px #d9d2bd, 950px 30px #8d8a80, 1080px 16px #d9d2bd, 1200px 8px #8d8a80,
+    1310px 28px #d9d2bd, 1450px 12px #8d8a80, 1580px 24px #d9d2bd; }
+.sun { position:absolute; left:62%; bottom:38px; width:88px; height:88px; border-radius:50%;
+  background:linear-gradient(to bottom, #efdfae, #CFB87C 55%, #b08e4c); }
+.sun::after { content:""; position:absolute; inset:52% 0 0 0; background:repeating-linear-gradient(to bottom, transparent 0 5px, #2b2516 5px 8px); }
+.layer { position:absolute; inset:0; background-repeat:repeat-x; background-position:0 100%; }
+.far { background-size:400px 150px; animation:pan400 90s linear infinite;
+  background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='400' height='150' shape-rendering='crispEdges'><polygon points='0,126 0,92 48,70 80,84 128,50 176,80 216,64 264,90 312,58 360,82 400,92 400,126' fill='%23272829'/><polygon points='118,57 128,50 138,57 132,55 128,60 124,55' fill='%23A2A4A3'/><polygon points='303,64 312,58 321,64 316,62 312,67 308,62' fill='%23A2A4A3'/></svg>"); }
+.mid { background-size:600px 150px; animation:pan600 45s linear infinite;
+  background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='600' height='150' shape-rendering='crispEdges'><polygon points='70,126 130,38 160,44 182,126' fill='%23565A5C'/><polygon points='70,126 130,38 138,40 81,126' fill='%23CFB87C' fill-opacity='.4'/><polygon points='198,126 250,60 274,64 294,126' fill='%23565A5C'/><polygon points='198,126 250,60 257,62 208,126' fill='%23CFB87C' fill-opacity='.35'/><polygon points='308,126 350,80 368,84 384,126' fill='%234a4d4f'/><polygon points='308,126 350,80 356,82 316,126' fill='%23CFB87C' fill-opacity='.3'/><rect x='0' y='114' width='600' height='12' fill='%23121212'/><polygon points='14,116 22,98 30,116' fill='%23161a16'/><polygon points='38,116 46,102 54,116' fill='%23161a16'/><polygon points='186,116 194,100 202,116' fill='%23161a16'/><polygon points='402,116 410,96 418,116' fill='%23161a16'/><polygon points='428,116 436,102 444,116' fill='%23161a16'/><polygon points='470,116 478,98 486,116' fill='%23161a16'/><polygon points='520,116 528,100 536,116' fill='%23161a16'/><polygon points='560,116 568,96 576,116' fill='%23161a16'/></svg>"); }
+.coins { background-size:260px 150px; animation:pan260 7s linear infinite;
+  background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='260' height='150' shape-rendering='crispEdges'><rect x='182' y='62' width='6' height='10' fill='%23CFB87C'/><rect x='180' y='64' width='10' height='6' fill='%23CFB87C'/><rect x='184' y='64' width='2' height='6' fill='%238f7d4a'/><rect x='62' y='46' width='6' height='10' fill='%23CFB87C'/><rect x='60' y='48' width='10' height='6' fill='%23CFB87C'/><rect x='64' y='48' width='2' height='6' fill='%238f7d4a'/></svg>"); }
+.ground { top:auto; height:24px; background-size:32px 24px; animation:pan32 .9s linear infinite;
+  background-image:url("data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='32' height='24' shape-rendering='crispEdges'><rect width='32' height='4' fill='%23CFB87C'/><rect y='4' width='32' height='3' fill='%238f7d4a'/><rect y='7' width='32' height='17' fill='%23101010'/><rect x='1' y='9' width='14' height='6' fill='%23282828'/><rect x='17' y='9' width='14' height='6' fill='%23282828'/><rect x='0' y='17' width='7' height='6' fill='%23282828'/><rect x='9' y='17' width='14' height='6' fill='%23282828'/><rect x='25' y='17' width='7' height='6' fill='%23282828'/></svg>"); }
+@keyframes pan400 { to { background-position:-400px 100%; } }
+@keyframes pan600 { to { background-position:-600px 100%; } }
+@keyframes pan260 { to { background-position:-260px 100%; } }
+@keyframes pan32 { to { background-position:-32px 100%; } }
+.hero { position:absolute; left:14%; bottom:24px; width:80px; height:48px; animation:bob .36s steps(1) infinite; }
+.hero svg { width:80px; height:48px; overflow:visible; }
+.hero .fa { animation:legs .36s steps(1) infinite; } .hero .fb { animation:legs .36s steps(1) infinite reverse; }
+@keyframes legs { 0% { opacity:1; } 50% { opacity:0; } }
+@keyframes bob { 50% { transform:translateY(-2px); } }
+.hud { position:absolute; top:8px; left:max(12px, env(safe-area-inset-left, 0px)); right:12px; display:flex; flex-wrap:wrap; gap:6px 18px;
+  font:9px/1.6 var(--px); color:var(--ink); text-shadow:2px 2px 0 #000; }
+.hud b { font-weight:400; } .hud .w b { color:var(--gain); } .hud .l b { color:var(--loss); } .hud .g { color:var(--gold); }
+
+.tape { overflow:hidden; white-space:nowrap; border-bottom:3px solid var(--frame); background:#0a0a09; }
+.tape-track { display:inline-flex; padding:5px 0; animation:tape 80s linear infinite; }
+.tape:hover .tape-track { animation-play-state:paused; }
+.tk { padding-right:28px; color:var(--ink2); font-size:19px; } .tk b { color:var(--gold); margin-right:6px; font-weight:400; }
+@keyframes tape { from { transform:translateX(0); } to { transform:translateX(-50%); } }
+
+/* ---- panels with pixel frames ---- */
+main { display:grid; gap:16px; padding:14px max(15px, env(safe-area-inset-right, 0px)) 32px max(15px, env(safe-area-inset-left, 0px)); max-width:1600px; margin:0 auto; }
+.row { display:grid; gap:16px; grid-template-columns:minmax(0, 1fr); }
+@media (min-width: 960px) { .r3 { grid-template-columns:minmax(0, 1.25fr) minmax(0, 1.25fr) minmax(0, 1fr); }
+  .r2 { grid-template-columns:minmax(0, 1fr) minmax(0, 1fr); } }
+.panel, .kpi { background:var(--panel); min-width:0;
+  box-shadow:0 -3px 0 var(--frame), 0 3px 0 var(--frame), -3px 0 0 var(--frame), 3px 0 0 var(--frame), 6px 9px 0 #000; }
+.panel { scroll-margin-top:96px; }
+.ph { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; gap:4px 10px; background:var(--gold); color:#000;
+  padding:7px 9px; font:10px/1.4 var(--px); }
+.ph .sub { color:#3a3220; font:17px/1 var(--tx); }
+.pb { padding:10px; }
+.kpis { display:grid; grid-template-columns:repeat(4, minmax(0, 1fr)); gap:16px; }
+@media (min-width: 1280px) { .kpis { grid-template-columns:repeat(8, minmax(0, 1fr)); } }
+.kpi { padding:9px 10px 8px; }
+.kl { color:var(--gold); font:8.5px/1.4 var(--px); }
+.kv { font:15px/1.9 var(--px); white-space:nowrap; }
+.ks { color:var(--muted); font-size:17px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+@media (max-width: 560px) { .kpis { grid-template-columns:repeat(2, minmax(0, 1fr)); gap:14px; } .kv { font-size:12px; }
+  .top { position:static; } .kvlist dd { white-space:normal; } .stage { height:120px; } .sun { width:64px; height:64px; } .hud { font-size:8px; } }
+.up { color:var(--gain); } .dn { color:var(--loss); } .warn { color:var(--warn); } .mut { color:var(--muted); }
+.legend { display:flex; gap:16px; flex-wrap:wrap; color:var(--ink2); font-size:17px; margin-bottom:4px; }
+.key { display:inline-block; width:18px; border-top:3px solid; vertical-align:middle; margin-right:6px; }
+svg { width:100%; height:auto; display:block; overflow:visible; }
+.gridline { stroke:#1f1e1a; stroke-width:1; } .zero { stroke:#565A5C; stroke-width:1.5; }
+.tick { fill:var(--muted); font-size:15px; font-family:var(--tx); }
+.lineacc { fill:none; stroke:var(--acc); stroke-width:3; stroke-linejoin:miter; stroke-linecap:square; }
+.linespy { fill:none; stroke:var(--spy); stroke-width:2.5; stroke-dasharray:7 5; stroke-linejoin:miter; }
+.area { fill:var(--wash); } .enddot { stroke:var(--panel); stroke-width:2; }
+.endlabel { fill:var(--ink); font-size:17px; font-family:var(--tx); }
+.barw { fill:var(--gain); } .barl { fill:var(--loss); }
+.kvlist { display:grid; grid-template-columns:auto 1fr; gap:6px 12px; margin:0; align-items:baseline; }
+.kvlist dt { color:var(--gold); font:8.5px/1.6 var(--px); }
+.kvlist dd { margin:0; text-align:right; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; font-size:19px; }
+.meter { height:14px; background:#1a1a17; margin:10px 0 4px; position:relative; box-shadow:0 0 0 2px var(--frame); }
+.meter > div { position:absolute; inset:0 auto 0 0; background:repeating-linear-gradient(90deg, var(--gold) 0 6px, var(--gold2) 6px 8px); }
+.sigs { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.sig { border:2px solid var(--frame); padding:0 6px; color:var(--ink2); font-size:18px; }
+.sig b { color:var(--ink); font-weight:400; }
+.scroll { overflow:auto; -webkit-overflow-scrolling:touch; } .tall { max-height:560px; }
+table { border-collapse:collapse; width:100%; font-size:19px; }
+th { position:sticky; top:0; z-index:1; background:var(--head); color:var(--gold); text-align:left; font:8.5px/1.4 var(--px);
+  padding:8px 9px; border-bottom:2px solid var(--frame); white-space:nowrap; }
+td { padding:3px 9px; border-bottom:1px solid var(--line); white-space:nowrap; }
+.n { text-align:right; }
+tbody tr:hover td { background:#191814; }
+tr.win td { background:var(--gain-bg); } tr.loss td { background:var(--loss-bg); }
+tr.win td:first-child { box-shadow:inset 4px 0 var(--gain); } tr.loss td:first-child { box-shadow:inset 4px 0 var(--loss); }
+tr.win:hover td { background:rgba(95,208,104,.19); } tr.loss:hover td { background:rgba(255,90,78,.2); }
+tr.dayrow td { background:#15140f; color:var(--gold); font:8.5px/1.4 var(--px); padding:9px 9px 6px; border-bottom:2px dashed var(--gray); }
+tr.total td { border-top:2px solid var(--frame); background:#13120e; color:var(--ink); }
+.tag { display:inline-block; min-width:74px; text-align:center; font:8.5px/1 var(--px); padding:5px 6px; }
+.tag.win { background:var(--gain); color:#000; box-shadow:2px 2px 0 #0b3d12; } .tag.loss { background:var(--loss); color:#000; box-shadow:2px 2px 0 #4d0f0a; }
+.tag.even { border:2px solid var(--muted); color:var(--ink2); } .tag.open { border:2px solid #2d5466; color:var(--buy); }
+.side { font:8.5px/1 var(--px); } .side.buy { color:var(--buy); } .side.sell { color:var(--gold); }
+.eng { color:var(--muted); }
+.why { color:var(--ink2); max-width:340px; overflow:hidden; text-overflow:ellipsis; }
+.tools { display:flex; flex-wrap:wrap; gap:10px; align-items:center; padding:10px; border-bottom:2px solid var(--line); }
+.seg { display:inline-flex; flex-wrap:wrap; gap:6px; }
+.seg button { background:#151512; color:var(--ink2); border:2px solid var(--frame); padding:6px 9px; cursor:pointer; font:8.5px/1 var(--px); box-shadow:2px 2px 0 #000; }
+.seg button:active { transform:translate(2px, 2px); box-shadow:none; }
+.seg button[aria-pressed="true"] { background:var(--gold); color:#000; border-color:var(--gold); }
+.seg button.fw[aria-pressed="true"] { background:var(--gain); border-color:var(--gain); }
+.seg button.fl[aria-pressed="true"] { background:var(--loss); border-color:var(--loss); }
+.seg button:focus-visible, select:focus-visible, .fkeys a:focus-visible { outline:2px solid var(--gold); outline-offset:2px; }
+.tools label { font:8.5px/1 var(--px); }
+select { background:#151512; color:var(--ink); border:2px solid var(--frame); padding:3px 6px; font:18px var(--tx); }
+.score { display:grid; grid-template-columns:repeat(3, minmax(0, 1fr)); gap:10px; margin:2px 2px 12px; }
+.score > div { background:#141310; padding:10px 6px 8px; text-align:center; box-shadow:0 0 0 2px var(--frame); }
+.big { font:26px/1.3 var(--px); } .lbl { font:8px/1.6 var(--px); color:var(--ink2); margin-top:4px; }
+.split { display:flex; height:22px; margin:4px 2px; box-shadow:0 0 0 2px var(--frame); font:8px/1 var(--px); color:#000; overflow:hidden; }
+.split > div { display:flex; align-items:center; padding:0 6px; white-space:nowrap; min-width:0; overflow:hidden; }
+.split .w { background:var(--gain); } .split .l { background:var(--loss); justify-content:flex-end; }
+.cap { display:flex; justify-content:space-between; color:var(--muted); font-size:17px; margin-top:4px; }
+.drow { display:grid; grid-template-columns:62px minmax(0, 1fr) 92px 64px; align-items:center; gap:8px; padding:3px 0; }
+.drow .nm { color:var(--gold); font:9px/1 var(--px); }
+.track { display:grid; grid-template-columns:1fr 1fr; height:14px; }
+.track > div { position:relative; } .track > div:first-child { border-right:2px solid var(--gray); }
+.track .neg { position:absolute; right:0; top:1px; bottom:1px; background:var(--loss); }
+.track .pos { position:absolute; left:0; top:1px; bottom:1px; background:var(--gain); }
+.rec { color:var(--ink2); font-size:17px; }
+h3 { color:var(--gold); font:9px/1.4 var(--px); margin:16px 0 6px; }
+.log { font:17px/1.3 var(--tx); color:var(--ink2); white-space:pre-wrap; word-break:break-word; max-height:360px; overflow:auto; margin:0; }
+.empty { color:var(--muted); padding:8px 0; }
+.foot { color:var(--muted); font-size:17px; }
+@media (prefers-reduced-motion: reduce) { .layer, .hero, .hero .fa, .dot.live { animation:none; } .hero .fb { display:none; } .tape-track { animation:none; } .tape { overflow-x:auto; } }
+
+.intro { color:var(--ink2); font-size:19px; margin:0; max-width:1100px; }
+.intro b { color:var(--gold); font-weight:400; }
+.notes { max-height:760px; overflow:auto; }
+.note { border-left:4px solid var(--frame); background:#11100d; padding:7px 10px 8px; margin:0 0 10px; }
+.note.latest { border-left-color:var(--gold); background:#17150f; }
+.note time { display:block; color:var(--gold); font:8.5px/1.6 var(--px); margin-bottom:4px; }
+.note p { margin:0; font-size:20px; line-height:1.25; white-space:pre-wrap; word-break:break-word; }
+.st { font:8px/1 var(--px); padding:4px 6px; border:2px solid var(--frame); white-space:nowrap; display:inline-block; }
+.st.bought { color:var(--buy); border-color:#2d5466; } .st.wait { color:var(--warn); border-color:#6b5a1d; }
+.st.no { color:var(--muted); }
+td.wrap, .wrap { white-space:normal; color:var(--ink2); min-width:180px; }
+td.wrap .st { white-space:normal; line-height:1.5; }
+.prose { white-space:pre-wrap; word-break:break-word; font-size:19px; color:var(--ink2); margin:0; }
+ul.plain { margin:0; padding-left:20px; } ul.plain li { margin:0 0 6px; color:var(--ink2); }
+.stack { display:grid; gap:16px; min-width:0; align-content:start; }
+</style></head><body>
+<header class="top">
+  <span class="logo">MIDAS</span>
+  <span class="cmd">MSBC 5220 <b>TRADER'S DESK</b></span>
+  <nav class="fkeys" aria-label="Pages and sections">
+    <a href="./"><b>1</b>LIVE BOT</a><a href="#notes"><b>2</b>NOTES</a><a href="#picks"><b>3</b>PICKS</a><a href="#score"><b>4</b>SCORE</a><a href="#diary"><b>5</b>DIARY</a><a href="#rules"><b>6</b>RULES</a>
+  </nav>
+  <span class="status"><span class="dot" id="statusdot"></span><span id="statustext">CONNECTING</span><span id="clock"></span></span>
+</header>
+<main>
+  <p class="intro"><b>Midas</b> is the bot's trader persona: a local AI model on the team's Mac mini. While the market is open he
+    writes a desk note every 30 minutes from the bot's live data. Each evening he picks up to three trades; the bot tries the
+    ones he rates 3/5 or more first the next day, <b>but only if its own rules approve them</b>. His notes are commentary;
+    every dollar figure and percentage in them is checked against the bot's records.</p>
+  <div class="row r2">
+    <section class="panel" id="notes"><div class="ph">DESK NOTES <span class="sub" id="notes-sub"></span></div>
+      <div class="pb notes" id="notes-body"><p class="empty">Loading…</p></div></section>
+    <div class="stack">
+      <section class="panel" id="picks"><div class="ph">HIS PICKS <span class="sub" id="picks-sub"></span></div>
+        <div class="pb scroll" id="picks-body"><p class="empty">Loading…</p></div></section>
+      <section class="panel" id="score"><div class="ph">SCOREBOARD <span class="sub">his calls against the rules</span></div>
+        <div class="pb scroll" id="score-body"><p class="empty">Loading…</p></div></section>
+    </div>
+  </div>
+  <div class="row r2">
+    <section class="panel" id="diary"><div class="ph">DIARY <span class="sub" id="diary-sub"></span></div>
+      <div class="pb" id="diary-body"><p class="empty">Loading…</p></div></section>
+    <div class="stack">
+      <section class="panel"><div class="ph">NOTES TO HIMSELF <span class="sub">his long-term memory</span></div>
+        <div class="pb" id="self-body"><p class="empty">Loading…</p></div></section>
+      <section class="panel" id="rules"><div class="ph">RULE CHANGES HE SUGGESTS <span class="sub">a person decides</span></div>
+        <div class="pb" id="rules-body"><p class="empty">Loading…</p></div></section>
+    </div>
+  </div>
+  <p class="foot" id="foot">Notes refresh every minute; a new one can take up to 5 minutes to arrive.</p>
+</main>
+<script>window.OPTBOT_API = "https://msbc5220-optbot.fly.dev"; window.OPTBOT_FALLBACK = true;</script>
+<script>
+(function () {
+  "use strict";
+  var API = window.OPTBOT_API || "", DESK = window.MIDAS_DESK || "https://raw.githubusercontent.com/jones-benjam/alpaca-options-bot/main/memory/desk.json";
+  var desk = null, snap = null;
+  function $(id) { return document.getElementById(id); }
+  function el(tag, cls, parent, text) {
+    var e = document.createElement(tag); if (cls) e.className = cls;
+    if (text != null) e.textContent = String(text); if (parent) parent.appendChild(e); return e; }
+  function clear(n) { while (n.firstChild) n.removeChild(n.firstChild); return n; }
+  function empty(n, text) { el("p", "empty", clear(n), text); }
+  function ago(s) { s = Math.max(0, Math.round(s)); return s < 60 ? s + "s ago" : s < 3600 ? Math.round(s / 60) + "m ago" : s < 172800 ? Math.round(s / 3600) + "h ago" : Math.round(s / 86400) + "d ago"; }
+  function table(parent, rows, wrapCols) {
+    if (!rows || rows.length < 2) return false;
+    var t = el("table", "", parent), h = el("tr", "", el("thead", "", t)), b = el("tbody", "", t);
+    rows[0].forEach(function (c) { el("th", "", h, c); });
+    rows.slice(1).forEach(function (r) { var tr = el("tr", "", b);
+      r.forEach(function (c, i) { el("td", (wrapCols || []).indexOf(i) >= 0 ? "wrap" : (i ? "n" : ""), tr, c); }); });
+    return true;
+  }
+
+  function renderNotes() {
+    var box = $("notes-body"), notes = (desk && desk.notes) || [];
+    if (!notes.length) { empty(box, "No desk notes yet. The first comes during the next market session."); return; }
+    clear(box);
+    notes.slice().reverse().forEach(function (n, i) {
+      var d = el("article", "note" + (i === 0 ? " latest" : ""), box);
+      el("time", "", d, (n.at_text || n.at || "") + (n.at ? " · " + ago((Date.now() - new Date(n.at).getTime()) / 1000) : ""));
+      el("p", "", d, n.text);
+    });
+    $("notes-sub").textContent = notes.length + " latest";
+  }
+
+  function renderPicks() {
+    var box = clear($("picks-body")), live = snap && snap.ai, shown = false;
+    if (live && live.picks && live.picks.length) {
+      el("h3", "", box, "BEING TRIED TODAY · PICKED " + (live.day || ""));
+      var t = el("table", "", box), h = el("tr", "", el("thead", "", t)), b = el("tbody", "", t);
+      ["PICK", "CONVICTION", "WHAT THE BOT DID"].forEach(function (c) { el("th", "", h, c); });
+      live.picks.forEach(function (p) { var tr = el("tr", "", b);
+        el("td", "", tr, p.symbol + " " + p.kind); el("td", "n", tr, p.conviction + "/5");
+        var cls = p.status === "bought" ? "bought" : p.status.indexOf("not bought") === 0 ? "no" : "wait";
+        el("span", "st " + cls, el("td", "wrap", tr), p.status.toUpperCase()); });
+      shown = true;
+    } else if (live && live.enabled === false) {
+      el("p", "empty", box, "The bot is not using his picks right now (AI_PICKS is off).");
+    }
+    var latest = desk && desk.picks;
+    if (latest && latest.rows && latest.rows.length && (!live || latest.date !== live.day)) {
+      el("h3", "", box, (shown ? "NEXT SESSION · " : "LATEST PICKS · ") + "PICKED " + latest.date);
+      var rows = [["WHO", "PICK", "CONV.", "WHY"]].concat(latest.rows.map(function (r) {
+        return [r.name, r.symbol + " " + r.direction, r.conviction + "/5", r.why]; }));
+      table(box, rows, [3]); shown = true;
+    }
+    if (!shown && !box.firstChild) empty(box, "No picks yet.");
+    $("picks-sub").textContent = live && live.day ? "the bot read them this morning" : "tried after 9:45 ET";
+  }
+
+  function renderScore() {
+    var box = clear($("score-body")), s = (desk && desk.scoreboard) || {}, any = false;
+    if (s.who_chose && s.who_chose.length > 1) { el("h3", "", box, "CLOSED TRADES: HIS PICKS VS THE RULES ALONE"); any = table(box, s.who_chose); }
+    if (s.picks_vs_rules && s.picks_vs_rules.length > 1) { el("h3", "", box, "EVERY PICK, JUDGED ON THE STOCK'S MOVE"); any = table(box, s.picks_vs_rules) || any; }
+    if (!any) empty(box, "Nothing to score yet: his picks need a few days to be judged.");
+  }
+
+  function renderDiary() {
+    var box = $("diary-body"), d = desk && desk.diary;
+    if (!d || !d.text) { empty(box, "No diary entry yet."); return; }
+    clear(box); el("p", "prose", box, d.text); $("diary-sub").textContent = d.heading || "";
+    var self = $("self-body"), notes = (desk && desk.self_notes) || [];
+    if (!notes.length) empty(self, "None yet."); else { var ul = el("ul", "plain", clear(self)); notes.slice().reverse().forEach(function (n) { el("li", "", ul, n); }); }
+    var rules = $("rules-body"), props = (desk && desk.proposals) || [];
+    if (!props.length) { empty(rules, "No suggestions yet. He may suggest up to three each Friday."); return; }
+    var ul2 = el("ul", "plain", clear(rules));
+    props.slice().reverse().forEach(function (p) { var li = el("li", "", ul2);
+      el("span", "st " + (p.status === "approved" ? "bought" : p.status === "declined" ? "no" : "wait"), li, p.status.toUpperCase());
+      li.appendChild(document.createTextNode(" " + p.text)); });
+  }
+
+  function status() {
+    var dot = $("statusdot"), text = $("statustext"), notes = (desk && desk.notes) || [];
+    var lastAt = notes.length ? new Date(notes[notes.length - 1].at).getTime() : 0;
+    var noteAge = lastAt ? ago((Date.now() - lastAt) / 1000) : "none yet";
+    if (!desk) { dot.className = "dot stale"; text.textContent = "CANNOT REACH HIS DESK · RETRYING"; return; }
+    if (snap && snap.market_open) { var fresh = lastAt && Date.now() - lastAt < 50 * 60000;
+      dot.className = fresh ? "dot live" : "dot stale"; text.textContent = (fresh ? "AT THE DESK" : "DESK QUIET") + " · LAST NOTE " + noteAge; }
+    else { dot.className = "dot"; text.textContent = "MARKET CLOSED · LAST NOTE " + noteAge; }
+  }
+  function render() { renderNotes(); renderPicks(); renderScore(); renderDiary(); status();
+    if (desk && desk.updated) $("foot").textContent = "Written by " + (desk.name || "Midas") + " (" + (desk.model || "local model") +
+      ") on the team's Mac mini. Feed updated " + ago((Date.now() - new Date(desk.updated).getTime()) / 1000) +
+      "; the page checks every minute, and a new note can take up to 5 minutes to arrive."; }
+  function poll() {
+    var a = fetch(DESK + "?t=" + Date.now(), { cache: "no-store" }).then(function (r) { if (!r.ok) throw r; return r.json(); })
+      .then(function (d) { desk = d; }).catch(function () {});
+    var b = fetch(API + "/api/state", { cache: "no-store" }).then(function (r) { return r.json(); })
+      .then(function (s) { snap = s; }).catch(function () {});
+    Promise.all([a, b]).then(render);
+  }
+  function clock() { try { $("clock").textContent = new Date().toLocaleTimeString("en-US", { timeZone: "America/New_York", hour12: false }) + " ET"; } catch (e) {} }
+  poll(); clock(); setInterval(poll, 60000); setInterval(function () { clock(); if (desk) status(); }, 1000);
+})();
+</script></body></html>

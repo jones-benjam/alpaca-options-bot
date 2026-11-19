@@ -38,3 +38,26 @@ launchctl bootstrap "gui/$(id -u)" "$PLIST"
 echo "Scheduled. It will run at 6:00 pm on weekdays and 6:30 am Tuesday to Saturday."
 echo "Run it now with:   $REPO/mac_mini/nightly.sh"
 echo "Its log is at:     $REPO/mac_mini/nightly.log"
+
+# Midas's live desk notes: on the hour and half hour, every day. The script checks
+# whether the market is open and exits at once when it is not, so the clock and
+# time zone do not matter. To remove it:
+#   launchctl bootout gui/$(id -u)/com.optbot.desk; rm ~/Library/LaunchAgents/com.optbot.desk.plist
+DESK_PLIST="$HOME/Library/LaunchAgents/com.optbot.desk.plist"
+cat > "$DESK_PLIST" <<PLIST_END
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+  <key>Label</key><string>com.optbot.desk</string>
+  <key>ProgramArguments</key>
+  <array><string>/bin/zsh</string><string>$REPO/mac_mini/desk.sh</string></array>
+  <key>StartCalendarInterval</key><array><dict><key>Minute</key><integer>1</integer></dict><dict><key>Minute</key><integer>31</integer></dict></array>
+  <key>StandardOutPath</key><string>$REPO/mac_mini/desk.log</string>
+  <key>StandardErrorPath</key><string>$REPO/mac_mini/desk.log</string>
+</dict>
+</plist>
+PLIST_END
+launchctl bootout "gui/$(id -u)/com.optbot.desk" 2>/dev/null || true
+launchctl bootstrap "gui/$(id -u)" "$DESK_PLIST"
+echo "Desk notes scheduled: every 30 minutes while the market is open. Log: $REPO/mac_mini/desk.log"
