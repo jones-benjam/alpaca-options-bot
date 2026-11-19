@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T17:01:36Z",
+ "updated": "2026-11-19T17:31:23Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -38,6 +38,12 @@
    "at_text": "Thu Nov 19, 12:00:04 PM ET",
    "text": "NVDA 12/11 145P just landed, up 8.9% and $880 in profit \u2013 the only new win of the day. The rest of my book is static: MSTR, COIN, PLTR, NFLX, QQQ, META, AMD still sitting; AMD is down 22.9%, so I\u2019m watching for a reversal before I cut. Market is bearish, so I\u2019m eyeing SPY 26/11 puts for a quick move, hoping the bot will buy a bigger size next tick.",
    "sleeve": 99348.5
+  },
+  {
+   "at": "2026-11-19T12:30:22-05:00",
+   "at_text": "Thu Nov 19, 12:30:22 PM ET",
+   "text": "NVDA put was booked \u2013 20 contracts at $5.01 each \u2013 while MSTR and COIN were rejected. My book\u2019s heavy hitters are PLTR, COIN, MSTR, NFLX and QQQ, all still up, but AMD is bleeding $2,010. I\u2019m watching the next MSTR put again and the AMD put, hoping the bot will finally take them.",
+   "sleeve": 97925.0
   }
  ],
  "pick_status": {
@@ -68,7 +74,7 @@
   "freed": [],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-19T12:00:04-05:00"
+  "seen": "2026-11-19T12:30:22-05:00"
  },
  "picks": {
   "date": "2026-11-18",
