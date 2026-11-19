@@ -38,6 +38,19 @@ two positions per direction).
 - While a 0DTE position is open the bot checks exits every 10 seconds instead
   of every 60, because same-day options can fall through a stop in seconds.
 
+**AI trader's picks (core engine only).**
+- Each evening the trader persona on the Mac mini (`trader.py`, a local model)
+  picks up to three of the day's signals with a conviction from 1 to 5, saved
+  to `memory/shadow_picks.csv` on GitHub.
+- The next trading day the bot tries picks of conviction 3 or more first, if
+  its rules still approve them. It never buys anything the rules reject, and
+  sizing, stops and guard rails are unchanged. Missing or stale picks mean the
+  rules trade alone. `AI_PICKS=0` turns it off.
+- Trades it chose carry `_ai<conviction>` in the order id. `memory/REVIEW.md`
+  compares them with the rules' own trades. The persona reflects daily and, on
+  Fridays, suggests rule changes in `memory/PROPOSALS.md` for a person to
+  approve.
+
 **Guard rails.**
 - Lead lock: the whole account must stay at least 5 points ahead of SPY. The
   bot may hold options worth up to twice the account's cushion above that

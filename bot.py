@@ -21,13 +21,16 @@ loop, which means it survives restarts with no local database.
     python3 bot.py memory                 # refresh the trade table and review in memory/
 """
 import argparse
+import csv
 import datetime as dt
+import io
 import json
 import math
 import os
 import re
 import time
 import traceback
+import urllib.request
 import uuid
 from collections import defaultdict
 from pathlib import Path
@@ -40,8 +43,10 @@ OCC = re.compile(r"^([A-Z]+)(\d{2})(\d{2})(\d{2})([CP])(\d{8})$")
 STATE_PATH = Path(C.STATE_FILE) if C.STATE_FILE else Path(__file__).with_name("state.json")
 LOG_PATH = Path(__file__).with_name("STRATEGY_LOG.md")
 LEGACY_PATH = Path(__file__).with_name("memory") / "legacy_tags.json"
+AI_PICKS_PATH = Path(__file__).with_name("memory") / "shadow_picks.csv"
 # Why an order was placed is written into its id, so the record lives at the
-# broker and survives restarts. Entries: e_<regime>_<signal in 1/100 of a %>.
+# broker and survives restarts. Entries: e_<regime>_<signal in 1/100 of a %>,
+# plus _ai<conviction> when the AI trader suggested it.
 # Exits: x_<one of the codes below>.
 EXIT_CODES = {
     "stop loss": "stop", "trailing stop": "trail", "breakeven stop": "be",
@@ -59,6 +64,47 @@ def order_meta(client_order_id):
     if len(parts) >= 4 and parts[2][:2] in ("e_", "x_"):
         return parts[2]
     return LEGACY.get(client_order_id, "")
+
+
+def fetch_ai_picks():
+    """The AI trader's picks file as text. On the Mac mini it is on disk; on a
+    cloud host it is read from GitHub, where the Mac mini saves it."""
+    if AI_PICKS_PATH.exists():
+        return AI_PICKS_PATH.read_text()
+    with urllib.request.urlopen(C.AI_PICKS_URL, timeout=10) as resp:
+        return resp.read().decode()
+
+
+def parse_ai_picks(text, today):
+    """The AI trader's latest picks made before `today` (YYYY-MM-DD), as
+    ({(symbol, call|put): conviction}, pick date). A pick another persona also
+    made gets one extra point; picks under AI_MIN_CONVICTION are dropped."""
+    rows = [r for r in csv.DictReader(io.StringIO(text)) if r.get("symbol") and (r.get("date") or "") < today]
+    if not rows:
+        return {}, ""
+    day = max(r["date"] for r in rows)
+    try:
+        if (dt.date.fromisoformat(today) - dt.date.fromisoformat(day)).days > C.AI_MAX_AGE_DAYS:
+            return {}, day
+    except ValueError:
+        return {}, ""
+    mine, others = {}, set()
+    for r in rows:
+        if r["date"] != day:
+            continue
+        key = (r["symbol"].strip().upper(), (r.get("direction") or "").strip())
+        try:
+            conv = int(r.get("conviction") or 0)
+        except ValueError:
+            continue
+        if (r.get("name") or C.AI_TRADER) == C.AI_TRADER:
+            mine[key] = max(mine.get(key, 0), conv)
+        else:
+            others.add(key)
+    picks = {k: min(5, c + (k in others)) for k, c in mine.items()}
+    return {k: c for k, c in picks.items() if c >= C.AI_MIN_CONVICTION}, day
+
+
 TERMINAL = {"filled", "canceled", "expired", "rejected", "done_for_day", "replaced"}
 
 
@@ -189,6 +235,8 @@ class Bot:
         self.spy_base = None               # SPY's last close before the contest began
         self.room = float("inf")           # how much more the lead lock lets the bot invest
         self.qnow = None      # set while the market is open, to age-check quotes
+        self.ai = {"for": "", "at": 0.0, "picks": {}, "day": None}  # the AI trader's picks for today
+        self.ai_said = set()  # (day, symbol, direction, reason) already logged
         self.state = {"peaks": {}, "synthetic": []}
         if STATE_PATH.exists():
             try:
@@ -647,6 +695,51 @@ class Bot:
         real_cash = float(acct.get("cash") or 0)
         return max(0.0, min(pct * equity, cash * 0.98, power, real_cash * 0.98, self.room))
 
+    # ---- the AI trader's suggestions ---------------------------------------------
+    def ai_picks(self, today):
+        """The AI trader's picks to try first today, {(symbol, kind): conviction}.
+        Read once a day; until they arrive, looked for again every 15 minutes.
+        Any failure means no picks: the bot then trades on its rules alone."""
+        if not C.AI_PICKS:
+            return {}
+        a = self.ai
+        if a["for"] == today and (a["picks"] or time.time() - a["at"] < C.AI_REFRESH_SECONDS):
+            return a["picks"]
+        try:
+            picks, day = parse_ai_picks(fetch_ai_picks(), today)
+        except Exception as err:
+            picks, day = {}, None
+            if a["for"] != today:
+                log(f"AI picks unavailable ({err}); trading on the rules alone")
+        if picks and picks != a["picks"]:
+            log(f"AI picks from {day}, tried first if the rules agree: " + ", ".join(
+                f"{s} {k} ({c}/5)" for (s, k), c in sorted(picks.items(), key=lambda x: -x[1])))
+        elif day is not None and a["for"] != today:
+            log(f"no usable AI picks for today (latest from {day or 'never'}); trading on the rules alone")
+        self.ai = {"for": today, "at": time.time(), "picks": picks, "day": day}
+        return picks
+
+    def ai_note(self, today, und, kind, why):
+        """Log, once a day, why an AI pick was not bought."""
+        if (today, und, kind, why) not in self.ai_said:
+            self.ai_said.add((today, und, kind, why))
+            log(f"AI pick {und} {kind} not bought: {why}")
+
+    def ai_rejection(self, und, kind, view, regime):
+        """Why the rules do not approve an AI pick right now, in plain words."""
+        v = view.get(und)
+        if und not in C.UNIVERSE or not v:
+            return "not in the bot's list of stocks"
+        if regime == "unknown":
+            return "the market's mood is unknown"
+        if (regime, kind) in (("bull", "put"), ("bear", "call")):
+            return f"{kind}s are off in a {regime} market"
+        up = v["px"] > v["ema10"] and v["r5"] > 0 and v["score"] > 0
+        down = v["px"] < v["ema10"] and v["r5"] < 0 and v["score"] < 0
+        if not (up if kind == "call" else down):
+            return "the trend no longer confirms it"
+        return "momentum is below the minimum"
+
     def core_entries(self, now, led, view, regime, equity, cash):
         hhmm, today = now.strftime("%H:%M"), now.date()
         if not (C.CORE_ENTRY_FROM <= hhmm < C.CORE_ENTRY_TO) or self.to_close <= C.CORE_ENTRY_MIN_TO_CLOSE:
@@ -660,23 +753,44 @@ class Bot:
         free = C.CORE_SLOTS - len(core)
         held = {p.und for p in core}
         count = {"call": sum(p.kind == "call" for p in core), "put": sum(p.kind == "put" for p in core)}
-        for strength, und, kind in self.candidates(view, regime):
+        # The AI trader's picks go first, highest conviction first; the rest
+        # keep the rules' momentum order. Only rule-approved candidates are in
+        # this list, so an AI pick can change the order but never add a trade.
+        ai = self.ai_picks(today.isoformat())
+        ranked = self.candidates(view, regime)
+        approved = {(und, kind) for _, und, kind in ranked}
+        for und, kind in ai:
+            if (und, kind) not in approved:
+                self.ai_note(today, und, kind, self.ai_rejection(und, kind, view, regime))
+        ranked = sorted(ranked, key=lambda c: -ai.get((c[1], c[2]), 0))
+        for strength, und, kind in ranked:
+            conv = ai.get((und, kind), 0)
             if free <= 0:
+                if conv:
+                    self.ai_note(today, und, kind, "every slot is full")
                 break
             key = (today, "core", und)
             if und in held or ("core", und) in led.today or self.attempts[key] >= C.MAX_ENTRY_ATTEMPTS:
+                if conv:
+                    self.ai_note(today, und, kind, "already held or tried today")
                 continue
             if regime == "mixed" and count[kind] >= max(2, C.CORE_SLOTS * 2 // 3):
                 continue
             if earnings_days(und, today) is not None:  # too close to an earnings report
+                if conv:
+                    self.ai_note(today, und, kind, "too close to its earnings report")
                 continue
             pick = self.pick_core(und, kind, view[und], today)
             if not pick:
+                if conv:
+                    self.ai_note(today, und, kind, "no option contract passed the spread and delta checks")
                 continue
             money = self.budget(C.CORE_SLOT_PCT, equity, cash)
             if C.ODTE_ENABLED:  # always keep enough back for one same-day bet
                 money = min(money, max(0.0, cash - C.ODTE_RISK_PCT * equity))
             if money < C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * equity:
+                if conv:
+                    self.ai_note(today, und, kind, "not enough cash for a proper-size bet")
                 break  # not enough cash left for a proper-size bet
             qty = int(money // (pick["ask"] * 100))
             if qty < 1:
@@ -685,8 +799,9 @@ class Bot:
             note = (
                 f"{kind} on {und}, momentum {strength:+.1%}, delta {pick['delta']:+.2f}, "
                 f"{pick['dte']} DTE, ask ${pick['ask']:.2f}, about ${qty * pick['ask'] * 100:,.0f}"
+                + (f", AI pick {conv}/5" if conv else "")
             )
-            meta = f"e_{regime}_{int(round(strength * 10000))}"
+            meta = f"e_{regime}_{int(round(strength * 10000))}" + (f"_ai{conv}" if conv else "")
             if self.buy(und, pick["symbol"], qty, "core", note, meta):
                 free -= 1
                 held.add(und)

@@ -7,11 +7,18 @@ minutes, most of it waiting for downloads.
 
 **What the Mac mini does and does not do**
 
-- It does **not** trade. The trading bot keeps running on Fly.io exactly as
-  now, and it never waits on the Mac mini.
+- It does **not** trade. The trading bot keeps running on Fly.io, and it
+  never waits on the Mac mini.
 - It reads the bot's memory from GitHub, runs the model, and saves the
   trader's writing back to GitHub.
-- If the Mac mini is off, the only thing missing is that day's diary.
+- Since Nov 19 his picks have a say: the bot on Fly.io reads them from GitHub
+  and tries the ones of conviction 3 or more first, if its rules still approve
+  them (see `AI_PICKS` in `config.py`).
+- If the Mac mini is off, that day's diary is missing and the bot trades on
+  its rules alone.
+- No Homebrew? If Homebrew on this Mac belongs to another account, install
+  the Ollama app from ollama.com and the `gh` zip from GitHub's `cli/cli`
+  releases instead. `setup.sh` skips any tool it already finds.
 
 Every command below goes in the **Terminal** app on the Mac mini (press
 Command-Space, type "Terminal", press Return). Paste one line at a time.

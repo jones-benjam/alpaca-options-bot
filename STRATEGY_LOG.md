@@ -400,6 +400,36 @@ trending, not on skill.
   for anyone whose device asks for reduced motion.
 - **Effect on trading:** None.
 
+### Wed Nov 18, 2026, 10:30 pm: The AI trader suggests, the rules decide
+- **What:** The trader persona (a local AI model on the Mac mini) already
+  picked up to three trades each evening from the day's signals, with a
+  conviction from 1 to 5, but nothing used them. From the next trading day
+  the bot reads those picks and tries the ones of conviction 3 or more
+  first, highest conviction first. A pick that another persona also made
+  gets one extra point. The rest of the slots are filled in the usual
+  momentum order.
+- **What stays the same:** The bot only buys a pick its own rules still
+  approve that morning: the market's mood, the trend, the minimum momentum,
+  the earnings blackout and the contract checks. Bet size, stops, the lead
+  lock, the kill switch and the end date are unchanged. The same-day (0DTE)
+  bets are untouched. If the picks are missing, more than four days old or
+  unreadable, the bot trades exactly as before.
+- **Why:** The rules pick stocks no better than chance (see LESSONS.md), and
+  cash is now short, so the order in which approved signals are tried
+  decides which ones get funded. The AI's picks set that order, and every
+  trade it chose is tagged so the review can compare its results with the
+  rules'.
+- **How it learns:** Each night the review lists what the bot did with each
+  suggestion (bought and how it went, or not bought and why), plus profit
+  by "AI pick" against "rules alone". The persona now reflects every day
+  instead of weekly, and on Fridays may suggest up to three rule changes in
+  `memory/PROPOSALS.md`. A suggestion changes nothing until a person
+  approves it here. The risk limits are not on the list it may suggest.
+- **Switch:** `AI_PICKS=0` on the host turns it off. `AI_MIN_CONVICTION`
+  sets the lowest conviction acted on (3).
+- **Effect on trading:** Changes which approved signals are bought first.
+  It never adds a trade the rules would not make.
+
 ## Daily record
 
 How to read the table:

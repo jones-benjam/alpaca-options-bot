@@ -345,6 +345,67 @@ def test_shadow_scoring():
     print("\n--- shadow picks scored: persona 1 of 2 right, rules judged on their top three ---")
 
 
+def test_ai_picks():
+    """The AI trader's picks go first, but only if the rules approve them."""
+    import tempfile
+
+    import live
+    import memory
+
+    picks_csv = (
+        "date,name,symbol,direction,conviction,why\n"
+        "2026-11-06,Midas,QQQ,call,5,too old: replaced by the newer day below\n"
+        "2026-11-09,Midas,SPY,call,4,rule-approved: goes first\n"
+        "2026-11-09,Midas,AAPL,put,5,puts are off in a rising market: rejected\n"
+        "2026-11-09,Midas,MSFT,call,2,below the minimum conviction: ignored\n"
+        "2026-11-09,Midas,IWM,call,2,low, but Quill agrees: lifted to 3\n"
+        "2026-11-09,Quill,IWM,call,2,agreement\n"
+        "2026-11-10,Midas,AMD,call,5,made today: not used until tomorrow\n"
+    )
+    bot.fetch_ai_picks = lambda: picks_csv
+    b, f, step = harness(trend=1)
+    led, _ = step("bull market with AI picks: SPY (4/5) and IWM (2+1) take two of the three slots")
+    assert unds(led) == ["IWM", "NVDA", "SPY"], "AI picks first, the rules' strongest fills the rest"
+    rows = {r["underlying"]: r for r in memory.build_trades(led, TZ) if r["engine"] == "core"}
+    assert (rows["SPY"]["source"], rows["SPY"]["ai_conviction"]) == ("ai", "4"), "AI trades are tagged"
+    assert (rows["IWM"]["source"], rows["NVDA"]["source"]) == ("ai", "rules")
+    assert rows["SPY"]["regime"] == "bull" and rows["SPY"]["signal_pct"] != "", "the rest of the tag still reads"
+    said = {(u, k): why for _, u, k, why in b.ai_said}
+    assert said.get(("AAPL", "put")) == "puts are off in a bull market", "a rejected pick is explained"
+    ev = next(e for e in led.events if e["side"] == "buy" and parse_und(e["symbol"]) == "SPY" and e["tag"] == "core")
+    assert live._reason(ev).endswith("AI pick 4/5"), "the dashboard says the AI chose it"
+
+    tmp = Path(tempfile.mkdtemp())
+    memory.PICKS, memory.CANDIDATES = tmp / "p.csv", tmp / "c.csv"
+    memory.PICKS.write_text(picks_csv)
+    memory.write_csv(memory.CANDIDATES, memory.CANDIDATE_FIELDS, [
+        {"date": "2026-11-10", "rank": 1, "symbol": "NVDA", "direction": "call", "strength_pct": 5, "price": 100}])
+    text = "\n".join(memory.ai_section(memory.build_trades(led, TZ)))
+    assert "| 2026-11-09 | SPY call | 4/5 | Bought, trade #" in text, "the review shows what was bought"
+    assert "| 2026-11-09 | AAPL put | 5/5 | Not bought; the rules no longer approved it |" in text
+    assert "MSFT" not in text, "picks under the minimum are not listed as suggestions"
+
+    stale = picks_csv.replace("2026-11-09", "2026-11-01").replace("2026-11-06", "2026-11-01")
+    for label, fetch in [("stale picks", lambda: stale),
+                         ("GitHub unreachable", lambda: (_ for _ in ()).throw(OSError("offline")))]:
+        bot.fetch_ai_picks = fetch
+        b, f, step = harness(trend=1)
+        led, _ = step(f"{label}: the rules trade alone")
+        assert unds(led) == ["COIN", "NVDA", "TSLA"], f"{label}: falls back to the rules"
+    C.AI_PICKS = False
+    bot.fetch_ai_picks = lambda: picks_csv
+    b, f, step = harness(trend=1)
+    led, _ = step("AI_PICKS off: the rules trade alone")
+    assert unds(led) == ["COIN", "NVDA", "TSLA"], "the switch turns it off"
+    C.AI_PICKS = True
+    bot.fetch_ai_picks = lambda: ""
+    print("\n--- AI picks: approved ones first and tagged, rejected ones explained, safe fallbacks ---")
+
+
+def parse_und(symbol):
+    return bot.parse_occ(symbol)[0]
+
+
 def test_lead_lock():
     b, f, step = harness(trend=1)
     f.now += dt.timedelta(minutes=1)
@@ -427,6 +488,7 @@ def test_live_dashboard():
 
 def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
+    bot.fetch_ai_picks = lambda: ""  # no network: no AI picks unless a test supplies them
     test_default_sizing()
     test_lead_lock()
     test_live_dashboard()
@@ -440,6 +502,7 @@ def main():
     test_peak_survives_restart()
     test_trade_memory()
     test_shadow_scoring()
+    test_ai_picks()
     print("\nALL SIMULATION CHECKS PASSED")
 
 
