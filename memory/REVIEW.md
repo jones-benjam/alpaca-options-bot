@@ -1,6 +1,6 @@
 # Review of the bot's trades
 
-Generated Thu Nov 19, 2026, 8:00 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Thu Nov 19, 2026, 9:22 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
@@ -83,6 +83,9 @@ Picks of 3/5 or more are tried first the next trading day, if the rules still ap
 | 2026-11-18 | MSTR put | 5/5 | Not bought; still a signal at the next close (slots, cash, lead-lock room or contract ran out) |
 | 2026-11-18 | COIN put | 5/5 | Not bought; still a signal at the next close (slots, cash, lead-lock room or contract ran out) |
 | 2026-11-18 | NVDA put | 4/5 | Bought, trade #22: open, no sale yet |
+| 2026-11-19 | SPY put | 4/5 | Waiting for the next trading day |
+| 2026-11-19 | TSLA put | 3/5 | Waiting for the next trading day |
+| 2026-11-19 | IWM put | 3/5 | Waiting for the next trading day |
 
 ## The trader's own picks, scored against the rules
 
