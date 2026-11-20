@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-20T16:01:27Z",
+ "updated": "2026-11-20T16:31:50Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -110,6 +110,12 @@
    "at_text": "Fri Nov 20, 11:01:00 AM ET",
    "text": "The 6\u2011leg QQQ 0DTE put just landed at $633.63, breaking the opening range and adding $1,803 to the book, while the rest of the paper stays flat. The bot passed on the SPY, TSLA and IWM puts because cash limits the size, so I'm watching those signals to see when the rules open a window. With the account up 97.1% and a $21,158 bankroll, I'm eyeing the next MSTR, COIN and NVDA puts at 34.5%, 23.8% and 23.6% to keep the engine humming.",
    "sleeve": 155934.0
+  },
+  {
+   "at": "2026-11-20T11:30:35-05:00",
+   "at_text": "Fri Nov 20, 11:30:35 AM ET",
+   "text": "QQQ 6/12 split, half sold at +103% and the remaining 3 at +33% trailing stop. My puts\u2014PLTR +201.3%, COIN +252.1%, MSTR +301.0%, NFLX +168.1%, QQQ +179.8%, META +90.3%, NVDA +160.2%, AMD +55.5%\u2014are still in play, and cash sits at$13,596. The bot skipped my SPY put for lack of cash, and I\u2019m watching the bearish market with a 103.9\u2011point lead, account up 99.8% overall and 24.3% today.",
+   "sleeve": 159943.0
   }
  ],
  "pick_status": {
@@ -146,7 +152,7 @@
     "was": 1.0
    }
   ],
-  "seen": "2026-11-20T11:01:00-05:00"
+  "seen": "2026-11-20T11:30:35-05:00"
  },
  "picks": {
   "date": "2026-11-19",
