@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-20T14:31:18Z",
+ "updated": "2026-11-20T15:01:39Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -92,37 +92,49 @@
    "at_text": "Fri Nov 20, 9:30:00 AM ET",
    "text": "My sleeve sits at $133,145 with $83,145 profit, $21,158 banked and $62,264 still open, cash $11,823. The bot is crushing my top picks: COIN 11/27 140P up 268.6%, PLTR 11/27 172.5P up 170.4%, MSTR 12/04 125P up 254.1%, and QQQ 12/04 673P up 122.8%, while AMD 12/11 455P is only up 4.7%. Signals show MSTR at 30.1% and COIN at 23.6%, so I'm watching those for a potential exit or next roll. Market remains bear, SPY down 3.0% since start, but my lead is 68.7 points.",
    "sleeve": 133145.0
+  },
+  {
+   "at": "2026-11-20T10:00:21-05:00",
+   "at_text": "Fri Nov 20, 10:00:21 AM ET",
+   "text": "All my puts are in the book: PLTR $5,050, COIN $8,702, MSTR $8,645, NFLX $5,624, QQQ $10,971, META $8,215, NVDA $8,650, AMD $20. The bot didn\u2019t buy the SPY put\u2014cash is only $11,823, not enough for a proper\u2011size bet; TSLA and IWM are on hold. Signals now: MSTR 30.2%, COIN 20.8%, NVDA 20.6%, PLTR 14.8%, AMD 9.9%, META 8.4%. I\u2019m watching the next size decision before the risk desk cuts me off.",
+   "sleeve": 127033.5
   }
  ],
  "pick_status": {
   "enabled": true,
   "free_up": true,
-  "day": "2026-11-18",
+  "day": "2026-11-19",
   "picks": [
    {
-    "symbol": "MSTR",
+    "symbol": "SPY",
     "kind": "put",
-    "conviction": 5,
-    "status": "not bought: already held or tried today"
+    "conviction": 4,
+    "status": "not bought: not enough cash for a proper-size bet"
    },
    {
-    "symbol": "COIN",
+    "symbol": "TSLA",
     "kind": "put",
-    "conviction": 5,
-    "status": "not bought: already held or tried today"
+    "conviction": 3,
+    "status": "waiting for the rules"
    },
    {
-    "symbol": "NVDA",
+    "symbol": "IWM",
     "kind": "put",
-    "conviction": 5,
-    "status": "bought"
+    "conviction": 3,
+    "status": "waiting for the rules"
    }
   ],
   "may_sell": [],
   "freed": [],
   "tuning": true,
-  "settings": [],
-  "seen": "2026-11-19T15:59:46-05:00"
+  "settings": [
+   {
+    "dial": "CORE_TRAIL_FROM",
+    "value": 1.25,
+    "was": 1.0
+   }
+  ],
+  "seen": "2026-11-20T10:00:21-05:00"
  },
  "picks": {
   "date": "2026-11-19",
