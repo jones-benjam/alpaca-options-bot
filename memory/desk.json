@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-19T21:01:19Z",
+ "updated": "2026-11-20T01:04:31Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -119,41 +119,34 @@
   "seen": "2026-11-19T15:59:46-05:00"
  },
  "picks": {
-  "date": "2026-11-18",
+  "date": "2026-11-19",
   "rows": [
    {
-    "name": "Midas",
-    "symbol": "MSTR",
-    "direction": "put",
-    "conviction": "5",
-    "why": "Massive strength 32%, I know the engine will crush this."
-   },
-   {
-    "name": "Midas",
-    "symbol": "COIN",
-    "direction": "put",
-    "conviction": "5",
-    "why": "26% strength, upside huge, can't let this pass."
-   },
-   {
-    "name": "Midas",
-    "symbol": "NVDA",
+    "name": "Dionysus",
+    "symbol": "SPY",
     "direction": "put",
     "conviction": "4",
-    "why": "21% strength, solid but less than the others, still worth it."
+    "why": "Strong bearish signal (5.95%), index diversification, good stop potential."
    },
    {
-    "name": "Quill",
-    "symbol": "NVDA",
+    "name": "Dionysus",
+    "symbol": "TSLA",
     "direction": "put",
-    "conviction": "4",
-    "why": "Signal strength 21.14% and bearish market mood justify a moderate\u2011to\u2011strong bet on a new NVDA put."
+    "conviction": "3",
+    "why": "Auto sector adds diversification, moderate signal (3.49%)."
+   },
+   {
+    "name": "Dionysus",
+    "symbol": "IWM",
+    "direction": "put",
+    "conviction": "3",
+    "why": "Small\u2011cap sector adds diversification, decent signal (4.86%)."
    }
   ]
  },
  "diary": {
-  "heading": "2026-11-18",
-  "text": "156,697 in the account, down 3.70% for the day. My sleeve at 109,911, down 5.19%. Still +59,911 since the contest start, beating the SPY that fell 0.28% today and 0.69% overall. Closed the AMD put for a -5,595 loss, -38.7%, after 0.99 days. Sold the SPY 727P at 0.98, -2,300, -50.5%, after 0.03 days because the stop hit. The market mood is falling; MSTR put at 27.8%, COIN 23.1%, NVDA 15.9%, PLTR 10.8%, NFLX 6.8%. All eight open bets are puts \u2013 a one\u2011way book that worries me. Cash is only 11,228, less than a full\u2011size bet. I still own PLTR, COIN, MSTR, MSFT, NFLX, QQQ, GOOGL, META puts. I am still ahead of the benchmark, but the risk desk's warning is loud. I crave a bigger stake. The stop hit too soon; if I had waited a bit, the trade might have paid off. Still, the engine is humming.\n\nTomorrow I want: a bigger SPY put with a higher stop\nThe risk desk says: short of real cash"
+  "heading": "2026-11-19 (preliminary)",
+  "text": "I closed two MSFT puts at $22.35, a clean win. I liquidated fifteen GOOGL puts at $4.10, a hard loss. I added eighteen SPY puts at $3.06 and sold them at $3.02, a tiny bleed. I bought twenty NVDA puts at $4.95 and three AMD puts at $30.05, adding fresh bearish bets. The MSFT trade was a profit, the GOOGL a loss, the SPY a quick exit. I opened NVDA and AMD puts on a bear mood, following the strongest signals. My account sits at $158,553, up 1.18%, beating SPY\u2019s -1.98%. My sleeve is $113,075, up 2.88%. The day feels good, but the losing streak of four closed trades gnaws. I know the risk desk\u2019s one\u2011way book warning and will adjust my sizing.\n\nTomorrow I want: a larger NVDA put with a higher stop\nThe risk desk says: short of real cash"
  },
  "self_notes": [
   "I nailed the SPY win margin but lost on AMD and SPY puts; I should tighten stop logic and avoid flipping on 0.99 days.",
@@ -170,28 +163,28 @@
  "stats": {
   "picks": {
    "ai": {
-    "scored": 0,
-    "right": 0,
-    "avg_move_pct": null
+    "scored": 3,
+    "right": 3,
+    "avg_move_pct": 3.13
    },
    "rules": {
-    "scored": 9,
-    "right": 9,
-    "avg_move_pct": 4.65
+    "scored": 12,
+    "right": 12,
+    "avg_move_pct": 4.27
    }
   },
   "trades": {
    "ai": {
-    "open": 0,
+    "open": 1,
     "closed": 0,
     "won": 0,
     "profit": 0
    },
    "rules": {
-    "open": 8,
-    "closed": 4,
-    "won": 1,
-    "profit": 1247.0
+    "open": 7,
+    "closed": 6,
+    "won": 2,
+    "profit": -6393.0
    }
   }
  },
@@ -219,9 +212,9 @@
    ],
    [
     "the rules alone",
-    "12",
-    "5 of 12",
-    "+$16,483"
+    "15",
+    "6 of 15",
+    "+$8,771"
    ]
   ],
   "picks_vs_rules": [
@@ -233,10 +226,24 @@
     "Average 5-day move"
    ],
    [
+    "Midas (AI persona)",
+    "3",
+    "3 of 3",
+    "+3.13%",
+    "too early"
+   ],
+   [
+    "Quill (AI persona)",
+    "1",
+    "1 of 1",
+    "+3.23%",
+    "too early"
+   ],
+   [
     "The rules' top three",
-    "9",
-    "9 of 9",
-    "+4.65%",
+    "12",
+    "12 of 12",
+    "+4.27%",
     "too early"
    ]
   ]

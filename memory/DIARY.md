@@ -10,3 +10,12 @@ Tomorrow I want: a bigger SPY put with a higher stop
 The risk desk says: short of real cash
 
 > **The risk desk replies** (fixed rules, not the AI): One-way book: all 8 open bets are puts. A sharp move the other way would hit every one of them together. Short of real cash: the shared account has $11,228 in cash, less than one full-size bet ($21,002). New bets will be smaller or skipped.
+
+## 2026-11-19 (preliminary)
+
+I closed two MSFT puts at $22.35, a clean win. I liquidated fifteen GOOGL puts at $4.10, a hard loss. I added eighteen SPY puts at $3.06 and sold them at $3.02, a tiny bleed. I bought twenty NVDA puts at $4.95 and three AMD puts at $30.05, adding fresh bearish bets. The MSFT trade was a profit, the GOOGL a loss, the SPY a quick exit. I opened NVDA and AMD puts on a bear mood, following the strongest signals. My account sits at $158,553, up 1.18%, beating SPY’s -1.98%. My sleeve is $113,075, up 2.88%. The day feels good, but the losing streak of four closed trades gnaws. I know the risk desk’s one‑way book warning and will adjust my sizing.
+
+Tomorrow I want: a larger NVDA put with a higher stop
+The risk desk says: short of real cash
+
+> **The risk desk replies** (fixed rules, not the AI): Stops that sold well past the 50% line: #17 GOOGL (-62%). The price moved through the stop faster than the bot could sell. Losing streak: the last 4 closed trades all lost money. One-way book: all 8 open bets are puts. A sharp move the other way would hit every one of them together. Short of real cash: the shared account has $2,859 in cash, less than one full-size bet ($23,426). New bets will be smaller or skipped.
