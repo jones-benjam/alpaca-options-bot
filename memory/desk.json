@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-20T17:31:24Z",
+ "updated": "2026-11-20T18:32:01Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -128,6 +128,12 @@
    "at_text": "Fri Nov 20, 12:30:33 PM ET",
    "text": "QQQ legs are out \u2013 I just hit +203% on the core and +33% on the trailing stop, so my sleeve stays at $169,604 on $50,000 with $10,219 cash. Midas took my SPY 685P 12/11 put at 4/5, but the TSLA and another SPY pick were left on the table today because I didn\u2019t have enough cash for a proper\u2011size bet. I\u2019m eyeing the 34.6% signal on MSTR and the 24.5% on COIN, hoping to size a new bet when the risk desk clears a larger stake.",
    "sleeve": 169603.5
+  },
+  {
+   "at": "2026-11-20T13:30:09-05:00",
+   "at_text": "Fri Nov 20, 1:30:09 PM ET",
+   "text": "The SPY 685P is up +8.7%, netting $1,640, while PLTR 172.5P has exploded to +199.1%, pulling in $6,890. Midas bought 16 contracts of the SPY 685P at $11.91, costing about $19,056. I\u2019m watching MSTR 125P (+297.2%) and COIN 140P (+259.3%) for potential size increases before the next expiry.",
+   "sleeve": 169608.0
   }
  ],
  "pick_status": {
@@ -164,7 +170,7 @@
     "was": 1.0
    }
   ],
-  "seen": "2026-11-20T12:30:33-05:00"
+  "seen": "2026-11-20T13:30:09-05:00"
  },
  "picks": {
   "date": "2026-11-19",
