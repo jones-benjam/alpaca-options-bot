@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-20T15:01:39Z",
+ "updated": "2026-11-20T15:31:38Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -98,6 +98,12 @@
    "at_text": "Fri Nov 20, 10:00:21 AM ET",
    "text": "All my puts are in the book: PLTR $5,050, COIN $8,702, MSTR $8,645, NFLX $5,624, QQQ $10,971, META $8,215, NVDA $8,650, AMD $20. The bot didn\u2019t buy the SPY put\u2014cash is only $11,823, not enough for a proper\u2011size bet; TSLA and IWM are on hold. Signals now: MSTR 30.2%, COIN 20.8%, NVDA 20.6%, PLTR 14.8%, AMD 9.9%, META 8.4%. I\u2019m watching the next size decision before the risk desk cuts me off.",
    "sleeve": 127033.5
+  },
+  {
+   "at": "2026-11-20T10:30:46-05:00",
+   "at_text": "Fri Nov 20, 10:30:46 AM ET",
+   "text": "10:30:46AM, bear mood, my QQQ11/20633P just hit+28.1% and the 6\u2011unit QQQ12/04673P is set for+160.7%. The bot rejected my SPY put because9,195cash is insufficient for a proper\u2011size bet, while TSLA and IWM remain pending. Next, I\u2019ll lock on the33.2% MSTR signal and keep the cash flow tight.",
+   "sleeve": 147084.5
   }
  ],
  "pick_status": {
@@ -134,7 +140,7 @@
     "was": 1.0
    }
   ],
-  "seen": "2026-11-20T10:00:21-05:00"
+  "seen": "2026-11-20T10:30:46-05:00"
  },
  "picks": {
   "date": "2026-11-19",
