@@ -1,11 +1,11 @@
 # Review of the bot's trades
 
-Generated Thu Nov 19, 2026, 9:22 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Fri Nov 20, 2026, 8:30 AM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
 
-- **Sleeve:** $117,128 on $50,000 of capital (+$67,128).
+- **Sleeve:** $136,137 on $50,000 of capital (+$86,137).
 - **Closed trades:** 15, of which 6 made money (40%).
 - **Banked profit or loss:** +$21,158.
 - **Typical winner and loser:** +$5,021 against -$2,373.
@@ -17,20 +17,20 @@ This report is produced by fixed rules, not by an AI model. It describes what ha
 - **Stops that sold well past the 50% line:** #17 GOOGL (-62%). The price moved through the stop faster than the bot could sell.
 - **Losing streak:** the last 4 closed trades all lost money.
 - **One-way book:** all 8 open bets are puts. A sharp move the other way would hit every one of them together.
-- **Short of real cash:** the shared account has $2,859 in cash, less than one full-size bet ($23,426). New bets will be smaller or skipped.
+- **Short of real cash:** the shared account has $2,857 in cash, less than one full-size bet ($27,227). New bets will be smaller or skipped.
 
 ## Open bets
 
 | Bet | Paid | Now | Result so far |
 |---|---|---|---|
-| 4 PLTR 11/27 172.5P | $8.65 | $19.55 | +126% |
+| 4 PLTR 11/27 172.5P | $8.65 | $25.30 | +192% |
 | 4 COIN 11/27 140P | $9.40 | $31.52 | +235% |
 | 3 MSTR 12/04 125P | $10.90 | $39.31 | +261% |
-| 23 NFLX 12/04 63P | $1.96 | $4.80 | +145% |
-| 6 QQQ 12/04 673P | $17.37 | $33.22 | +91% |
-| 5 META 12/11 625P | $30.00 | $41.29 | +38% |
-| 20 NVDA 12/11 145P | $4.95 | $7.26 | +47% |
-| 3 AMD 12/11 455P | $30.05 | $23.13 | -23% |
+| 23 NFLX 12/04 63P | $1.96 | $4.74 | +142% |
+| 6 QQQ 12/04 673P | $17.37 | $43.44 | +150% |
+| 5 META 12/11 625P | $30.00 | $56.90 | +90% |
+| 20 NVDA 12/11 145P | $4.95 | $9.98 | +102% |
+| 3 AMD 12/11 455P | $30.05 | $36.02 | +20% |
 
 ## Where the profit and loss came from
 

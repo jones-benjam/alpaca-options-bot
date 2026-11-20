@@ -8,3 +8,10 @@ Written by the trader persona (a local AI model) when he looks back over each da
 - I over-extended on puts; all 8 open bets are one-way, risking a market swing; I need a more balanced book before scaling.
 - My urge to double size is killing the sleeve; I must honor the $21,240 rule and not chase bigger stakes with limited cash.
 - I missed the benefit of trailing stops; all winners were cut early, so next time I'll keep the trailing trail longer.
+
+## 2026-11-19
+
+- I nailed the MSFT put, taking a 38.9% profit, proving the half+trail exit works when the price stays in range.
+- The GOOGL put loss shows stops lagging; I need tighter stops or a quicker exit to avoid slippage.
+- All eight open bets are puts, creating a one‑way book that risks a market swing; I must add calls or spread to balance.
+- Cash is 2,857, less than a full‑size bet of 27,227; I’ll size down or wait for more liquidity before adding

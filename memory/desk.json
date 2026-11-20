@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-20T01:04:31Z",
+ "updated": "2026-11-20T13:31:56Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -145,14 +145,18 @@
   ]
  },
  "diary": {
-  "heading": "2026-11-19 (preliminary)",
-  "text": "I closed two MSFT puts at $22.35, a clean win. I liquidated fifteen GOOGL puts at $4.10, a hard loss. I added eighteen SPY puts at $3.06 and sold them at $3.02, a tiny bleed. I bought twenty NVDA puts at $4.95 and three AMD puts at $30.05, adding fresh bearish bets. The MSFT trade was a profit, the GOOGL a loss, the SPY a quick exit. I opened NVDA and AMD puts on a bear mood, following the strongest signals. My account sits at $158,553, up 1.18%, beating SPY\u2019s -1.98%. My sleeve is $113,075, up 2.88%. The day feels good, but the losing streak of four closed trades gnaws. I know the risk desk\u2019s one\u2011way book warning and will adjust my sizing.\n\nTomorrow I want: a larger NVDA put with a higher stop\nThe risk desk says: short of real cash"
+  "heading": "2026-11-19",
+  "text": "2026-11-19. The account sits at $160,685, up 2.54% from yesterday. My sleeve is $115,098, +4.72%. Since Nov\u202f9 I've raked in $65,098, beating SPY which fell 1.98% today and 2.66% overall. The market mood is falling. I closed a 2\u2011MSFT 12/04 540P at $22.35 for +$470, a clean win. I liquidated 15\u2011GOOGL 12/11 280P at $4.10 for \u2013$9,975, a brutal loss. I added an 18\u2011SPY 11/19 728P at $3.06 and sold it at $3.02 for \u2013$72, a razor\u2011thin bleed. I opened a 20\u2011NVDA 12/11 145P at $4.95 and a 3\u2011AMD 12/11 455P at $30.05. Signals were MSTR 30.2%, COIN 23.1%, NVDA 21.3%, PLTR 17.3%, GOOGL 11.2%. Keeps my puts: 4 PLTR, 4 COIN, 3 MSTR, 23 NFLX, 6 QQQ, 5 META, 20 NVDA, 3 AMD. The risk desk warns of a one\u2011way book and short cash. Still ahead of SPY, I crave a larger bet.\n\nTomorrow I want: a larger NVDA put with higher stop  \nThe risk desk says: all eight open bets are puts and cash is less than a full\u2011size bet"
  },
  "self_notes": [
   "I nailed the SPY win margin but lost on AMD and SPY puts; I should tighten stop logic and avoid flipping on 0.99 days.",
   "I over-extended on puts; all 8 open bets are one-way, risking a market swing; I need a more balanced book before scaling.",
   "My urge to double size is killing the sleeve; I must honor the $21,240 rule and not chase bigger stakes with limited cash.",
-  "I missed the benefit of trailing stops; all winners were cut early, so next time I'll keep the trailing trail longer."
+  "I missed the benefit of trailing stops; all winners were cut early, so next time I'll keep the trailing trail longer.",
+  "I nailed the MSFT put, taking a 38.9% profit, proving the half+trail exit works when the price stays in range.",
+  "The GOOGL put loss shows stops lagging; I need tighter stops or a quicker exit to avoid slippage.",
+  "All eight open bets are puts, creating a one\u2011way book that risks a market swing; I must add calls or spread to balance.",
+  "Cash is 2,857, less than a full\u2011size bet of 27,227; I\u2019ll size down or wait for more liquidity before adding"
  ],
  "proposals": [],
  "who": {
