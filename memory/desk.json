@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-20T15:31:38Z",
+ "updated": "2026-11-20T16:01:27Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -104,6 +104,12 @@
    "at_text": "Fri Nov 20, 10:30:46 AM ET",
    "text": "10:30:46AM, bear mood, my QQQ11/20633P just hit+28.1% and the 6\u2011unit QQQ12/04673P is set for+160.7%. The bot rejected my SPY put because9,195cash is insufficient for a proper\u2011size bet, while TSLA and IWM remain pending. Next, I\u2019ll lock on the33.2% MSTR signal and keep the cash flow tight.",
    "sleeve": 147084.5
+  },
+  {
+   "at": "2026-11-20T11:01:00-05:00",
+   "at_text": "Fri Nov 20, 11:01:00 AM ET",
+   "text": "The 6\u2011leg QQQ 0DTE put just landed at $633.63, breaking the opening range and adding $1,803 to the book, while the rest of the paper stays flat. The bot passed on the SPY, TSLA and IWM puts because cash limits the size, so I'm watching those signals to see when the rules open a window. With the account up 97.1% and a $21,158 bankroll, I'm eyeing the next MSTR, COIN and NVDA puts at 34.5%, 23.8% and 23.6% to keep the engine humming.",
+   "sleeve": 155934.0
   }
  ],
  "pick_status": {
@@ -140,7 +146,7 @@
     "was": 1.0
    }
   ],
-  "seen": "2026-11-20T10:30:46-05:00"
+  "seen": "2026-11-20T11:01:00-05:00"
  },
  "picks": {
   "date": "2026-11-19",
