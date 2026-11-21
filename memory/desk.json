@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-20T21:01:18Z",
+ "updated": "2026-11-21T01:05:11Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -203,34 +203,41 @@
   "seen": "2026-11-20T15:59:44-05:00"
  },
  "picks": {
-  "date": "2026-11-19",
+  "date": "2026-11-20",
   "rows": [
    {
     "name": "Dionysus",
-    "symbol": "SPY",
+    "symbol": "MSFT",
+    "direction": "put",
+    "conviction": "5",
+    "why": "Past win 38.9%, strong signal 7.25%."
+   },
+   {
+    "name": "Dionysus",
+    "symbol": "AVGO",
     "direction": "put",
     "conviction": "4",
-    "why": "Strong bearish signal (5.95%), index diversification, good stop potential."
+    "why": "Reasonable strength 9.11%, good for diversification."
    },
    {
     "name": "Dionysus",
     "symbol": "TSLA",
     "direction": "put",
     "conviction": "3",
-    "why": "Auto sector adds diversification, moderate signal (3.49%)."
+    "why": "Above 8% strength, adds position."
    },
    {
-    "name": "Dionysus",
-    "symbol": "IWM",
+    "name": "Quill",
+    "symbol": "MSFT",
     "direction": "put",
-    "conviction": "3",
-    "why": "Small\u2011cap sector adds diversification, decent signal (4.86%)."
+    "conviction": "4",
+    "why": "Past success with MSFT put, signal strength 7.25%, bearish market mood"
    }
   ]
  },
  "diary": {
-  "heading": "2026-11-19",
-  "text": "2026-11-19. The account sits at $160,685, up 2.54% from yesterday. My sleeve is $115,098, +4.72%. Since Nov\u202f9 I've raked in $65,098, beating SPY which fell 1.98% today and 2.66% overall. The market mood is falling. I closed a 2\u2011MSFT 12/04 540P at $22.35 for +$470, a clean win. I liquidated 15\u2011GOOGL 12/11 280P at $4.10 for \u2013$9,975, a brutal loss. I added an 18\u2011SPY 11/19 728P at $3.06 and sold it at $3.02 for \u2013$72, a razor\u2011thin bleed. I opened a 20\u2011NVDA 12/11 145P at $4.95 and a 3\u2011AMD 12/11 455P at $30.05. Signals were MSTR 30.2%, COIN 23.1%, NVDA 21.3%, PLTR 17.3%, GOOGL 11.2%. Keeps my puts: 4 PLTR, 4 COIN, 3 MSTR, 23 NFLX, 6 QQQ, 5 META, 20 NVDA, 3 AMD. The risk desk warns of a one\u2011way book and short cash. Still ahead of SPY, I crave a larger bet.\n\nTomorrow I want: a larger NVDA put with higher stop  \nThe risk desk says: all eight open bets are puts and cash is less than a full\u2011size bet"
+  "heading": "2026-11-20 (preliminary)",
+  "text": "Today I doubled on QQQ puts and added a SPY put. I bought 6 QQQ 11/20 633P at $4.38, then sold 3 at $8.82 for $1,332 profit and 3 at $5.85 for $441 profit. I also sold 3 QQQ 12/04 673P at $51.57 for $10,260 profit. I bought 16 SPY 12/11 685P at $11.78 and sold 10 NVDA 12/11 145P at $14.90 for $9,950 profit. The whole account is $239,057, up 48.77%; my sleeve is $195,698, up 70.03%. Since Nov\u202f9 I\u2019ve made +$145,698, beating SPY which fell 3.51% today and 6.08% overall. Market mood is falling, with MSTR 36.0%, NVDA 27.9%, COIN 27.9%, PLTR 18.6%, AMD 18.5%. The risk desk warns of a one\u2011way book of puts and that we are short of real cash. I\u2019m hungry for a larger stake, but the limits stay.\n\nTomorrow I want: a larger SPY put with a higher stop  \nThe risk desk says: short of real cash"
  },
  "self_notes": [
   "I nailed the SPY win margin but lost on AMD and SPY puts; I should tighten stop logic and avoid flipping on 0.99 days.",
@@ -247,23 +254,29 @@
   "ai": "Dionysus",
   "bot": "Midas"
  },
- "free_up": [],
+ "free_up": [
+  {
+   "symbol": "NVDA",
+   "direction": "put",
+   "why": "Sell part to free cash for new bet."
+  }
+ ],
  "stats": {
   "picks": {
    "ai": {
-    "scored": 3,
-    "right": 3,
-    "avg_move_pct": 3.13
+    "scored": 6,
+    "right": 6,
+    "avg_move_pct": 3.88
    },
    "rules": {
-    "scored": 12,
-    "right": 12,
-    "avg_move_pct": 4.27
+    "scored": 15,
+    "right": 15,
+    "avg_move_pct": 5.41
    }
   },
   "trades": {
    "ai": {
-    "open": 1,
+    "open": 2,
     "closed": 0,
     "won": 0,
     "profit": 0
@@ -286,6 +299,18 @@
     "by": "Dionysus",
     "proposed": "2026-11-18",
     "effective": "2026-11-20",
+    "status": "active"
+   },
+   {
+    "dial": "CORE_STOP",
+    "from": -0.5,
+    "to": -0.375,
+    "why": "The stop loss trade lost -62%, far worse than the -50% stop. Tightening to -0.375 reduces potential loss.",
+    "evidence": "\"average -62%\"",
+    "check_why": "The record shows the sole stop\u2011loss trade lost -62%, so raising the stop\u2011loss threshold to -37.5% would reduce potential loss.",
+    "by": "Dionysus",
+    "proposed": "2026-11-20",
+    "effective": "2026-11-23",
     "status": "pending"
    }
   ]
@@ -300,9 +325,9 @@
    ],
    [
     "the rules alone",
-    "15",
-    "6 of 15",
-    "+$8,771"
+    "16",
+    "7 of 16",
+    "+$10,544"
    ]
   ],
   "picks_vs_rules": [
@@ -312,6 +337,13 @@
     "Right after 1 day",
     "Average 1-day move",
     "Average 5-day move"
+   ],
+   [
+    "Dionysus (AI persona)",
+    "3",
+    "3 of 3",
+    "+4.63%",
+    "too early"
    ],
    [
     "Midas (AI persona)",
@@ -329,10 +361,10 @@
    ],
    [
     "The rules' top three",
-    "12",
-    "12 of 12",
-    "+4.27%",
-    "too early"
+    "15",
+    "15 of 15",
+    "+5.41%",
+    "+24.37%"
    ]
   ]
  }

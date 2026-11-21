@@ -1,11 +1,11 @@
 # Review of the bot's trades
 
-Generated Fri Nov 20, 2026, 3:48 PM ET by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Fri Nov 20, 2026, 8:00 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
 
-- **Sleeve:** $196,206 on $50,000 of capital (+$146,206).
+- **Sleeve:** $199,806 on $50,000 of capital (+$149,806).
 - **Closed trades:** 16, of which 7 made money (44%).
 - **Banked profit or loss:** +$43,141.
 - **Typical winner and loser:** +$4,557 against -$2,373.
@@ -16,21 +16,21 @@ This report is produced by fixed rules, not by an AI model. It describes what ha
 
 - **Stops that sold well past the 50% line:** #17 GOOGL (-62%). The price moved through the stop faster than the bot could sell.
 - **One-way book:** all 9 open bets are puts. A sharp move the other way would hit every one of them together.
-- **Short of real cash:** the shared account has $16,152 in cash, less than one full-size bet ($39,241). New bets will be smaller or skipped.
+- **Short of real cash:** the shared account has $16,152 in cash, less than one full-size bet ($39,961). New bets will be smaller or skipped.
 
 ## Open bets
 
 | Bet | Paid | Now | Result so far |
 |---|---|---|---|
-| 4 PLTR 11/27 172.5P | $8.65 | $28.23 | +226% |
-| 4 COIN 11/27 140P | $9.40 | $36.45 | +288% |
-| 3 MSTR 12/04 125P | $10.90 | $46.63 | +328% |
-| 23 NFLX 12/04 63P | $1.96 | $6.12 | +212% |
-| 3 QQQ 12/04 673P | $17.37 | $62.59 | +260% |
-| 5 META 12/11 625P | $30.00 | $66.56 | +122% |
-| 10 NVDA 12/11 145P | $4.95 | $19.55 | +295% |
-| 3 AMD 12/11 455P | $30.05 | $54.92 | +83% |
-| 16 SPY 12/11 685P | $11.78 | $18.18 | +54% |
+| 4 PLTR 11/27 172.5P | $8.65 | $29.94 | +246% |
+| 4 COIN 11/27 140P | $9.40 | $36.48 | +288% |
+| 3 MSTR 12/04 125P | $10.90 | $46.50 | +327% |
+| 23 NFLX 12/04 63P | $1.96 | $6.60 | +237% |
+| 3 QQQ 12/04 673P | $17.37 | $62.19 | +258% |
+| 5 META 12/11 625P | $30.00 | $67.69 | +126% |
+| 10 NVDA 12/11 145P | $4.95 | $21.84 | +341% |
+| 3 AMD 12/11 455P | $30.05 | $56.99 | +90% |
+| 16 SPY 12/11 685P | $11.78 | $17.21 | +46% |
 
 ## Where the profit and loss came from
 
@@ -93,10 +93,10 @@ Neither set is traded. Each pick is judged on what the stock did afterwards, in 
 
 | | Picks scored | Right after 1 day | Average 1-day move | Average 5-day move |
 |---|---|---|---|---|
-| Dionysus (AI persona) | 3 | 3 of 3 | +4.28% | too early |
+| Dionysus (AI persona) | 3 | 3 of 3 | +4.63% | too early |
 | Midas (AI persona) | 3 | 3 of 3 | +3.13% | too early |
 | Quill (AI persona) | 1 | 1 of 1 | +3.23% | too early |
-| The rules' top three | 15 | 15 of 15 | +5.12% | +23.16% |
+| The rules' top three | 15 | 15 of 15 | +5.41% | +24.37% |
 
 ## Where the rest of the memory lives
 

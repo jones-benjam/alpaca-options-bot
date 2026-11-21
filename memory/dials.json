@@ -8,8 +8,20 @@
    "by": "Dionysus",
    "proposed": "2026-11-18",
    "effective": "2026-11-20",
+   "status": "active"
+  },
+  {
+   "dial": "CORE_STOP",
+   "from": -0.5,
+   "to": -0.375,
+   "why": "The stop loss trade lost -62%, far worse than the -50% stop. Tightening to -0.375 reduces potential loss.",
+   "evidence": "\"average -62%\"",
+   "check_why": "The record shows the sole stop\u2011loss trade lost -62%, so raising the stop\u2011loss threshold to -37.5% would reduce potential loss.",
+   "by": "Dionysus",
+   "proposed": "2026-11-20",
+   "effective": "2026-11-23",
    "status": "pending"
   }
  ],
- "updated": "2026-11-19T13:31:35Z"
+ "updated": "2026-11-21T01:05:11Z"
 }

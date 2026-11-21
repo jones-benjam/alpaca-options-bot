@@ -9,3 +9,8 @@ date,name,symbol,direction,conviction,why
 2026-11-19,Dionysus,IWM,put,3,"Small‑cap sector adds diversification, decent signal (4.86%)."
 2026-11-19,Prudence,,,,passed
 2026-11-19,Quill,,,,passed
+2026-11-20,Dionysus,MSFT,put,5,"Past win 38.9%, strong signal 7.25%."
+2026-11-20,Dionysus,AVGO,put,4,"Reasonable strength 9.11%, good for diversification."
+2026-11-20,Dionysus,TSLA,put,3,"Above 8% strength, adds position."
+2026-11-20,Prudence,,,,passed
+2026-11-20,Quill,MSFT,put,4,"Past success with MSFT put, signal strength 7.25%, bearish market mood"
