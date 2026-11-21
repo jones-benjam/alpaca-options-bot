@@ -15,3 +15,9 @@ Written by the trader persona (a local AI model) when he looks back over each da
 - The GOOGL put loss shows stops lagging; I need tighter stops or a quicker exit to avoid slippage.
 - All eight open bets are puts, creating a one‑way book that risks a market swing; I must add calls or spread to balance.
 - Cash is 2,857, less than a full‑size bet of 27,227; I’ll size down or wait for more liquidity before adding
+
+## 2026-11-20
+
+- I nailed the trailing stops on QQQ, keeping winners alive and avoiding early cuts.
+- I over‑extended on puts, creating a one‑way book that risked a market swing.
+- I let a

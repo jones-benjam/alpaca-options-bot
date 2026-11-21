@@ -1,6 +1,6 @@
 # Review of the bot's trades
 
-Generated Fri Nov 20, 2026, 9:23 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Sat Nov 21, 2026, 8:30 AM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
@@ -16,7 +16,7 @@ This report is produced by fixed rules, not by an AI model. It describes what ha
 
 - **Stops that sold well past the 50% line:** #17 GOOGL (-62%). The price moved through the stop faster than the bot could sell.
 - **One-way book:** all 9 open bets are puts. A sharp move the other way would hit every one of them together.
-- **Short of real cash:** the shared account has $16,152 in cash, less than one full-size bet ($39,961). New bets will be smaller or skipped.
+- **Short of real cash:** the shared account has $16,151 in cash, less than one full-size bet ($39,961). New bets will be smaller or skipped.
 
 ## Open bets
 
