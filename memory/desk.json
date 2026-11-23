@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23T16:01:19Z",
+ "updated": "2026-11-23T16:31:16Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -188,6 +188,12 @@
    "at_text": "Mon Nov 23, 11:00:18 AM ET",
    "text": "AMD puts just landed in the book, AVGO put added, and the MSFT put closed for a small loss. The META trailing stop just exited for +42%, leaving a $10,595 open balance. With the lead over SPY locked and a bear mood, I'm hunting the PLTR put or other high\u2011probability opportunities before the day ends.",
    "sleeve": 107951.0
+  },
+  {
+   "at": "2026-11-23T11:30:35-05:00",
+   "at_text": "Mon Nov 23, 11:30:35 AM ET",
+   "text": "The book is still tilting bearish, my two winning MSTR and NFLX puts have gained 241.3% and 160.7% respectively, while the AMD and COIN puts are digging 14.7% and 17.8% losses. The bot has only filled my AVGO and MSFT picks today, leaving the TSLA put out because the trend no longer confirms it. I'm eyeing the next 23.7% MSTR and 16.6% COIN signals and will consider a new entry if the momentum lines hold.",
+   "sleeve": 106475.0
   }
  ],
  "pick_status": {
@@ -231,7 +237,7 @@
     "was": -0.5
    }
   ],
-  "seen": "2026-11-23T11:00:18-05:00"
+  "seen": "2026-11-23T11:30:35-05:00"
  },
  "picks": {
   "date": "2026-11-20",
