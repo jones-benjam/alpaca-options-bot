@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23T17:01:55Z",
+ "updated": "2026-11-23T17:31:12Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -200,6 +200,12 @@
    "at_text": "Mon Nov 23, 12:00:50 PM ET",
    "text": "12/04 MSTR 125P has surged +251.1%, $8,211, and NFLX 12/04 63P is +168.1%, $7,578, while COIN 12/11 105P is -13.8%, -$3,268 and AMD 12/11 430P is -14.2%, -$1,588; AVGO 12/11 297.5P is up +3.3%, $510. The bot bought MSFT 12/11 487.5P (5/5) and AVGO 12/11 297.5P (4/5) but rejected TSLA 12/11 3/5 due to trend; it also sold 5 x META261211P00625000 at a +42% trailing stop. Next I\u2019ll keep an eye on MSTR put 24.2%, COIN put 17.1%, AMD put 10.6%, PLTR put 9.0%, NFLX put 6.7% and AVGO put 6.4% for a fresh play.",
    "sleeve": 108800.5
+  },
+  {
+   "at": "2026-11-23T12:30:06-05:00",
+   "at_text": "Mon Nov 23, 12:30:06 PM ET",
+   "text": "Current market mood is bear, and my sleeve sits at $109,935 with $12,577 open and $47,357 banked; cash is $15,494. The bot bought my MSFT 487.5P and AVGO 297.5P, but skipped TSLA because the trend changed. I\u2019m eyeing MSTR 12/04 125P and NFLX 12/04 63P that are up, but I need to watch COIN and AMD for possible exits as they\u2019re down.",
+   "sleeve": 109935.0
   }
  ],
  "pick_status": {
@@ -243,7 +249,7 @@
     "was": -0.5
    }
   ],
-  "seen": "2026-11-23T12:00:50-05:00"
+  "seen": "2026-11-23T12:30:06-05:00"
  },
  "picks": {
   "date": "2026-11-20",
