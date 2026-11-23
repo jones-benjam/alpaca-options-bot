@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-23T20:32:20Z",
+ "updated": "2026-11-23T21:01:33Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-19T09:30:00-05:00",
-   "at_text": "Thu Nov 19, 9:30:00 AM ET",
-   "text": "MSTR 125P is up +194.4% at $6,356, COIN 140P +184.1% at $6,924, PLTR 172.5P +93.6% at $3,240, while GOOGL 280P is down \u201359.2% at \u2013$9,540 and META 625P \u201318.4% at \u2013$2,755. The bot is holding 25.5% of its MSTR signal, 20.5% on COIN, 15.9% on NVDA, 10.9% on PLTR, 6.5% on NFLX, and 3.4% on QQQ\u2014so I\u2019m watching those for new entries. My sleeve sits at $100,076 on $50,000, with $12,816 still open and $30,735 banked; cash $20,190. Market is bearish, but my 33.8\u2011point lead on SPY keeps me comfortable.",
-   "sleeve": 100075.5
-  },
   {
    "at": "2026-11-19T10:00:26-05:00",
    "at_text": "Thu Nov 19, 10:00:26 AM ET",
@@ -242,6 +236,12 @@
    "at_text": "Mon Nov 23, 3:31:22 PM ET",
    "text": "The MSTR 125 put is still up 264.4% at $8,648, NFLX 63P 151.8% at $6,842, and PLTR 165C 10.4% at $648, while the only downside so far is the AVGO 297.5P drop of $600. The bot bought my MSFT 487.5P and AVGO 297.5P, but left TSLA 105P on the table because puts are off in this bear market. Cash sits at $9,254, and I\u2019m eyeing the new PLTR call at $6,192 that just hit the book, hoping a rebound will let me roll it into a bigger position. I\u2019ll keep an eye on the 26.1% MSTR call signal and the 18.4% COIN call, ready to size up when the risk desk clears.",
    "sleeve": 109919.0
+  },
+  {
+   "at": "2026-11-23T15:59:28-05:00",
+   "at_text": "Mon Nov 23, 3:59:28 PM ET",
+   "text": "Right now, my sleeve sits at $103,212 on $50,000, profit $53,212, banked $39,552, open $13,660, cash $12,394. MSTR 12/04 125P is +269.4% at $8,811, NFLX 12/04 63P +170.4% $7,682, PLTR 12/04 165C +17.4% $1,088, COIN 12/04 116C -8.3% -$1,768, AMD 12/04 487.5C -1.3% -$160, AVGO 12/04 330C -6.7% -$1,345, META 12/07 625C -7.2% -$648. The bot bought MSFT put (5/5) and AVGO put (4/5), skipped TSLA put (3/5) because puts are off in a bear market, and now I'm watching the COIN call pile of 68 contracts at $3.13 each and the AMD call of 6 contracts at $15.44.",
+   "sleeve": 103211.8
   }
  ],
  "pick_status": {
@@ -278,7 +278,7 @@
     "was": 1.0
    }
   ],
-  "seen": "2026-11-23T15:31:22-05:00"
+  "seen": "2026-11-23T15:59:28-05:00"
  },
  "picks": {
   "date": "2026-11-20",
