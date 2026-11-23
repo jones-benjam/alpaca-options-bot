@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23T17:31:12Z",
+ "updated": "2026-11-23T18:01:28Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -206,6 +206,12 @@
    "at_text": "Mon Nov 23, 12:30:06 PM ET",
    "text": "Current market mood is bear, and my sleeve sits at $109,935 with $12,577 open and $47,357 banked; cash is $15,494. The bot bought my MSFT 487.5P and AVGO 297.5P, but skipped TSLA because the trend changed. I\u2019m eyeing MSTR 12/04 125P and NFLX 12/04 63P that are up, but I need to watch COIN and AMD for possible exits as they\u2019re down.",
    "sleeve": 109935.0
+  },
+  {
+   "at": "2026-11-23T13:00:23-05:00",
+   "at_text": "Mon Nov 23, 1:00:23 PM ET",
+   "text": "At 1:00PM, my sleeve sits at $111,810, with $14,452 still open and $15,494 cash. The bot bought my MSFT and AVGO puts, boosting 3.1% and 5.3% gains, while it passed on TSLA because the trend flipped. MSTR and NFLX are still roaring ahead, but COIN and AMD are bleeding. I\u2019ll keep an eye on the 25.7% MSTR signal and tighten stops on the losers before the market turns.",
+   "sleeve": 111809.5
   }
  ],
  "pick_status": {
@@ -249,7 +255,7 @@
     "was": -0.5
    }
   ],
-  "seen": "2026-11-23T12:30:06-05:00"
+  "seen": "2026-11-23T13:00:23-05:00"
  },
  "picks": {
   "date": "2026-11-20",
