@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23T19:01:29Z",
+ "updated": "2026-11-23T19:31:23Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -224,6 +224,12 @@
    "at_text": "Mon Nov 23, 2:00:55 PM ET",
    "text": "The MSTR put just closed at +278.4% ($9,103) and NFLX is still up +161.2% ($7,268) \u2013 the big winners on my desk. The bot bought the MSFT (5/5) and AVGO (4/5) puts, but it let TSLA go because the trend flipped. My account is at $157,372, +57.4% since the start, but down -33.9% today, and my sleeve has $63,398 profit, $47,357 banked, $16,040 open, and $15,494 cash. I\u2019m watching the PLTR signal at 9.6% and the other puts for any quick moves before I add a call to balance the book.",
    "sleeve": 113397.5
+  },
+  {
+   "at": "2026-11-23T14:30:49-05:00",
+   "at_text": "Mon Nov 23, 2:30:49 PM ET",
+   "text": "The bot just bought my MSFT 12/11 487.5P and AVGO 12/11 297.5P, but ignored TSLA because puts are off in a bear. My sleeve sits at $110,491, with $13,134 still open and $9,254 cash, while the book still lags with a $8,914 win on MSTR and $6,866 on NFLX. I'm adding 16 PLTR 12/04 165C calls to tilt back toward calls, watching the 26.3% MSTR call and 9.1% PLTR call signals for the next move.",
+   "sleeve": 110491.0
   }
  ],
  "pick_status": {
@@ -247,12 +253,10 @@
     "symbol": "TSLA",
     "kind": "put",
     "conviction": 3,
-    "status": "not bought: the trend no longer confirms it"
+    "status": "not bought: puts are off in a bear market"
    }
   ],
-  "may_sell": [
-   "NVDA put"
-  ],
+  "may_sell": [],
   "freed": [],
   "tuning": true,
   "settings": [
@@ -260,14 +264,9 @@
     "dial": "CORE_TRAIL_FROM",
     "value": 1.25,
     "was": 1.0
-   },
-   {
-    "dial": "CORE_STOP",
-    "value": -0.375,
-    "was": -0.5
    }
   ],
-  "seen": "2026-11-23T14:00:55-05:00"
+  "seen": "2026-11-23T14:30:49-05:00"
  },
  "picks": {
   "date": "2026-11-20",
