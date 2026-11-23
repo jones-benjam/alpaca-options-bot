@@ -20,8 +20,10 @@
    "by": "Dionysus",
    "proposed": "2026-11-20",
    "effective": "2026-11-23",
-   "status": "pending"
+   "status": "vetoed",
+   "vetoed_on": "2026-11-23",
+   "vetoed_by": "a person"
   }
  ],
- "updated": "2026-11-21T01:05:11Z"
+ "updated": "2026-11-23T19:11:44Z"
 }

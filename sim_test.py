@@ -224,8 +224,8 @@ def test_late_trail():
     today, exp = dt.date(2026, 11, 19), dt.date(2026, 12, 11)
     end = C.END_DATE
     C.END_DATE = ""
-    assert bot.must_sell_by(exp) == dt.date(2026, 12, 7) and bot.core_trail(exp, today) == C.CORE_TRAIL
-    assert bot.core_trail(dt.date(2026, 11, 27), today) == C.CORE_TRAIL_LATE, "time stop on Nov 23 is close"
+    assert bot.must_sell_by(exp) == dt.date(2026, 12, 9) and bot.core_trail(exp, today) == C.CORE_TRAIL
+    assert bot.core_trail(dt.date(2026, 11, 27), today) == C.CORE_TRAIL_LATE, "time stop on Nov 25 is close"
     C.END_DATE = "2026-12-02"
     assert bot.must_sell_by(exp) == dt.date(2026, 12, 2), "the end date comes first"
     assert bot.core_trail(exp, dt.date(2026, 11, 26)) == C.CORE_TRAIL_LATE, "the end date is close"
@@ -250,8 +250,8 @@ def test_odte_follows_regime():
     b, f, step = harness(trend=-1)  # falling market: the bot should read "bear"
 
     f.range = (90.0, 89.0)  # price is far above the morning range: an upside breakout
-    led, _ = step("bear market, upside breakout: expect core puts and NO 0DTE call")
-    assert all(p.kind == "put" for p in led.pos.values()), "bear market means puts only"
+    led, _ = step("bear market, upside breakout: expect core dip calls and NO 0DTE call")
+    assert led.pos and all(p.kind == "call" and p.dip for p in led.pos.values()), "a falling market means dip calls"
     assert not unds(led, "odte"), "0DTE must not trade against the regime"
 
     f.range = (99.9, 99.0)  # now price is below the morning range: a downside breakout
@@ -532,6 +532,27 @@ def parse_und(symbol):
     return bot.parse_occ(symbol)[0]
 
 
+def test_buy_the_dip():
+    """In a falling market Midas buys calls on the weakest stocks and holds them through the trend check."""
+    b, f, step = harness(trend=-1)
+    f.range = (90.0, 89.0)   # no same-day bet in this test
+    led, _ = step("falling market: expect dip calls, not puts")
+    core = {s: p for s, p in led.pos.items() if p.tag == "core"}
+    assert core and all(p.kind == "call" and p.dip for p in core.values()), "dip calls in a bear market"
+    again = bot.Bot(dry=False)
+    again.api = f
+    assert all(p.dip for s, p in again.build_ledger(f.now).pos.items() if s in core), "a restart still knows they are dip calls"
+    f.now = f.now.replace(hour=15, minute=35)
+    led, _ = step("3:36pm, stocks still below trend: dip calls must not be sold as a trend flip")
+    assert all(s in led.pos for s in core), "the trend-flip exit leaves dip calls alone"
+    view, regime = b.market_view(f.now)
+    C.BEAR_BUY_DIPS = False
+    ranked = b.candidates(view, regime)
+    C.BEAR_BUY_DIPS = True
+    assert regime == "bear" and ranked and all(k == "put" for _, _, k in ranked), "the switch goes back to puts"
+    print("\n--- buy the dip: calls in a falling market, kept through the trend check, restart-safe ---")
+
+
 def test_lead_lock():
     b, f, step = harness(trend=1)
     f.now += dt.timedelta(minutes=1)
@@ -674,13 +695,17 @@ def main():
     C.CORE_MIN_STRENGTH = 0.0  # let the slow synthetic names qualify as replacements
     bot.fetch_ai_picks = bot.fetch_free_up = bot.fetch_dials = lambda: ""  # no network: nothing from Dionysus unless a test supplies it
     test_default_sizing()
+    C.LOCK_ENABLED = True   # off in live trading; its logic stays tested
     test_lead_lock()
+    C.LOCK_ENABLED = False
+    test_buy_the_dip()
     test_live_dashboard()
     test_late_trail()
     test_archive()
     # The scenarios below use the original, smaller setup and exits to stay short.
     C.SLEEVE_START, C.CORE_SLOTS, C.CORE_SLOT_PCT = 25_000.0, 3, 0.28
     C.CORE_TP1, C.CORE_TRAIL, C.CORE_TRAIL_FROM = 1.0, 0.30, 1.0
+    stop_now, C.CORE_STOP, C.CORE_MIN_DTE_EXIT = C.CORE_STOP, -0.50, 4
     test_lifecycle()
     test_odte_follows_regime()
     test_earnings_guard()
@@ -690,6 +715,7 @@ def main():
     test_shadow_scoring()
     test_ai_picks()
     test_free_up()
+    C.CORE_STOP = stop_now
     test_dials()
     print("\nALL SIMULATION CHECKS PASSED")
 

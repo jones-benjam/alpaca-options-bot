@@ -18,18 +18,19 @@ automatically after each market close.
 ## Strategy
 
 **Regime.** SPY and QQQ both above their 20-day EMA is a bull market (calls
-only). Both below is a bear market (puts only). Otherwise mixed (both, at most
+only). Both below is a bear market (since Nov 23, calls on the weakest names, betting
+on a rebound; `BEAR_BUY_DIPS=0` goes back to puts). Otherwise mixed (both, at most
 two positions per direction).
 
 **Core engine (up to 10 slots, 20% of the sleeve each; new bets are funded by cash from profitable sales).**
 - Rank 16 liquid, high-beta names by blended momentum (60% 5-day return, 40%
-  20-day return). Buy calls on the strongest names above their 10-day EMA, or
-  puts on the weakest names below it. Minimum 2% momentum.
-- Contract: about 5% out of the money (about 0.35 delta), about 21 days to expiry.
-- Exits: stop at -50% of premium. At +200% sell half; once a position has been
-  up 100%, sell if it falls 40% below its peak. A position that was up 50% is closed if it falls back to
-  entry. Close if the stock crosses its 10-day EMA near the close, or with 4
-  days left to expiry.
+  20-day return). In a bull market buy calls on the strongest names above their
+  10-day EMA; in a bear market buy calls on the weakest names below it. Minimum 2% momentum.
+- Contract: about 5% out of the money (about 0.35 delta), about 14 days to expiry.
+- Exits: stop at -80% of premium. At +200% sell half; once a position has been
+  up 125%, sell if it falls 40% below its peak. A position that was up 50% is closed if it falls back to
+  entry. Close if the stock crosses its 10-day EMA near the close (dip calls are
+  exempt), or with 2 days left to expiry.
 
 **0DTE engine (6% of the sleeve per trade, SPY and QQQ).**
 - After 10:00 ET, if price breaks the first 30 minutes' high, buy a same-day
@@ -58,8 +59,8 @@ is the local AI model that suggests trades to it.
   approve.
 
 **Guard rails.**
-- Lead lock: the whole account must stay at least 5 points ahead of SPY. The
-  bot may hold options worth up to twice the account's cushion above that
+- Lead lock (**off since Nov 23**; `LOCK_ENABLED=1` turns it back on): the whole
+  account must stay at least 5 points ahead of SPY. The bot may hold options worth up to twice the account's cushion above that
   floor; a smaller cushion blocks new bets, and no cushion closes everything.
 - Kill switch: if the sleeve falls to 30% of its size the bot closes
   everything and stops opening trades. (The floor is $15,000 on the $50,000 sleeve.)

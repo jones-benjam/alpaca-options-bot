@@ -270,6 +270,7 @@ class Pos:
         self.cost = 0.0       # dollars paid for what is still held
         self.sold = 0         # contracts sold since this position was opened
         self.last_buy = None
+        self.dip = False      # a call bought on a beaten-down stock in a falling market
 
     @property
     def avg(self):            # average premium per share
@@ -382,6 +383,7 @@ class Bot:
                 p.qty += qty
                 p.cost += qty * px * 100
                 p.last_buy = when
+                p.dip = p.dip or "_dip" in (meta or "")
                 led.opened.append((when, symbol, qty, px))
                 led.events.append({"when": when, "symbol": symbol, "side": "buy", "qty": qty,
                                    "px": px, "tag": tag, "meta": meta})
@@ -479,7 +481,8 @@ class Bot:
         if regime == "bull":
             out = [c for c in out if c[2] == "call"]
         elif regime == "bear":
-            out = [c for c in out if c[2] == "put"]
+            # The stocks falling hardest, bought for a rebound (or sold short through puts).
+            out = [(x, s, "call" if C.BEAR_BUY_DIPS else "put") for x, s, k in out if k == "put"]
         elif regime == "unknown":
             out = []
         return sorted(c for c in out if c[0] >= C.CORE_MIN_STRENGTH)[::-1]
@@ -735,7 +738,7 @@ class Bot:
                 if price_exit:
                     if self.exit_hits[symbol] >= C.EXIT_CONFIRMATIONS:
                         reason = price_exit
-                elif not odte and v and near_close and (
+                elif not odte and not p.dip and v and near_close and (  # a dip call starts below trend on purpose
                     (p.kind == "call" and v["px"] < v["ema10"])
                     or (p.kind == "put" and v["px"] > v["ema10"])
                 ):
@@ -932,11 +935,14 @@ class Bot:
             return "not in the bot's list of stocks"
         if regime == "unknown":
             return "the market's mood is unknown"
-        if (regime, kind) in (("bull", "put"), ("bear", "call")):
+        dips = regime == "bear" and C.BEAR_BUY_DIPS
+        if (regime, kind) == ("bull", "put") or (regime == "bear" and kind == ("put" if dips else "call")):
             return f"{kind}s are off in a {regime} market"
         up = v["px"] > v["ema10"] and v["r5"] > 0 and v["score"] > 0
         down = v["px"] < v["ema10"] and v["r5"] < 0 and v["score"] < 0
-        if not (up if kind == "call" else down):
+        if dips and not down:
+            return "the stock is no longer beaten down"
+        if not dips and not (up if kind == "call" else down):
             return "the trend no longer confirms it"
         return "momentum is below the minimum"
 
@@ -1003,11 +1009,12 @@ class Bot:
                 continue
             self.attempts[key] += 1
             note = (
-                f"{kind} on {und}, momentum {strength:+.1%}, delta {pick['delta']:+.2f}, "
+                f"{kind} on {und}, {'beaten down' if regime == 'bear' and kind == 'call' else 'momentum'} {strength:+.1%}, delta {pick['delta']:+.2f}, "
                 f"{pick['dte']} DTE, ask ${pick['ask']:.2f}, about ${qty * pick['ask'] * 100:,.0f}"
                 + (f", Dionysus's pick {conv}/5" if conv else "")
             )
-            meta = f"e_{regime}_{int(round(strength * 10000))}" + (f"_ai{conv}" if conv else "")
+            dip = regime == "bear" and kind == "call"
+            meta = f"e_{regime}_{int(round(strength * 10000))}" + ("_dip" if dip else "") + (f"_ai{conv}" if conv else "")
             if self.buy(und, pick["symbol"], qty, "core", note, meta):
                 free -= 1
                 held.add(und)

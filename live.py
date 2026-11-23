@@ -82,7 +82,8 @@ def _reason(ev):
         if ev.get("tag") == "odte":
             what = f"Broke the opening range by {sig:.2f}%" if sig is not None else "Opening-range breakout"
         else:
-            what = f"Momentum signal {sig:.1f}%" if sig is not None else "Momentum signal"
+            word = "Buying the dip, weakness" if "dip" in parts[3:] else "Momentum signal"
+            what = f"{word} {sig:.1f}%" if sig is not None else word
         what = f"{what}, {mood}" if mood else what
         ai = next((p[2:] for p in parts[3:] if p.startswith("ai")), None)
         return f"{what}, Dionysus's pick {ai}/5" if ai else what
@@ -736,7 +737,7 @@ h3 { color:var(--gold); font:9px/1.4 var(--px); margin:16px 0 6px; }
     set("k-wr-s", "of sales; whole trades " + (st.trade_win_rate === null || st.trade_win_rate === undefined ? "–" : st.trade_win_rate.toFixed(0) + "%"));
     var moods = { bear: "FALLING", bull: "RISING", mixed: "MIXED" };
     set("k-mood", (s.regime === "bear" ? "▼ " : s.regime === "bull" ? "▲ " : "") + (moods[s.regime] || (s.regime || "–").toUpperCase()), s.regime === "bear" ? "dn" : s.regime === "bull" ? "up" : "warn");
-    set("k-mood-s", s.regime === "bear" ? "buying puts" : s.regime === "bull" ? "buying calls" : "SPY and QQQ disagree");
+    set("k-mood-s", s.regime === "bear" ? "buying the dip with calls" : s.regime === "bull" ? "buying calls" : "SPY and QQQ disagree");
     var played = (s.daily || []).filter(function (r) { return r.date !== "start"; });
     var lastDay = played.length ? played[played.length - 1].date : "";
     var asDay = s.as_of.slice(0, 10), wd = new Date(asDay + "T12:00:00").getDay();  // as_of is in market time
