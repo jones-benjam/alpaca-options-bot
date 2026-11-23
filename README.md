@@ -31,6 +31,8 @@ two positions per direction).
   up 125%, sell if it falls 40% below its peak. A position that was up 50% is closed if it falls back to
   entry. Close if the stock crosses its 10-day EMA near the close (dip calls are
   exempt), or with 2 days left to expiry.
+- Hold or switch: in a bear market a put up less than 50% on a stock that is still
+  weak is sold and replaced with a call; bigger winners run (`SWITCH_PUTS=0` turns this off).
 
 **0DTE engine (6% of the sleeve per trade, SPY and QQQ).**
 - After 10:00 ET, if price breaks the first 30 minutes' high, buy a same-day

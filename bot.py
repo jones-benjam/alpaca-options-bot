@@ -54,6 +54,7 @@ EXIT_CODES = {
     "stop loss": "stop", "trailing stop": "trail", "breakeven stop": "be",
     "trend flipped": "flip", "time stop": "time", "earnings report tonight": "earn",
     "take profit on half": "half", "expiry-day time exit": "exp", "flatten": "flat",
+    "switched to a call": "swap",
     "freed cash for Dionysus's pick": "fund",
 }
 try:  # reasons for orders placed before ids carried them, reconstructed from the logs
@@ -325,6 +326,7 @@ class Bot:
         self.fu = {"for": "", "at": 0.0, "list": []}  # bets Dionysus said may be sold to fund a pick
         self.freed = {}       # day -> [(pick symbol, kind, what was sold)], at most AI_FREE_UP_MAX_PER_DAY
         self.fu_said = set()  # (day, symbol, direction, reason) already logged for free-up checks
+        self.switched = set()  # (day, stock) whose put was sold today to buy a call
         self.dials_for = ""   # the day Dionysus's settings were last applied
         self.dials = {}       # dial -> value Dionysus set, in force today
         self.dial_orig = {}   # dial -> config.py's value, to restore when his change ends
@@ -946,6 +948,49 @@ class Bot:
             return "the trend no longer confirms it"
         return "momentum is below the minimum"
 
+    def switch_puts(self, now, led, view, regime, equity, cash):
+        """Midas's hold-or-switch call on the puts it still holds in a falling market.
+        A put up less than SWITCH_MAX_GAIN on a stock that is still beaten down is sold,
+        one per pass, weakest result first, and only if a call on that stock can be
+        bought. core_entries then buys the call. Bigger winners are left to run."""
+        hhmm, today = now.strftime("%H:%M"), now.date()
+        if not (C.SWITCH_PUTS and C.BEAR_BUY_DIPS and regime == "bear"):
+            return led, equity, cash
+        if not (C.CORE_ENTRY_FROM <= hhmm < C.CORE_ENTRY_TO) or self.to_close <= C.CORE_ENTRY_MIN_TO_CLOSE:
+            return led, equity, cash
+        if C.END_DATE and (dt.date.fromisoformat(C.END_DATE) - today).days < C.SWITCH_MIN_DAYS_LEFT:
+            return led, equity, cash
+        if time.time() - self.last_core_scan < C.LOOP_SECONDS - 1:  # the same once-a-minute pace as entries
+            return led, equity, cash
+        weak = {und for _, und, kind in self.candidates(view, regime) if kind == "call"}
+        puts = [p for p in led.pos.values() if p.tag == "core" and p.kind == "put" and p.und in weak
+                and not self.attempts[(today, "switch", p.und)]]
+        if not puts:
+            return led, equity, cash
+        quotes = self.api.option_snapshots([p.symbol for p in puts])
+        ranked = []
+        for p in puts:
+            q = read_quote(quotes.get(p.symbol), self.qnow)
+            if quote_ok(q) and q[2] / p.avg - 1 < C.SWITCH_MAX_GAIN:
+                ranked.append((q[2] / p.avg - 1, p.symbol, p, q[2]))
+        for gain, _, p, mid in sorted(ranked, key=lambda r: r[:2]):
+            if earnings_days(p.und, today) is not None:
+                continue
+            pick = self.pick_core(p.und, "call", view[p.und], today)
+            if not pick:
+                continue
+            if self.dry:
+                log(f"would switch {p.label()} ({gain:+.0%}) into {pick['symbol']} (dry run, not sent)")
+                continue
+            self.attempts[(today, "switch", p.und)] += 1
+            sold = self.sell(p, p.qty, "switched to a call", mid)
+            if sold:
+                self.switched.add((today, p.und))
+                led = self.build_ledger(now)
+                equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos) if led.pos else {})
+            break
+        return led, equity, cash
+
     def core_entries(self, now, led, view, regime, equity, cash):
         hhmm, today = now.strftime("%H:%M"), now.date()
         if not (C.CORE_ENTRY_FROM <= hhmm < C.CORE_ENTRY_TO) or self.to_close <= C.CORE_ENTRY_MIN_TO_CLOSE:
@@ -976,7 +1021,8 @@ class Bot:
                     self.ai_note(today, und, kind, "every slot is full")
                 break
             key = (today, "core", und)
-            if und in held or ("core", und) in led.today or self.attempts[key] >= C.MAX_ENTRY_ATTEMPTS:
+            bought_today = ("core", und) in led.today and (today, und) not in self.switched
+            if und in held or bought_today or self.attempts[key] >= C.MAX_ENTRY_ATTEMPTS:
                 if conv:
                     self.ai_note(today, und, kind, "already held or tried today")
                 continue
@@ -1123,6 +1169,7 @@ class Bot:
             led = self.build_ledger(now)
             equity, cash = self.sleeve(led, self.api.option_snapshots(led.pos) if led.pos else {})
         if not (breach or last_day):
+            led, equity, cash = self.switch_puts(now, led, view, regime, equity, cash)
             led, equity, cash = self.core_entries(now, led, view, regime, equity, cash)
             led = self.odte_entries(now, led, view, regime, equity, cash)
         live.publish(self, now, market_open, led, view, regime)

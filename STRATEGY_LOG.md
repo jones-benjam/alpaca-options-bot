@@ -572,6 +572,25 @@ trending, not on skill.
   cash (no borrowing against teammates' money), the earnings rule, and
   selling everything by 3:00 pm on December 2.
 
+### Mon Nov 23, 2026, 2:45 pm: Midas decides whether to hold or switch its puts
+- **What:** While the market reads "falling", Midas now makes its own call on
+  each put it still holds:
+  - **Up less than 50%:** sell it and buy a call on the same stock, as long as
+    the stock is still beaten down and a suitable call is available.
+  - **Up 50% or more:** hold it and let the normal selling rules run.
+  It switches one put a minute, starting with the worst, and each stock at
+  most once a day. It stops switching three days before the contest ends.
+- **Why:** The team asked Midas to do whatever makes the most profit. We tested
+  102 real past cases of a put held five days in a market still falling, over
+  the next six trading days. For puts up less than 50% (59 cases), holding
+  averaged -37% and switching +59%, and switching won 64% of the time. For
+  bigger winners (43 cases) switching won only 47% of the time, so they stay.
+- **How much to trust it:** It is a small sample. Three huge winners lift the
+  +59%; without them switching averaged +16.5%, still ahead of holding. In
+  2026 alone, switching won less than half the time.
+- **First decisions:** Midas would switch AMD, COIN, AVGO and MSFT (about
+  $72,000) and hold MSTR and NFLX, which are up 265% and 158%.
+
 ## Changes Dionysus made to Midas's settings
 
 Written automatically. Dionysus may change one setting a day, inside hard limits that Midas checks itself (see TUNING_LIMITS in config.py). A change starts the next trading day; a person can veto it before then with `mac_mini/veto.sh DIAL`, and it is undone automatically if the three-week trades opened after it clearly lose.

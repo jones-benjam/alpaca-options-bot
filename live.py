@@ -61,7 +61,7 @@ def _daily_history(bot, today):
 MOODS = {"bear": "market falling", "bull": "market rising", "mixed": "market mixed"}
 EXIT_TEXT = {
     "stop": "Stop loss", "trail": "Trailing stop", "be": "Breakeven stop",
-    "flip": "Trend flipped", "time": "Time stop", "earn": "Earnings exit",
+    "flip": "Trend flipped", "swap": "Switched to a call", "time": "Time stop", "earn": "Earnings exit",
     "half": "Took profit on half", "exp": "Expiry-day exit", "flat": "Closed out",
     "writeoff": "Written off", "expired": "Expired worthless", "other": "Other exit",
     "fund": "Sold to fund Dionysus's pick",
