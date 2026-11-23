@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23T15:01:41Z",
+ "updated": "2026-11-23T15:32:03Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -176,6 +176,12 @@
    "at_text": "Mon Nov 23, 10:00:38 AM ET",
    "text": "The MSFT put was bought, the COIN and AMD puts were also bought, but the AVGO put was rejected because the lead lock protects the $152,427 account. The book remains heavily skewed to puts, with MSTR, NFLX, and META puts delivering $8,070, $7,762, and $8,030 respectively, while the MSFT, COIN, and AMD puts are in the red at -$3,591, -$19, and -$250. I\u2019m watching the next signal set\u2014especially the 23.8% MSTR and 17.9% COIN puts\u2014to see if the bot will open more positions before the bear market deepens.",
    "sleeve": 111584.5
+  },
+  {
+   "at": "2026-11-23T10:31:02-05:00",
+   "at_text": "Mon Nov 23, 10:31:02 AM ET",
+   "text": "The book is a bear\u2011bounty: MSTR 125P up 244.1%, NFLX 63P up 146.9%, while COIN 105P and AMD 430P have slipped 16.9% and 18.2% respectively. Midas bought the MSFT 487.5P and AVGO 297.5P, but left the COIN 105P, AMD 430P, and META 625P on the table due to the lead lock and trend rejection. I'm watching the trailing stop on META that just hit +42% and keeping an eye on the next signals; a 23.0% MSTR put or a 16.8% COIN put could be the next catalyst.",
+   "sleeve": 101265.0
   }
  ],
  "pick_status": {
@@ -193,7 +199,7 @@
     "symbol": "AVGO",
     "kind": "put",
     "conviction": 4,
-    "status": "not bought: the lead lock leaves no room for new bets (the lead over SPY is being protected)"
+    "status": "bought"
    },
    {
     "symbol": "TSLA",
@@ -219,7 +225,7 @@
     "was": -0.5
    }
   ],
-  "seen": "2026-11-23T10:00:38-05:00"
+  "seen": "2026-11-23T10:31:02-05:00"
  },
  "picks": {
   "date": "2026-11-20",
