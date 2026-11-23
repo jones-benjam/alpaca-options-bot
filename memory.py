@@ -31,7 +31,7 @@ PICKS, SCORES = DIR / "shadow_picks.csv", DIR / "shadow_scores.csv"
 
 EXIT_WORDS = {
     "stop": "stop loss", "trail": "trailing stop", "be": "breakeven stop",
-    "flip": "trend flipped", "time": "time stop", "earn": "sold before earnings",
+    "flip": "trend flipped", "swap": "switched to a call", "time": "time stop", "earn": "sold before earnings",
     "half": "took profit on half", "exp": "expiry-day exit", "flat": "flattened",
     "writeoff": "closed outside the bot", "expired": "expired", "other": "other",
     "fund": "sold to fund Dionysus's pick",

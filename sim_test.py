@@ -553,6 +553,31 @@ def test_buy_the_dip():
     print("\n--- buy the dip: calls in a falling market, kept through the trend check, restart-safe ---")
 
 
+def test_switch_puts():
+    """Midas sells puts up less than 50% and buys calls on them; bigger winners keep running."""
+    b, f, step = harness(trend=-1)
+    f.range = (90.0, 89.0)
+    C.BEAR_BUY_DIPS = False
+    led, _ = step("old rule: start with a book of puts")
+    C.BEAR_BUY_DIPS = True
+    puts = sorted(p.und for p in led.pos.values() if p.kind == "put")
+    assert len(puts) >= 3, "the test needs several puts"
+    winner = puts[0]
+    C.CORE_SLOTS, slots = len(puts), C.CORE_SLOTS   # no extra names: only switches change the book
+    led, _ = step(f"{winner} put +100%, the others flat: expect one switch a pass", ticks=len(puts) + 1, **{winner: 2.0})
+    C.CORE_SLOTS = slots
+    book = {p.und: p for p in led.pos.values() if p.tag == "core"}
+    assert book[winner].kind == "put", "a big winner is held"
+    for und in puts[1:]:
+        assert und in book and book[und].kind == "call" and book[und].dip, f"{und} was switched into a dip call"
+    sold = [e for e in led.events if e["side"] == "sell"]
+    assert len(sold) == len(puts) - 1 and all(e["meta"] == "x_swap" for e in sold), "each switch is recorded"
+    after = len(led.events)
+    led, _ = step("next pass: nothing left to switch", ticks=2)
+    assert len(led.events) == after, "no churn once the book is settled"
+    print("\n--- hold or switch: small puts become calls, big winners run, no churn ---")
+
+
 def test_lead_lock():
     b, f, step = harness(trend=1)
     f.now += dt.timedelta(minutes=1)
@@ -699,6 +724,7 @@ def main():
     test_lead_lock()
     C.LOCK_ENABLED = False
     test_buy_the_dip()
+    test_switch_puts()
     test_live_dashboard()
     test_late_trail()
     test_archive()

@@ -43,6 +43,12 @@ CORE_MIN_STRENGTH = 0.02    # skip names with under 2% blended momentum
 # stocks beat puts by a wide margin. It is a bet on a rebound, and it loses badly in
 # a long bear market like 2022. BEAR_BUY_DIPS=0 goes back to puts.
 BEAR_BUY_DIPS = _env("BEAR_BUY_DIPS", True, bool)
+# Midas decides for each put it still holds in a falling market. Up less than
+# SWITCH_MAX_GAIN: sell it and buy a call on the same stock. Up more: let it run.
+# On real prices since 2024, puts under +50% did better switched; bigger winners were mixed.
+SWITCH_PUTS = _env("SWITCH_PUTS", True, bool)
+SWITCH_MAX_GAIN = _env("SWITCH_MAX_GAIN", 0.50, float)
+SWITCH_MIN_DAYS_LEFT = 3        # no switch this close to END_DATE: too little time to repay the cost
 CORE_DTE_MIN = 10
 CORE_DTE_MAX = 35
 CORE_DTE_TARGET = 14       # shorter options move more; real prices since 2024 favoured 14 over 21 days

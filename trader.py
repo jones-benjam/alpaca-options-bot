@@ -247,7 +247,7 @@ def facts(day=None):
     out.append("KEY: P means a put (a bet the price falls), C means a call (a bet it rises). "
                "'half' means half was sold at double; 'trail' means the rest was sold after "
                "slipping from its best price; 'stop' means it was cut after losing half; "
-               "'flip' means the trend reversed; 'be' means a winner slid back to break-even.")
+               "'flip' means the trend reversed; 'swap' means a put was switched to a call; 'be' means a winner slid back to break-even.")
     return day, today["label"], "\n".join(out)
 
 

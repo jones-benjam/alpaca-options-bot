@@ -268,7 +268,7 @@ JS = """
 })();
 """
 
-EXIT_WORDS = {"stop": "stop loss", "trail": "trailing stop", "be": "back to break-even", "flip": "trend reversed",
+EXIT_WORDS = {"stop": "stop loss", "trail": "trailing stop", "be": "back to break-even", "flip": "trend reversed", "swap": "switched to a call",
               "time": "close to expiry", "earn": "before earnings", "half": "half sold at double",
               "exp": "expiry day", "flat": "closed out", "writeoff": "closed outside the bot", "expired": "expired",
               "fund": "sold to fund Dionysus's pick"}

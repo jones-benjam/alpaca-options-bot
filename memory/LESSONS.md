@@ -35,6 +35,10 @@ each lesson are in `STRATEGY_LOG.md`.
   On real option prices from 2024 to 2026, held six trading days, puts averaged
   -15% and calls +22.5%. Those years mostly rewarded buying dips, so a long
   bear market could reverse this. Rule changed: Midas buys the dip. (Nov 23)
+- **A small put in a falling market usually did better as a call.** Over 59 real
+  cases, puts up less than 50% averaged -37% held and +59% switched (+16.5%
+  without the three biggest wins). Rule changed: Midas switches those and holds
+  bigger winners. (Nov 23)
 - **A barrier on big up days made no consistent difference.** Blocking puts
   after index moves from 0.5% to 3% did not reliably improve results. (Nov 23)
 - **Options on individual stocks were fairly priced; options on index funds
