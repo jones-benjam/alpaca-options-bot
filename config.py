@@ -35,19 +35,24 @@ PENNY_ALL = {"SPY", "QQQ", "IWM"}  # options quoted in $0.01 at every price
 # Profits are reinvested: each bet is a share of the sleeve as it stands now, and
 # cash freed by sales funds new bets for as long as it lasts, up to this many.
 CORE_SLOTS = _env("CORE_SLOTS", 10, int)
-CORE_MIN_BET_SHARE = 0.5         # skip a new bet smaller than half a full-size one
+CORE_MIN_BET_SHARE = 0.25        # skip a new bet smaller than a quarter of a full-size one
 CORE_SLOT_PCT = _env("CORE_SLOT_PCT", 0.20, float)  # of sleeve equity, per slot
 CORE_MIN_STRENGTH = 0.02    # skip names with under 2% blended momentum
-CORE_DTE_MIN = 14
+# When SPY and QQQ are both below trend, buy CALLS on the most beaten-down stocks
+# instead of puts on them. On real option prices since March 2024, calls on those
+# stocks beat puts by a wide margin. It is a bet on a rebound, and it loses badly in
+# a long bear market like 2022. BEAR_BUY_DIPS=0 goes back to puts.
+BEAR_BUY_DIPS = _env("BEAR_BUY_DIPS", True, bool)
+CORE_DTE_MIN = 10
 CORE_DTE_MAX = 35
-CORE_DTE_TARGET = 21
+CORE_DTE_TARGET = 14       # shorter options move more; real prices since 2024 favoured 14 over 21 days
 CORE_DELTA = 0.35           # about 5% out of the money: cheaper, bigger payoff on a big move
 CORE_DELTA_TOL = 0.15
-CORE_STOP = -0.50           # exit at -50% of premium
+CORE_STOP = -0.80           # a wide stop: tighter ones sold too many bets just before they recovered
 CORE_TP1 = 2.00             # at +200% sell half (let winners run) ...
 CORE_TRAIL_FROM = 1.00      # ... and once a bet has been up 100% ...
 CORE_TRAIL = 0.40           # ... exit if it falls 40% from its best price
-CORE_MIN_DTE_EXIT = 4       # never hold into the final days
+CORE_MIN_DTE_EXIT = 2       # hold until two days before expiry
 # In a bet's last days (the time stop above, or END_DATE, is this close) the
 # trailing stop tightens: a big winner gives back less while the clock runs out.
 CORE_LATE_DAYS = 6          # calendar days before the bot must sell
@@ -140,7 +145,7 @@ TUNING_LIMITS = {
     "CORE_MIN_STRENGTH": (0.01, 0.06, None),
     "CORE_DELTA": (0.20, 0.50, None),
     "CORE_DTE_TARGET": (14, 30, 4),
-    "CORE_STOP": (-0.65, -0.35, None),
+    "CORE_STOP": (-0.90, -0.65, None),
     "CORE_TP1": (1.00, 3.00, None),
     "CORE_TRAIL_FROM": (0.50, 2.00, None),
     "CORE_TRAIL": (0.25, 0.55, None),
@@ -189,7 +194,7 @@ STATE_FILE = _env("STATE_FILE", "")
 # floor under that: SPY's return since the start, plus a margin. The bot may hold
 # options worth up to LOCK_MULTIPLIER times the account's cushion above the floor.
 # A shrinking cushion stops new bets; if it is gone, the bot closes everything.
-LOCK_ENABLED = _env("LOCK_ENABLED", True, bool)
+LOCK_ENABLED = _env("LOCK_ENABLED", False, bool)  # off since Nov 23: the team chose upside over protecting the lead
 LOCK_START_VALUE = 100_000.0     # the whole account at the start
 LOCK_MARGIN_PCT = 0.05           # stay at least 5 points ahead of SPY
 LOCK_MULTIPLIER = _env("LOCK_MULTIPLIER", 2.0, float)

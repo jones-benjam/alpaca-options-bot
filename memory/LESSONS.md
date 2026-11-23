@@ -31,6 +31,12 @@ each lesson are in `STRATEGY_LOG.md`.
   total of +$27,791. Every other way of selling lost money. The two trend-flip
   sales were the most costly, at -$7,163. That is 12 trades, too few to change a
   rule on. (Nov 18)
+- **In falling markets, calls on the beaten-down stocks beat puts on them.**
+  On real option prices from 2024 to 2026, held six trading days, puts averaged
+  -15% and calls +22.5%. Those years mostly rewarded buying dips, so a long
+  bear market could reverse this. Rule changed: Midas buys the dip. (Nov 23)
+- **A barrier on big up days made no consistent difference.** Blocking puts
+  after index moves from 0.5% to 3% did not reliably improve results. (Nov 23)
 - **Options on individual stocks were fairly priced; options on index funds
   were about 9% overpriced.** Measured from 505 real bets, 2024 to 2026.
   (Nov 11)

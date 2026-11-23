@@ -22,14 +22,15 @@ one bet is what it paid for it.
 **Step 1: read the market's mood.** The bot compares SPY and QQQ (a fund of
 big technology companies) with their average price over the last 20 days.
 - Both above average: the market is rising. The bot only buys calls.
-- Both below average: the market is falling. The bot only buys puts.
+- Both below average: the market is falling. The bot buys calls on the most
+  beaten-down stocks, betting on a rebound (it bought puts until Nov 23).
 - One of each: mixed. The bot may buy both kinds.
 
-**Step 2: the main bets (six at a time, about 14% of the sleeve each).**
+**Step 2: the main bets (up to ten, about 20% of the sleeve each, as cash allows).**
 The bot watches 16 heavily traded, fast-moving stocks and funds, such as
 Nvidia, Tesla, Coinbase and Palantir. In a rising market it buys calls on the
-ones climbing fastest. In a falling market it buys puts on the ones dropping
-fastest. Each bet expires in about three weeks.
+ones climbing fastest. In a falling market it buys calls on the ones that have
+dropped furthest. Each bet expires in about two weeks.
 
 **Step 3: same-day bets (one a day, about 6% of the sleeve).** After 10:00 am
 the bot looks at the range SPY and QQQ traded in during the first half hour.
@@ -38,13 +39,15 @@ mood, it buys an option that expires that same afternoon. These are small,
 fast, lottery-style bets and are always closed by 3:00 pm.
 
 **When it sells.**
-- A bet that has lost half its value is sold (the "stop loss").
-- A bet that has doubled has half of it sold to lock in profit. The rest is
-  kept until it falls 30% from its best price.
+- A main bet that has lost 80% is sold (the "stop loss"); a same-day bet at 50%.
+- A main bet up 200% has half of it sold. Once it has been up 125%, it is sold
+  if it falls 40% from its best price (25% in its last days). Same-day bets
+  sell half at +100% and trail by 35%.
 - A bet that was up 50% and slides back to what was paid is sold, so a winner
   does not turn into a loser.
-- A main bet is sold if the stock's trend reverses, or four days before the
-  option expires.
+- A main bet is sold two days before the option expires. A bet that follows
+  the trend is also sold if the trend reverses. A dip call is not, because it
+  starts below the trend on purpose.
 
 **Safety rules.**
 - If the sleeve ever falls to $15,000 (a 70% loss), the bot sells everything
@@ -537,12 +540,45 @@ trending, not on skill.
   the verdicts in his desk feed.
 - **Effect on trading:** None.
 
+### Mon Nov 23, 2026, 2:30 pm: Chasing the upside, and buying the dip
+- **Why now:** SPY jumped 4.6% and all 16 stocks rose, but the market's mood
+  still read "falling", so Midas bought $74,085 of new puts into the rally.
+  The team decided to go for maximum profit and accept the risk of losing
+  the sleeve.
+- **What we found:** We priced Midas's real signals with real option prices
+  from March 2024 on, holding each bet six trading days. In falling markets,
+  puts on the weakest stocks averaged -15%. Calls on those same stocks
+  averaged +22.5%, and doubled about twice as often (19% against 10%).
+- **What changed:**
+  1. **In a falling market Midas now buys calls on the most beaten-down
+     stocks** instead of puts on them. The puts it already holds stay.
+  2. **The lead lock is off.** It no longer limits bets or closes everything
+     if the lead over SPY disappears.
+  3. **Shorter options:** about 14 days to expiry instead of 21.
+  4. **A wide stop:** main bets are sold at -80% instead of -37.5%. This
+     cancels Dionysus's tighter stop, which had started today, and he can no
+     longer set one tighter than -65%.
+  5. **Held longer:** main bets are sold two days before expiry instead of four.
+  6. **Smaller minimum bet:** a quarter of a full-size bet instead of half, so
+     the little cash left can still be used.
+- **The result on real prices:** the average bet went from +5.5% to +21.3%,
+  and the chance of doubling from 14% to 18%. The chance of losing at least
+  half went from 37% to 53%, so this is a riskier strategy on purpose.
+- **What could go wrong:** The price data covers 2024 to 2026, when dips
+  mostly recovered. It was also used to choose these settings, so the results
+  are flattering. In 2025 the new setup did no better than the old one
+  (-3.1% against -1.6%). A long decline like 2022 would hurt dip calls badly.
+- **Still in place:** the $15,000 kill switch, the limit to the account's real
+  cash (no borrowing against teammates' money), the earnings rule, and
+  selling everything by 3:00 pm on December 2.
+
 ## Changes Dionysus made to Midas's settings
 
 Written automatically. Dionysus may change one setting a day, inside hard limits that Midas checks itself (see TUNING_LIMITS in config.py). A change starts the next trading day; a person can veto it before then with `mac_mini/veto.sh DIAL`, and it is undone automatically if the three-week trades opened after it clearly lose.
 
 - **2026-11-18**: Dionysus set CORE_TRAIL_FROM from 1.0 to 1.25, starting 2026-11-20. Start trailing later so winners run longer; aligns with note about cutting winners early.
 - **2026-11-20**: Dionysus set CORE_STOP from -0.5 to -0.375, starting 2026-11-23. The stop loss trade lost -62%, far worse than the -50% stop. Tightening to -0.375 reduces potential loss. Evidence: "average -62%" Second look: The record shows the sole stop‑loss trade lost -62%, so raising the stop‑loss threshold to -37.5% would reduce potential loss.
+- **2026-11-23**: a person vetoed CORE_STOP -0.5 to -0.375.
 
 ## Daily record
 

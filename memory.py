@@ -65,7 +65,7 @@ def build_trades(led, tz):
                     "id": len(done) + len(live) + 1, "engine": e["tag"], "underlying": und,
                     "direction": kind, "contract": symbol, "at": e["when"],
                     "regime": bits[1] if known else "", "signal_pct": int(bits[2]) / 100 if known else "",
-                    "source": "ai" if ai else "rules", "ai_conviction": ai,
+                    "source": "ai" if ai else "rules", "ai_conviction": ai, "dip": "dip" in bits[3:],
                     "qty": 0, "cost": 0.0, "left": 0, "proceeds": 0.0, "exits": [], "end": None,
                 }
             t["qty"] += e["qty"]
@@ -308,7 +308,7 @@ def flags(trades, closed, led, bot, now, equity):
     """Plain-English warnings: things a reviewer should look at first."""
     out = []
     recent = (now.date() - dt.timedelta(days=5)).isoformat()   # older mistakes are history, not news
-    against = [t for t in trades if (t["regime"], t["direction"]) in (("bear", "call"), ("bull", "put"))
+    against = [t for t in trades if not t.get("dip") and (t["regime"], t["direction"]) in (("bear", "call"), ("bull", "put"))
                and t["opened"][:10] >= recent]
     if against:
         names = ", ".join(f"#{t['id']} {t['underlying']} {t['direction']} ({t['opened'][:10]})" for t in against)

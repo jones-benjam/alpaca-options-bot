@@ -90,7 +90,7 @@ DIALS = {
     "CORE_MIN_STRENGTH": "lowest momentum for a new bet (0.02 means 2%)",
     "CORE_DELTA": "how far out of the money to buy (0.35 delta is about 5%)",
     "CORE_DTE_TARGET": "days to expiry for new bets",
-    "CORE_STOP": "stop loss as a share of what was paid (-0.5 means sell at -50%)",
+    "CORE_STOP": "stop loss as a share of what was paid (-0.8 means sell at -80%)",
     "CORE_TP1": "sell half once up this much (2.0 means +200%)",
     "CORE_TRAIL_FROM": "start the trailing stop once up this much (1.0 means +100%)",
     "CORE_TRAIL": "trailing stop: sell if it falls this far from its best (0.4 means 40%; "
@@ -1238,7 +1238,7 @@ def selftest():
     held_pick = next((m for m in menu if m[0] in {u for u, _ in open_bets}), None)
     record_now = lambda: NUMBER.findall(tune_evidence())
     tune_replies = iter([
-        lambda: {"dial": "CORE_STOP", "value": -0.45, "why": "Stops fire too often.", "evidence": "stops lost 999%"},
+        lambda: {"dial": "CORE_STOP", "value": -0.72, "why": "Stops fire too often.", "evidence": "stops lost 999%"},
         lambda: {"dial": "CORE_TRAIL_FROM", "value": 1.25, "why": "Let winners run.",
                  "evidence": f"the stop-loss trades averaged {record_now()[0]}"},
     ])
@@ -1290,11 +1290,11 @@ def selftest():
                 text = json.dumps(next(check_replies, {"verdict": "approve", "reason": "Stop-loss trades lose most."}))
             elif "change" in (body.get("format") or {}).get("properties", {}):
                 text = json.dumps({"change": next(tune_replies, lambda: {
-                    "dial": "CORE_STOP", "value": -0.45, "why": "Stops keep firing on losers that later recover.",
+                    "dial": "CORE_STOP", "value": -0.72, "why": "Stops keep firing on losers that later recover.",
                     "evidence": f"all closed three-week trades averaged {record_now()[0]}"})()})
             elif "proposals" in (body.get("format") or {}).get("properties", {}):
                 text = json.dumps({"proposals": [
-                    {"dial": "CORE_STOP", "value": -0.4, "why": "Stops keep firing on losers."},
+                    {"dial": "CORE_STOP", "value": -0.7, "why": "Stops keep firing on losers."},
                     {"dial": "CORE_SLOTS", "value": 30, "why": "More bets."},
                     {"dial": "CORE_TP1", "value": 1.5, "why": "I would have made $777,777."},
                 ]})
@@ -1366,7 +1366,7 @@ def selftest():
     assert cfg.get("_speed") == 30.0, "speed is measured from the model's own report"
 
     kept = propose(cfg)
-    assert [(k["dial"], k["to"]) for k in kept] == [("CORE_STOP", -0.4)], \
+    assert [(k["dial"], k["to"]) for k in kept] == [("CORE_STOP", -0.7)], \
         "only small changes to allowed settings, with honest reasons, are proposed"
     assert "CORE_STOP" in PROPOSALS.read_text() and "777,777" not in PROPOSALS.read_text()
     assert not {"KILL_FLOOR_PCT", "LOCK_MARGIN_PCT", "END_DATE"} & set(DIALS), "risk limits are off limits"
@@ -1380,7 +1380,7 @@ def selftest():
     assert tune(cfg) is None, "one proposal a day, even if it was turned down"
     write_dials({"history": []})
     change = tune(cfg)
-    assert change and (change["dial"], change["to"], change["status"]) == ("CORE_STOP", -0.45, "pending"), \
+    assert change and (change["dial"], change["to"], change["status"]) == ("CORE_STOP", -0.72, "pending"), \
         "he may change one setting, inside its limits"
     assert change["evidence"] and change["check_why"], "an accepted change keeps its evidence and the second look"
     assert change["effective"] > daily_rows()[-1]["date"], "a change starts on the next trading day"
@@ -1388,9 +1388,9 @@ def selftest():
     assert start_day("2026-11-18", today="2026-11-19") == "2026-11-20", "the 6:30 am run's change waits a night"
     assert start_day("2026-11-20", today="2026-11-20") == "2026-11-23", "a Friday change starts Monday"
     assert tune(cfg) is None, "only one change a day"
-    assert "set CORE_STOP from -0.5 to -0.45" in LOG.read_text(), "every change is written in the strategy log"
+    assert "set CORE_STOP from -0.8 to -0.72" in LOG.read_text(), "every change is written in the strategy log"
     assert not C.tuning_step_ok("CORE_SLOTS", 10, 30) and not C.tuning_step_ok("CORE_STOP", -0.5, -0.9), "hard limits"
-    assert veto("CORE_STOP")["status"] == "vetoed" and settings_now(read_dials(), "2099-01-01")["CORE_STOP"] == -0.5, \
+    assert veto("CORE_STOP")["status"] == "vetoed" and settings_now(read_dials(), "2099-01-01")["CORE_STOP"] == -0.8, \
         "a veto puts Midas back on its own value"
     real_trades, TRADES = TRADES, tmp / "trades.csv"
     TRADES.write_text("id,engine,underlying,direction,opened,status,profit,profit_pct\n"

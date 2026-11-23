@@ -388,7 +388,7 @@ h3 { color:var(--gold); font:9px/1.4 var(--px); margin:16px 0 6px; }
     set("k-wr-s", "of sales; whole trades " + (st.trade_win_rate === null || st.trade_win_rate === undefined ? "–" : st.trade_win_rate.toFixed(0) + "%"));
     var moods = { bear: "FALLING", bull: "RISING", mixed: "MIXED" };
     set("k-mood", (s.regime === "bear" ? "▼ " : s.regime === "bull" ? "▲ " : "") + (moods[s.regime] || (s.regime || "–").toUpperCase()), s.regime === "bear" ? "dn" : s.regime === "bull" ? "up" : "warn");
-    set("k-mood-s", s.regime === "bear" ? "buying puts" : s.regime === "bull" ? "buying calls" : "SPY and QQQ disagree");
+    set("k-mood-s", s.regime === "bear" ? "buying the dip with calls" : s.regime === "bull" ? "buying calls" : "SPY and QQQ disagree");
     var played = (s.daily || []).filter(function (r) { return r.date !== "start"; });
     var lastDay = played.length ? played[played.length - 1].date : "";
     var asDay = s.as_of.slice(0, 10), wd = new Date(asDay + "T12:00:00").getDay();  // as_of is in market time
