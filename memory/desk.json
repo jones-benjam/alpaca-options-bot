@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23T14:31:40Z",
+ "updated": "2026-11-23T15:01:41Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -170,33 +170,41 @@
    "at_text": "Mon Nov 23, 9:30:00 AM ET",
    "text": "The bot just sold PLTR 70% and COIN 288%, so my book\u2019s upside is already humming. MSTR 12/04 125P is up 214.1% and NFLX 12/04 63P 138.3%, while NVDA 12/11 145P is down 45.9% and the SPY 12/11 685P is bleeding 54.9%. Cash sits at $41,299, so I\u2019m sizing down the next leg, watching the bear market creep and the MSTR stop at 21.4%, and keeping an eye on the QQQ 12/04 673P once a quote lands.",
    "sleeve": 111697.5
+  },
+  {
+   "at": "2026-11-23T10:00:38-05:00",
+   "at_text": "Mon Nov 23, 10:00:38 AM ET",
+   "text": "The MSFT put was bought, the COIN and AMD puts were also bought, but the AVGO put was rejected because the lead lock protects the $152,427 account. The book remains heavily skewed to puts, with MSTR, NFLX, and META puts delivering $8,070, $7,762, and $8,030 respectively, while the MSFT, COIN, and AMD puts are in the red at -$3,591, -$19, and -$250. I\u2019m watching the next signal set\u2014especially the 23.8% MSTR and 17.9% COIN puts\u2014to see if the bot will open more positions before the bear market deepens.",
+   "sleeve": 111584.5
   }
  ],
  "pick_status": {
   "enabled": true,
   "free_up": true,
-  "day": "2026-11-19",
+  "day": "2026-11-20",
   "picks": [
    {
-    "symbol": "SPY",
+    "symbol": "MSFT",
+    "kind": "put",
+    "conviction": 5,
+    "status": "bought"
+   },
+   {
+    "symbol": "AVGO",
     "kind": "put",
     "conviction": 4,
-    "status": "bought"
+    "status": "not bought: the lead lock leaves no room for new bets (the lead over SPY is being protected)"
    },
    {
     "symbol": "TSLA",
     "kind": "put",
     "conviction": 3,
-    "status": "not bought: not enough cash for a proper-size bet"
-   },
-   {
-    "symbol": "IWM",
-    "kind": "put",
-    "conviction": 3,
-    "status": "waiting for the rules"
+    "status": "not bought: the trend no longer confirms it"
    }
   ],
-  "may_sell": [],
+  "may_sell": [
+   "NVDA put"
+  ],
   "freed": [],
   "tuning": true,
   "settings": [
@@ -204,9 +212,14 @@
     "dial": "CORE_TRAIL_FROM",
     "value": 1.25,
     "was": 1.0
+   },
+   {
+    "dial": "CORE_STOP",
+    "value": -0.375,
+    "was": -0.5
    }
   ],
-  "seen": "2026-11-20T15:59:44-05:00"
+  "seen": "2026-11-23T10:00:38-05:00"
  },
  "picks": {
   "date": "2026-11-20",
