@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-24T15:31:27Z",
+ "updated": "2026-11-24T16:01:41Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-19T11:30:46-05:00",
-   "at_text": "Thu Nov 19, 11:30:46 AM ET",
-   "text": "The account is up 34.8% since the start but down 13.9% today; my lead over SPY is 35.7 points while the market stays bearish. Midas only accepted the NVDA 20\u2011share put; the other five picks were rejected because the lead lock or prior holds blocked new bets, and the SPY 18\u2011share put I placed broke the range but was pulled at a 2% loss. Next I\u2019ll watch the 28.5% MSTR signal and see if the lead can widen enough for a fresh play; meanwhile the 18\u2011share SPY put remains in my watchlist for a quick re\u2011entry if the range closes.",
-   "sleeve": 90098.5
-  },
   {
    "at": "2026-11-19T12:00:04-05:00",
    "at_text": "Thu Nov 19, 12:00:04 PM ET",
@@ -242,6 +236,12 @@
    "at_text": "Tue Nov 24, 10:31:01 AM ET",
    "text": "Just sold 2 MSTR 12/04 125P winners for $8,644, freeing cash to buy 13 QQQ 12/08 660C at $8.40 each, and I added 2 QQQ 11/24 634P 0DTE after the price broke the range. The bot only took the QQQ call; GOOGL call was left out due to insufficient cash. I'm watching QQQ's 6.7% signal and the spread between the 660C delta of +0.33 and the 0DTE put for any early move. My sleeve sits at $71,624, profit $21,624, and cash $9,255\u2014ready for the next big play.",
    "sleeve": 71624.0
+  },
+  {
+   "at": "2026-11-24T11:00:51-05:00",
+   "at_text": "Tue Nov 24, 11:00:51 AM ET",
+   "text": "I sold two MSTR 125P winners, freeing cash that now sits at $9,255, and the bot just bought 13 QQQ 12/08 660C for about $10,920, cutting a 22.2% loss on that leg. My book is a mix of winning puts on MSTR and NFLX, a losing spread on COIN, and a handful of calls that are still alive. I'm eyeing the MSTR call signal at 28.6% and AMD call at 23.5% next, but the bot balked on GOOGL because my cash is tight.",
+   "sleeve": 70179.0
   }
  ],
  "pick_status": {
@@ -271,7 +271,7 @@
   ],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-24T10:31:01-05:00"
+  "seen": "2026-11-24T11:00:51-05:00"
  },
  "picks": {
   "date": "2026-11-23",
