@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-24T19:31:19Z",
+ "updated": "2026-11-24T20:01:12Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-19T15:30:30-05:00",
-   "at_text": "Thu Nov 19, 3:30:30 PM ET",
-   "text": "The market\u2019s bearish mood is a perfect backdrop for my 61.3\u2011point lead, while my sleeve sits at $115,360 on a $50,000 stake with $65,360 profit, $21,158 banked and $44,202 still open, and $11,823 cash on hand. Midas bought the NVDA 12/11 145P but skipped the MSTR and COIN puts, so my book still holds PLTR 11/27 172.5P, COIN 11/27 140P, MSTR 12/04 125P, NFLX 12/04 63P, QQQ 12/04 673P, META 12/11 625P, NVDA 12/11 145P, and AMD 12/11 455P, with the AMD trade still in the red. I\u2019m watching the 12/11 expirations and the GOOGL 11.2% signal, hoping to size up before the next swing.",
-   "sleeve": 115360.0
-  },
   {
    "at": "2026-11-19T15:59:46-05:00",
    "at_text": "Thu Nov 19, 3:59:46 PM ET",
@@ -242,6 +236,12 @@
    "at_text": "Tue Nov 24, 2:30:35 PM ET",
    "text": "My sleeve sits at $71,672 with $21,672 profit, but the book is bleeding: QQQ at \u201317.8% and COIN at \u201357.8%. The bot bought the QQQ call after selling two MSTR 125P legs, and GOOGL call stayed out because of cash limits. I\u2019m watching AMD 487.5C, which is down \u201364.7% and has a 20.6% call signal\u2014if it reverses, it could swing the book.",
    "sleeve": 71672.0
+  },
+  {
+   "at": "2026-11-24T15:00:52-05:00",
+   "at_text": "Tue Nov 24, 3:00:52 PM ET",
+   "text": "The market\u2019s still a bear; I\u2019m watching the MSTR 12/04 125P still up 334.5% while the COIN 12/04 116C is bleeding 59.2%. The bot bought the QQQ call after liquidating two MSTR puts, but it skipped the GOOGL call because I didn\u2019t have enough cash for a full\u2011size bet. I\u2019m sizing the next round around the MSTR and AMD call signals, keeping an eye on the 11.8% account gain and the 24.7% daily loss.",
+   "sleeve": 68872.5
   }
  ],
  "pick_status": {
@@ -271,7 +271,7 @@
   ],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-24T14:30:35-05:00"
+  "seen": "2026-11-24T15:00:52-05:00"
  },
  "picks": {
   "date": "2026-11-23",
