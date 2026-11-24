@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-24T15:01:33Z",
+ "updated": "2026-11-24T15:31:27Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-19T11:00:28-05:00",
-   "at_text": "Thu Nov 19, 11:00:28 AM ET",
-   "text": "At 11:00:28 AM ET, my sleeve is $93,014 on $50,000, profit $43,014, banked $21,158, open $21,856, cash $11,823; my book shows PLTR +62.8% ($2,174), COIN +199.0% ($7,482), MSTR +231.1% ($7,557), NFLX +99.0% ($4,462), QQQ +32.9% ($3,429), META -5.9% (-$880), NVDA -8.6% (-$850), AMD -16.8% (-$1,518). The bot bought NVDA 145P and AMD 455P, and closed a 18\u2011share SPY 728P at -2%, but it left MSTR and COIN untouched today. I'm watching the next signal spike for MSTR 28.7% and COIN 22.0% and the SPY 728P range for another entry.",
-   "sleeve": 93014.0
-  },
   {
    "at": "2026-11-19T11:30:46-05:00",
    "at_text": "Thu Nov 19, 11:30:46 AM ET",
@@ -242,6 +236,12 @@
    "at_text": "Tue Nov 24, 10:00:29 AM ET",
    "text": "QQQ call 12/08 660C was purchased after liquidating two of my high\u2011payoff MSTR 12/04 125P legs, freeing about $8,644 and using $10,920 of the $9,951 cash buffer. GOOGL call 12/08 660C was not bought because I lacked a proper\u2011size bet; the bot flagged it but stopped me. My current book still has a mix of winning and losing legs, with MSTR and NFLX in the green and COIN, AMD, AVGO, META in the red. I'm eyeing the next round of call signals, especially the 26.0% MSTR call and the 20.4% AMD call, to see if I can add size without breaching the risk desk limits.",
    "sleeve": 83912.5
+  },
+  {
+   "at": "2026-11-24T10:31:01-05:00",
+   "at_text": "Tue Nov 24, 10:31:01 AM ET",
+   "text": "Just sold 2 MSTR 12/04 125P winners for $8,644, freeing cash to buy 13 QQQ 12/08 660C at $8.40 each, and I added 2 QQQ 11/24 634P 0DTE after the price broke the range. The bot only took the QQQ call; GOOGL call was left out due to insufficient cash. I'm watching QQQ's 6.7% signal and the spread between the 660C delta of +0.33 and the 0DTE put for any early move. My sleeve sits at $71,624, profit $21,624, and cash $9,255\u2014ready for the next big play.",
+   "sleeve": 71624.0
   }
  ],
  "pick_status": {
@@ -271,7 +271,7 @@
   ],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-24T10:00:29-05:00"
+  "seen": "2026-11-24T10:31:01-05:00"
  },
  "picks": {
   "date": "2026-11-23",
