@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-24T18:32:00Z",
+ "updated": "2026-11-24T19:01:32Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-19T14:30:48-05:00",
-   "at_text": "Thu Nov 19, 2:30:48 PM ET",
-   "text": "At 2:30:48PM, my sleeve sits at $107,620 on $50,000, $57,620 in profit, $21,158 banked, $36,462 open and $11,823 cash, while the bot just captured NVDA12/11145P \u2013 the only new pick today; MSTR and COIN stayed out because already held or tried. The book is still in the green: PLTR+98.0%($3,392), COIN+214.5%($8,064), MSTR+239.2%($7,821), NFLX+140.6%($6,336), QQQ+65.3%($6,810), META+22.8%($3,420), NVDA+18.7%($1,850), and AMD is the lone loser at\u201313.7%($\u20131,231). I\u2019m watching the 29.8%MSTR signal, the 23.1%COIN signal, the bear market mood, and that AMD put still bleeding.",
-   "sleeve": 107620.0
-  },
   {
    "at": "2026-11-19T15:00:10-05:00",
    "at_text": "Thu Nov 19, 3:00:10 PM ET",
@@ -242,6 +236,12 @@
    "at_text": "Tue Nov 24, 1:30:59 PM ET",
    "text": "Bear mood is killing the book; COIN is down \u201356.5%, AMD \u201369.4%, AVGO \u201342.9%, and QQQ \u201310.0%. Midas pulled the QQQ call after we shed two MSTR 125P legs, but the stop loss hit \u201351% on those puts. Signals show MSTR 28.3% and AMD 21.3% as the next targets, but the risk desk will clamp if we hit the loss threshold. I\u2019m watching the account at $116,369, +16.4% since start, \u201321.6% today, with $9,601 cash to decide the next move.",
    "sleeve": 72702.5
+  },
+  {
+   "at": "2026-11-24T14:00:17-05:00",
+   "at_text": "Tue Nov 24, 2:00:17 PM ET",
+   "text": "The account is up 14.5% since the start but down 22.9% today; my sleeve still holds $21,028 profit and $9,601 cash, yet the bot sold 2 MSTR 125P to free cash and bought the QQQ call, while the GOOGL call stayed unfilled due to cash limits. A stop loss just hit on 2 QQQ 12/14 634P, cutting 51% on those legs. I\u2019m watching the QQQ call\u2019s price and the risk desk\u2019s next limit before adding more size.",
+   "sleeve": 71028.5
   }
  ],
  "pick_status": {
@@ -271,7 +271,7 @@
   ],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-24T13:30:59-05:00"
+  "seen": "2026-11-24T14:00:17-05:00"
  },
  "picks": {
   "date": "2026-11-23",
