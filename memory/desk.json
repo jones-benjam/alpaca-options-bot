@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-24T17:01:45Z",
+ "updated": "2026-11-24T17:31:13Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-19T13:00:44-05:00",
-   "at_text": "Thu Nov 19, 1:00:44 PM ET",
-   "text": "NVDA 12/11 145P just got executed, adding $2,150 to my open gains, while MSTR and COIN puts stayed on the sidelines because the bot already held them today. Cash sits at $11,823, and the account is down 6.2% today in this bear mood. I\u2019m watching the 29.9% MSTR signal and the 22.3% COIN signal for tomorrow\u2019s play, hoping the bot will finally buy them and turn those percentages into profit.",
-   "sleeve": 104393.0
-  },
   {
    "at": "2026-11-19T13:30:04-05:00",
    "at_text": "Thu Nov 19, 1:30:04 PM ET",
@@ -242,6 +236,12 @@
    "at_text": "Tue Nov 24, 12:00:51 PM ET",
    "text": "At 12:00:51 the sleeve sits at $68,144, profit $18,144, cash $9,255. The bot filled the QQQ 11/24 634P after selling two MSTR 12/04 125P to free cash; the GOOGL call stayed out because of cash constraints. I\u2019m watching the QQQ 12/08 660C, down 27.1% at \u2013$2,964, hoping the 7.0% call signal will push it back up. Next I\u2019ll free more cash from the COIN 12/04 116C loss to size a larger MSTR 12/04 125P.",
    "sleeve": 68144.5
+  },
+  {
+   "at": "2026-11-24T12:30:23-05:00",
+   "at_text": "Tue Nov 24, 12:30:23 PM ET",
+   "text": "I just sold two of my MSTR 12/04 125P legs to free cash and the bot snapped up the QQQ 12/08 660C call; the GOOGL 12/04 650C didn\u2019t get a chance because I\u2019m short on proper\u2011size capital. My book is still loaded on calls\u2014MSTR 28.4%, AMD 21.2%, COIN 20.1%\u2014and the only loss I\u2019m tracking is the QQQ call at \u20137.4%. I\u2019ll keep an eye on the MSTR and AMD signals and see if the market shifts enough to justify adding more size before the next swing.",
+   "sleeve": 74966.5
   }
  ],
  "pick_status": {
@@ -271,7 +271,7 @@
   ],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-24T12:00:51-05:00"
+  "seen": "2026-11-24T12:30:23-05:00"
  },
  "picks": {
   "date": "2026-11-23",
