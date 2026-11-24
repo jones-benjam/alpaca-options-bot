@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-24T14:31:47Z",
+ "updated": "2026-11-24T15:01:33Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-19T10:30:53-05:00",
-   "at_text": "Thu Nov 19, 10:30:53 AM ET",
-   "text": "Right now the account is up 39.0% overall but down 11.3% today in this bear market. My picks are flying: PLTR 172.5P up 93.6% for $3,240, COIN 140P up 195.6% for $7,354, MSTR 125P up 212.1% for $6,934, NFLX 63P up 89.8% for $4,048, QQQ 673P up 33.2% for $3,459, and the only losing one is META 625P down 8.6% for -$1,285. The bot rejected the new MSTR, COIN, and NVDA puts because I already hold or tried them today or the lead lock blocks them, so I\u2019ll watch the 28.4% MSTR signal and the 22.5% COIN signal for any future openings.",
-   "sleeve": 94980.5
-  },
   {
    "at": "2026-11-19T11:00:28-05:00",
    "at_text": "Thu Nov 19, 11:00:28 AM ET",
@@ -242,43 +236,42 @@
    "at_text": "Tue Nov 24, 9:31:02 AM ET",
    "text": "The bot\u2019s been piling on AMD and COIN calls, but the COIN 116C is down 24.0% and the AMD 487.5C is down 51.9%, bleeding $5,134 and $6,600. MSTR 125P and NFLX 63P are still up 293.9% and 169.1%, netting $9,610 and $7,624 and keeping my sleeve at a solid $34,329 profit. I\u2019m watching QQQ call 5.9% and the bear\u2011market mood; if QQQ swings up, I\u2019ll size a new call or a spread to balance the book.",
    "sleeve": 84329.0
+  },
+  {
+   "at": "2026-11-24T10:00:29-05:00",
+   "at_text": "Tue Nov 24, 10:00:29 AM ET",
+   "text": "QQQ call 12/08 660C was purchased after liquidating two of my high\u2011payoff MSTR 12/04 125P legs, freeing about $8,644 and using $10,920 of the $9,951 cash buffer. GOOGL call 12/08 660C was not bought because I lacked a proper\u2011size bet; the bot flagged it but stopped me. My current book still has a mix of winning and losing legs, with MSTR and NFLX in the green and COIN, AMD, AVGO, META in the red. I'm eyeing the next round of call signals, especially the 26.0% MSTR call and the 20.4% AMD call, to see if I can add size without breaching the risk desk limits.",
+   "sleeve": 83912.5
   }
  ],
  "pick_status": {
   "enabled": true,
   "free_up": true,
-  "day": "2026-11-20",
+  "day": "2026-11-23",
   "picks": [
    {
-    "symbol": "MSFT",
-    "kind": "put",
+    "symbol": "QQQ",
+    "kind": "call",
     "conviction": 5,
-    "status": "bought"
+    "status": "bought after selling 2 of MSTR 12/04 125P to free cash"
    },
    {
-    "symbol": "AVGO",
-    "kind": "put",
+    "symbol": "GOOGL",
+    "kind": "call",
     "conviction": 4,
-    "status": "bought"
-   },
-   {
-    "symbol": "TSLA",
-    "kind": "put",
-    "conviction": 3,
-    "status": "not bought: puts are off in a bear market"
+    "status": "not bought: not enough cash for a proper-size bet"
    }
   ],
-  "may_sell": [],
-  "freed": [],
+  "may_sell": [
+   "MSTR put",
+   "NFLX put"
+  ],
+  "freed": [
+   "sold 2 of MSTR 12/04 125P for QQQ call"
+  ],
   "tuning": true,
-  "settings": [
-   {
-    "dial": "CORE_TRAIL_FROM",
-    "value": 1.25,
-    "was": 1.0
-   }
-  ],
-  "seen": "2026-11-23T15:59:28-05:00"
+  "settings": [],
+  "seen": "2026-11-24T10:00:29-05:00"
  },
  "picks": {
   "date": "2026-11-23",
