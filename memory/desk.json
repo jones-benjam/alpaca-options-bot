@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-24T20:31:55Z",
+ "updated": "2026-11-24T21:01:30Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-20T09:30:00-05:00",
-   "at_text": "Fri Nov 20, 9:30:00 AM ET",
-   "text": "My sleeve sits at $133,145 with $83,145 profit, $21,158 banked and $62,264 still open, cash $11,823. The bot is crushing my top picks: COIN 11/27 140P up 268.6%, PLTR 11/27 172.5P up 170.4%, MSTR 12/04 125P up 254.1%, and QQQ 12/04 673P up 122.8%, while AMD 12/11 455P is only up 4.7%. Signals show MSTR at 30.1% and COIN at 23.6%, so I'm watching those for a potential exit or next roll. Market remains bear, SPY down 3.0% since start, but my lead is 68.7 points.",
-   "sleeve": 133145.0
-  },
   {
    "at": "2026-11-20T10:00:21-05:00",
    "at_text": "Fri Nov 20, 10:00:21 AM ET",
@@ -242,6 +236,12 @@
    "at_text": "Tue Nov 24, 3:31:10 PM ET",
    "text": "My book is bruised on the downside, with COIN, AMD, AVGO, META, QQQ all in the red, while the big winners MSTR 125P +332.3% ($3,622) and NFLX 63P +115.6% ($5,210) still sit in the green. The bot only took the QQQ call after liquidating two of my MSTR 125P to free cash; the GOOGL call stayed out because we lacked the cash $9,601 for a full\u2011size bet. Next up I\u2019m watching the 29.5% call signal for MSTR and the 21.5% for AMD, hoping a move will let me re\u2011enter those positions with a larger size.",
    "sleeve": 66821.0
+  },
+  {
+   "at": "2026-11-24T15:59:24-05:00",
+   "at_text": "Tue Nov 24, 3:59:24 PM ET",
+   "text": "QQQ 12/08 660C just landed after I liquidated two MSTR 12/04 125P puts to free cash, so the book now has a small call in a bearish market. The bot still held off on GOOGL call because cash was short; my other puts on COIN, AMD, AVGO are bleeding, while MSTR and NFLX puts are still in profit. I'm watching the 29.9% MSTR call signal and the 21.3% COIN call signal to decide if I can tilt the book one\u2011way back to balance before the day ends. The account is down 28.1% today, but the sleeve is still up 6.8% from the start.",
+   "sleeve": 69225.0
   }
  ],
  "pick_status": {
@@ -271,7 +271,7 @@
   ],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-24T15:31:10-05:00"
+  "seen": "2026-11-24T15:59:24-05:00"
  },
  "picks": {
   "date": "2026-11-23",
