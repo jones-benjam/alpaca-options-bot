@@ -45,6 +45,12 @@ jobs:
       - name: Commit the updated log and memory
         run: |
           git add STRATEGY_LOG.md memory docs
+          if git diff --cached -U0 | grep -qE '^\+(<<<<<<<|=======|>>>>>>>)'; then
+            echo "::error::Conflict markers in the files to save; not committing."; exit 1
+          fi
+          if git grep -qE '^(<<<<<<<|>>>>>>>) ' -- STRATEGY_LOG.md memory docs; then
+            echo "::warning::Conflict markers already in the repository; see git grep"
+          fi
           if git diff --cached --quiet; then
             echo "No change (market holiday or already recorded)."
             exit 0

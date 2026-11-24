@@ -11,7 +11,24 @@ cd "$(dirname "$0")/.."
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 echo "=== $(date '+%Y-%m-%d %H:%M:%S') nightly run ==="
 
-git pull --rebase --autostash -q origin main
+# Never save a file that still holds git conflict markers (it happened on Nov 24).
+no_conflicts() {
+  if git diff --cached -U0 | grep -qE '^\+(<<<<<<<|=======|>>>>>>>)'; then
+    echo "Refusing to save: conflict markers found. Resetting to GitHub's copy; the next run redoes this."
+    git reset -q --hard origin/main
+    exit 1
+  fi
+}
+# Put aside this Mac's own leftover edits (they are all rebuilt by the scripts),
+# instead of git's --autostash, which leaves conflict markers in place without failing.
+set_aside() {
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    git stash push -q -m "mac mini leftovers $(date '+%Y-%m-%d %H:%M')" && echo "Put aside local leftovers (git stash list)."
+  fi
+}
+
+set_aside
+git pull --rebase -q origin main
 
 if [ -f .env ]; then
   python3 bot.py journal || echo "journal failed; carrying on"
@@ -32,6 +49,7 @@ if git diff --cached --quiet; then
   echo "Nothing new to save."
   exit 0
 fi
+no_conflicts
 git commit -q -m "Mac mini: daily record and trader diary, $(date +%Y-%m-%d)"
 if ! git pull --rebase -q origin main; then
   # GitHub's own daily job changed the same lines. Drop this run's copy; the

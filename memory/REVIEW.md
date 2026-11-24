@@ -1,38 +1,35 @@
 # Review of the bot's trades
 
-<<<<<<< Updated upstream
-Generated Tue Nov 24, 2026, 12:21 AM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
-=======
-Generated Mon Nov 23, 2026, 8:00 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
->>>>>>> Stashed changes
+Generated Tue Nov 24, 2026, 5:54 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
 
-- **Sleeve:** $102,964 on $50,000 of capital (+$52,964).
-- **Closed trades:** 27, of which 13 made money (48%).
-- **Banked profit or loss:** +$39,552.
-- **Typical winner and loser:** +$5,551 against -$2,798.
+- **Sleeve:** $85,346 on $50,000 of capital (+$35,346).
+- **Closed trades:** 28, of which 13 made money (46%).
+- **Banked profit or loss:** +$45,512.
+- **Typical winner and loser:** +$5,551 against -$2,635.
 - **Best and worst:** #14 QQQ +$12,282, #25 SPY -$10,016.
 - **Market mood now:** bear.
 
 ## Things to look at first
 
-- **Bets against the market's mood:** #30 PLTR call (2026-11-23), #31 META call (2026-11-23), #32 COIN call (2026-11-23), #33 AMD call (2026-11-23), #34 AVGO call (2026-11-23). The rules have blocked these for same-day bets since Nov 11, so this looks like a bug.
-- **Losing streak:** the last 5 closed trades all lost money.
-- **Short of real cash:** the shared account has $3,418 in cash, less than one full-size bet ($20,593). New bets will be smaller or skipped.
+- **Bets against the market's mood:** #30 PLTR call (2026-11-23), #31 META call (2026-11-23), #32 COIN call (2026-11-23), #33 AMD call (2026-11-23), #34 AVGO call (2026-11-23), #35 QQQ call (2026-11-24). The rules have blocked these for same-day bets since Nov 11, so this looks like a bug.
+- **Losing streak:** the last 6 closed trades all lost money.
+- **Short of real cash:** the shared account has $617 in cash, less than one full-size bet ($17,069). New bets will be smaller or skipped.
 
 ## Open bets
 
 | Bet | Paid | Now | Result so far |
 |---|---|---|---|
-| 3 MSTR 12/04 125P | $10.90 | $40.25 | +269% |
-| 23 NFLX 12/04 63P | $1.96 | $5.27 | +169% |
-| 16 PLTR 12/04 165C | $3.90 | $4.58 | +17% |
-| 8 META 12/07 625C | $11.20 | $10.41 | -7% |
-| 68 COIN 12/04 116C | $3.15 | $2.93 | -7% |
-| 8 AMD 12/04 487.5C | $15.90 | $15.00 | -6% |
-| 24 AVGO 12/04 330C | $8.35 | $7.82 | -6% |
+| 1 MSTR 12/04 125P | $10.90 | $47.09 | +332% |
+| 23 NFLX 12/04 63P | $1.96 | $4.62 | +135% |
+| 16 PLTR 12/04 165C | $3.90 | $4.74 | +22% |
+| 8 META 12/07 625C | $11.20 | $7.21 | -36% |
+| 68 COIN 12/04 116C | $3.15 | $1.08 | -66% |
+| 8 AMD 12/04 487.5C | $15.90 | $4.80 | -70% |
+| 24 AVGO 12/04 330C | $8.35 | $4.17 | -50% |
+| 13 QQQ 12/08 660C | $8.41 | $6.61 | -21% |
 
 ## Where the profit and loss came from
 
@@ -42,28 +39,28 @@ Closed trades only. With this few trades these tables show what happened, not wh
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| same-day bet | 10 | 5 of 10 | +$16,937 |
+| same-day bet | 11 | 5 of 11 | +$16,587 |
 | three-week bet | 17 | 8 of 17 | +$16,048 |
 
 ### By who chose it
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| the rules alone | 23 | 12 of 23 | +$39,096 |
+| the rules alone | 24 | 12 of 24 | +$38,746 |
 | Dionysus's pick, approved by the rules | 4 | 1 of 4 | -$6,111 |
 
 ### By direction
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| puts (bets on a fall) | 22 | 11 of 22 | +$27,430 |
+| puts (bets on a fall) | 23 | 11 of 23 | +$27,080 |
 | calls (bets on a rise) | 5 | 2 of 5 | +$5,555 |
 
 ### By the market's mood when the bet was placed
 
 | | Trades | Won | Profit |
 |---|---|---|---|
-| falling | 24 | 11 of 24 | +$25,810 |
+| falling | 25 | 11 of 25 | +$25,460 |
 | mixed | 3 | 2 of 3 | +$7,175 |
 
 ### By the reason it was sold
@@ -77,7 +74,7 @@ Closed trades only. With this few trades these tables show what happened, not wh
 | breakeven stop | 4 | 1 of 4 | -$252 |
 | trend flipped | 2 | 0 of 2 | -$7,163 |
 | switched to a call | 4 | 0 of 4 | -$7,805 |
-| stop loss | 5 | 0 of 5 | -$23,911 |
+| stop loss | 6 | 0 of 6 | -$24,261 |
 
 ## What the bot did with the AI trader's suggestions
 
@@ -96,6 +93,8 @@ Picks of 3/5 or more are tried first the next trading day, if the rules still ap
 | 2026-11-20 | MSFT put | 5/5 | Bought, trade #26: closed, -$1,575 (-6.7%) |
 | 2026-11-20 | AVGO put | 4/5 | Bought, trade #29: closed, -$1,900 (-12.2%) |
 | 2026-11-20 | TSLA put | 3/5 | Not bought; the rules no longer approved it |
+| 2026-11-23 | QQQ call | 5/5 | Bought, trade #35: open, no sale yet |
+| 2026-11-23 | GOOGL call | 4/5 | Not bought; still a signal at the next close (slots, cash, lead-lock room or contract ran out) |
 
 ## The trader's own picks, scored against the rules
 
@@ -103,10 +102,10 @@ Neither set is traded. Each pick is judged on what the stock did afterwards, in 
 
 | | Picks scored | Right after 1 day | Average 1-day move | Average 5-day move |
 |---|---|---|---|---|
-| Dionysus (AI persona) | 6 | 3 of 6 | -0.33% | too early |
+| Dionysus (AI persona) | 8 | 3 of 8 | -0.64% | too early |
 | Midas (AI persona) | 3 | 3 of 3 | +3.13% | too early |
 | Quill (AI persona) | 2 | 1 of 2 | +0.83% | too early |
-| The rules' top three | 18 | 15 of 18 | +1.92% | +15.76% |
+| The rules' top three | 21 | 15 of 21 | +0.55% | +13.91% |
 
 ## Where the rest of the memory lives
 

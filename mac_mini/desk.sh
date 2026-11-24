@@ -12,6 +12,22 @@
 cd "$(dirname "$0")/.."
 export PATH="$HOME/.local/bin:/opt/homebrew/bin:/usr/local/bin:$PATH"
 
+# Never save a file that still holds git conflict markers (it happened on Nov 24).
+no_conflicts() {
+  if git diff --cached -U0 | grep -qE '^\+(<<<<<<<|=======|>>>>>>>)'; then
+    echo "Refusing to save: conflict markers found. Resetting to GitHub's copy; the next run redoes this."
+    git reset -q --hard origin/main
+    exit 1
+  fi
+}
+# Put aside this Mac's own leftover edits (they are all rebuilt by the scripts),
+# instead of git's --autostash, which leaves conflict markers in place without failing.
+set_aside() {
+  if ! git diff --quiet || ! git diff --cached --quiet; then
+    git stash push -q -m "mac mini leftovers $(date '+%Y-%m-%d %H:%M')" && echo "Put aside local leftovers (git stash list)."
+  fi
+}
+
 LOCK="${TMPDIR:-/tmp}/optbot-desk.lock"
 mkdir "$LOCK" 2>/dev/null || exit 0      # the previous note is still being written
 trap 'rmdir "$LOCK"' EXIT
@@ -34,8 +50,10 @@ fi
 
 git add memory/desk.json archive
 git diff --cached --quiet && exit 0
+no_conflicts
 git commit -q -m "Dionysus desk note, $(date '+%Y-%m-%d %H:%M')"
-if ! git pull --rebase --autostash -q origin main; then
+set_aside
+if ! git pull --rebase -q origin main; then
   git rebase --abort 2>/dev/null || true
   echo "Could not combine with GitHub's latest; the next note will try again."
   exit 0
