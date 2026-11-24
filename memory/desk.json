@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-24T20:01:12Z",
+ "updated": "2026-11-24T20:31:55Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-19T15:59:46-05:00",
-   "at_text": "Thu Nov 19, 3:59:46 PM ET",
-   "text": "At 3:59:46PM ET the bot just bought the NVDA12/11145P put after ignoring MSTR and COIN because already tried, so my book now has eight open positions, including a $4,740 win on NVDA and a $2,082 loss on AMD. The account is up 58.7% overall and 1.2% today, with $45,554 still open in the sleeve and $21,158 banked. Market mood is bearish, and I'm watching the 31.2% MSTR signal, 24.2% COIN, 19.7% NVDA, and 14.9% PLTR for next picks, while keeping an eye on the 11.5% GOOGL and 11.2% AMD signals.",
-   "sleeve": 116711.0
-  },
   {
    "at": "2026-11-20T09:30:00-05:00",
    "at_text": "Fri Nov 20, 9:30:00 AM ET",
@@ -242,6 +236,12 @@
    "at_text": "Tue Nov 24, 3:00:52 PM ET",
    "text": "The market\u2019s still a bear; I\u2019m watching the MSTR 12/04 125P still up 334.5% while the COIN 12/04 116C is bleeding 59.2%. The bot bought the QQQ call after liquidating two MSTR puts, but it skipped the GOOGL call because I didn\u2019t have enough cash for a full\u2011size bet. I\u2019m sizing the next round around the MSTR and AMD call signals, keeping an eye on the 11.8% account gain and the 24.7% daily loss.",
    "sleeve": 68872.5
+  },
+  {
+   "at": "2026-11-24T15:31:10-05:00",
+   "at_text": "Tue Nov 24, 3:31:10 PM ET",
+   "text": "My book is bruised on the downside, with COIN, AMD, AVGO, META, QQQ all in the red, while the big winners MSTR 125P +332.3% ($3,622) and NFLX 63P +115.6% ($5,210) still sit in the green. The bot only took the QQQ call after liquidating two of my MSTR 125P to free cash; the GOOGL call stayed out because we lacked the cash $9,601 for a full\u2011size bet. Next up I\u2019m watching the 29.5% call signal for MSTR and the 21.5% for AMD, hoping a move will let me re\u2011enter those positions with a larger size.",
+   "sleeve": 66821.0
   }
  ],
  "pick_status": {
@@ -271,7 +271,7 @@
   ],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-24T15:00:52-05:00"
+  "seen": "2026-11-24T15:31:10-05:00"
  },
  "picks": {
   "date": "2026-11-23",
