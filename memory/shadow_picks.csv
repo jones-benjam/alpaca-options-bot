@@ -14,3 +14,7 @@ date,name,symbol,direction,conviction,why
 2026-11-20,Dionysus,TSLA,put,3,"Above 8% strength, adds position."
 2026-11-20,Prudence,,,,passed
 2026-11-20,Quill,MSFT,put,4,"Past success with MSFT put, signal strength 7.25%, bearish market mood"
+2026-11-23,Dionysus,QQQ,call,5,"QQQ call tops the list; I’ve seen trailing stops keep winners alive, and a big swing could hit me."
+2026-11-23,Dionysus,GOOGL,call,4,"GOOGL’s 5.37% strength looks solid, techs always bounce when the market softens."
+2026-11-23,Prudence,,,,passed
+2026-11-23,Quill,,,,passed

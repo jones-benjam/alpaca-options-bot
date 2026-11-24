@@ -1,6 +1,10 @@
 # Review of the bot's trades
 
+<<<<<<< Updated upstream
 Generated Tue Nov 24, 2026, 12:21 AM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+=======
+Generated Mon Nov 23, 2026, 8:00 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+>>>>>>> Stashed changes
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard

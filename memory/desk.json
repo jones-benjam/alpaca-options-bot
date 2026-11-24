@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-23T21:01:33Z",
+ "updated": "2026-11-24T13:36:45Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -281,41 +281,27 @@
   "seen": "2026-11-23T15:59:28-05:00"
  },
  "picks": {
-  "date": "2026-11-20",
+  "date": "2026-11-23",
   "rows": [
    {
     "name": "Dionysus",
-    "symbol": "MSFT",
-    "direction": "put",
+    "symbol": "QQQ",
+    "direction": "call",
     "conviction": "5",
-    "why": "Past win 38.9%, strong signal 7.25%."
+    "why": "QQQ call tops the list; I\u2019ve seen trailing stops keep winners alive, and a big swing could hit me."
    },
    {
     "name": "Dionysus",
-    "symbol": "AVGO",
-    "direction": "put",
+    "symbol": "GOOGL",
+    "direction": "call",
     "conviction": "4",
-    "why": "Reasonable strength 9.11%, good for diversification."
-   },
-   {
-    "name": "Dionysus",
-    "symbol": "TSLA",
-    "direction": "put",
-    "conviction": "3",
-    "why": "Above 8% strength, adds position."
-   },
-   {
-    "name": "Quill",
-    "symbol": "MSFT",
-    "direction": "put",
-    "conviction": "4",
-    "why": "Past success with MSFT put, signal strength 7.25%, bearish market mood"
+    "why": "GOOGL\u2019s 5.37% strength looks solid, techs always bounce when the market softens."
    }
   ]
  },
  "diary": {
-  "heading": "2026-11-20",
-  "text": "2026-11-20. I doubled on QQQ puts, sold half at a tidy 67.5% gain, and kept the rest until the trail kicked in. The 6 QQQ 11/20 633P bought at $4.38 earned $1,332 from the first three at $8.82 and $441 from the next three at $5.85. I also sold the 3 QQQ 12/04 673P for $10,260, and liquidated the 10 NVDA 12/11 145P at $14.90 for $9,950. I added 16 SPY 12/11 685P at $11.78 and closed 3 QQQ 11/20 633P at $5.85 for $441. The account is $238,173, up 48.22%; sleeve $195,400, up 69.77%. Profit since Nov\u202f9 is +$145,400, beating SPY which fell 3.51% today and 6.08% overall. Market mood is falling, but I feel the engine humming. The risk desk warns of a one\u2011way book and short cash.  \n\nTomorrow I want: a larger SPY put with a higher stop today  \nThe risk desk says: short of real cash"
+  "heading": "2026-11-23 (preliminary)",
+  "text": "Today I let the engine breathe. I liquidated 4\u202fPLTR\u202f11/27\u202f172.5P at half+time for\u202f$1,880, 4\u202fCOIN\u202f11/27\u202f140P for\u202f$7,080, 3\u202fQQQ\u202f12/04\u202f673P for\u202f$2,022, 3\u202fAMD\u202f12/11\u202f455P for\u202f$45, and 5\u202fMETA\u202f12/11\u202f625P for\u202f$5,775. I cut the SPY\u202f12/11\u202f685P at stop to\u202f$-10,016 and the NVDA\u202f12/11\u202f145P to\u202f$-2,570. I opened new puts on MSFT, COIN, AMD, AVGO, and added calls on PLTR, META, COIN, AMD, AVGO, hoping to balance the one\u2011way book. The account sits at\u202f$142,963, sleeve\u202f$95,838, profit since Nov\u202f9\u202f$45,838, down\u202f39.98% and\u202f50.95% respectively. SPY is up\u202f4.62% today, I\u2019m still ahead of the benchmark. Cash is\u202f$3,418, less than a full\u2011size bet, so the risk desk is tight. The market mood is falling, but the fire stays.  \n\nTomorrow I want: a larger SPY put with a tighter stop  \nThe risk desk says: short of real cash ($3,418)"
  },
  "self_notes": [
   "I missed the benefit of trailing stops; all winners were cut early, so next time I'll keep the trailing trail longer.",
@@ -334,36 +320,41 @@
  },
  "free_up": [
   {
-   "symbol": "NVDA",
+   "symbol": "MSTR",
    "direction": "put",
-   "why": "Sell part to free cash for new bet."
+   "why": "Big profit, sell part to free cash."
+  },
+  {
+   "symbol": "NFLX",
+   "direction": "put",
+   "why": "Strong profit, sell part to free cash."
   }
  ],
  "stats": {
   "picks": {
    "ai": {
-    "scored": 6,
+    "scored": 9,
     "right": 6,
-    "avg_move_pct": 3.88
+    "avg_move_pct": 0.82
    },
    "rules": {
-    "scored": 15,
+    "scored": 18,
     "right": 15,
-    "avg_move_pct": 5.41
+    "avg_move_pct": 1.92
    }
   },
   "trades": {
    "ai": {
-    "open": 2,
-    "closed": 0,
-    "won": 0,
-    "profit": 0
+    "open": 0,
+    "closed": 4,
+    "won": 1,
+    "profit": -6111.0
    },
    "rules": {
     "open": 7,
-    "closed": 6,
-    "won": 2,
-    "profit": -6393.0
+    "closed": 13,
+    "won": 7,
+    "profit": 22159.0
    }
   }
  },
@@ -377,7 +368,9 @@
     "by": "Dionysus",
     "proposed": "2026-11-18",
     "effective": "2026-11-20",
-    "status": "active"
+    "status": "undone",
+    "undone_on": "2026-11-23",
+    "undone_why": "the 5 three-week trades opened since it began averaged -19%, against +41% before"
    },
    {
     "dial": "CORE_STOP",
@@ -405,9 +398,15 @@
    ],
    [
     "the rules alone",
-    "16",
-    "7 of 16",
-    "+$10,544"
+    "23",
+    "12 of 23",
+    "+$39,096"
+   ],
+   [
+    "Dionysus's pick, approved by the rules",
+    "4",
+    "1 of 4",
+    "-$6,111"
    ]
   ],
   "picks_vs_rules": [
@@ -420,9 +419,9 @@
    ],
    [
     "Dionysus (AI persona)",
-    "3",
-    "3 of 3",
-    "+4.63%",
+    "6",
+    "3 of 6",
+    "-0.33%",
     "too early"
    ],
    [
@@ -434,17 +433,17 @@
    ],
    [
     "Quill (AI persona)",
-    "1",
-    "1 of 1",
-    "+3.23%",
+    "2",
+    "1 of 2",
+    "+0.83%",
     "too early"
    ],
    [
     "The rules' top three",
-    "15",
-    "15 of 15",
-    "+5.41%",
-    "+24.37%"
+    "18",
+    "15 of 18",
+    "+1.92%",
+    "+15.76%"
    ]
   ]
  }
