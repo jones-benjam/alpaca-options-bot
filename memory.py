@@ -17,6 +17,7 @@ packet a human reviewer (or, later, an LLM) would read to suggest changes.
 memory/LESSONS.md is written by hand and is never touched by this code.
 """
 import csv
+import re
 import datetime as dt
 import statistics
 from pathlib import Path
@@ -128,11 +129,17 @@ def market_row(bot, now, is_open):
     }, view, regime, bot.candidates(view, regime)
 
 
+def dated_rows(path):
+    """A memory CSV's rows, skipping anything that is not a real dated row (for
+    example leftover git conflict markers), so one bad line cannot stop the daily job."""
+    if not path.exists():
+        return []
+    with path.open() as f:
+        return [r for r in csv.DictReader(f) if re.fullmatch(r"\d{4}-\d{2}-\d{2}", r.get("date") or "")]
+
+
 def upsert_market(row):
-    rows = []
-    if MARKET.exists():
-        with MARKET.open() as f:
-            rows = [r for r in csv.DictReader(f) if r["date"] != row["date"]]
+    rows = [r for r in dated_rows(MARKET) if r["date"] != row["date"]]
     rows.append(row)
     rows.sort(key=lambda r: r["date"])
     write_csv(MARKET, MARKET_FIELDS, rows)
@@ -140,10 +147,7 @@ def upsert_market(row):
 
 def upsert_by_date(path, fields, day, new_rows):
     """Replace one day's rows in a CSV that keeps a row (or several) per day."""
-    rows = []
-    if path.exists():
-        with path.open() as f:
-            rows = [r for r in csv.DictReader(f) if r["date"] != day]
+    rows = [r for r in dated_rows(path) if r["date"] != day]
     rows += new_rows
     rows.sort(key=lambda r: (r["date"], int(r.get("rank") or 0)))
     write_csv(path, fields, rows)
@@ -195,9 +199,7 @@ def score_shadow(bot):
     if PICKS.exists():
         with PICKS.open() as f:
             picks = [dict(r, who=r.get("name") or "trader") for r in csv.DictReader(f) if r.get("symbol")]
-    if CANDIDATES.exists():
-        with CANDIDATES.open() as f:
-            picks += [dict(r, who="rules") for r in csv.DictReader(f) if int(r["rank"]) <= 3]
+    picks += [dict(r, who="rules") for r in dated_rows(CANDIDATES) if (r.get("rank") or "").isdigit() and int(r["rank"]) <= 3]
     if not picks:
         return []
     start = min(p["date"] for p in picks)
@@ -261,10 +263,8 @@ def ai_section(trades, days=10):
     if not picks:
         return lines + ["No suggestions yet.", ""]
     signals = {}
-    if CANDIDATES.exists():
-        with CANDIDATES.open() as f:
-            for c in csv.DictReader(f):
-                signals.setdefault(c["date"], set()).add((c["symbol"], c["direction"]))
+    for c in dated_rows(CANDIDATES):
+        signals.setdefault(c["date"], set()).add((c["symbol"], c["direction"]))
     recent = sorted({p["date"] for p in picks})[-days:]
     lines += ["| Picked | Suggestion | Conviction | What happened |", "|---|---|---|---|"]
     for p in [p for p in picks if p["date"] in recent]:

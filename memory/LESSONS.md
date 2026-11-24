@@ -70,6 +70,13 @@ each lesson are in `STRATEGY_LOG.md`.
   container copies named files only; a new module left out of it stopped
   the bot for a minute. Rule changed: check the Dockerfile when adding a
   file the bot imports. (Nov 18)
+- **Two machines writing to one repository need a guard.** On Nov 24 the Mac
+  mini's `git pull --autostash` hit a clash with GitHub's daily job, left git's
+  conflict markers in four files without failing, and committed them. That
+  evening the daily job crashed on them. Rule changed: the Mac mini sets its
+  leftovers aside instead of autostashing, neither machine saves a file that
+  holds conflict markers, and the memory reader skips rows that are not real
+  dated rows. (Nov 24)
 - **Check a claim against real data before repeating it.** We said option
   buyers overpay; real prices showed that was only true for index funds.
   (Nov 11)
