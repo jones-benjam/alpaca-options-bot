@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-24T17:31:13Z",
+ "updated": "2026-11-24T18:02:02Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-19T13:30:04-05:00",
-   "at_text": "Thu Nov 19, 1:30:04 PM ET",
-   "text": "At 1:30PM ET my sleeve is $106,578, profit $56,578, $21,158 banked, $35,420 open, cash $11,823. NVDA 12/11 145P landed today; MSTR and COIN puts were held back due to prior exposure. With the market mood bearish, I'm watching the 29.2% MSTR signal and the 21.8% COIN signal for the next move.",
-   "sleeve": 106578.5
-  },
   {
    "at": "2026-11-19T14:00:26-05:00",
    "at_text": "Thu Nov 19, 2:00:26 PM ET",
@@ -242,6 +236,12 @@
    "at_text": "Tue Nov 24, 12:30:23 PM ET",
    "text": "I just sold two of my MSTR 12/04 125P legs to free cash and the bot snapped up the QQQ 12/08 660C call; the GOOGL 12/04 650C didn\u2019t get a chance because I\u2019m short on proper\u2011size capital. My book is still loaded on calls\u2014MSTR 28.4%, AMD 21.2%, COIN 20.1%\u2014and the only loss I\u2019m tracking is the QQQ call at \u20137.4%. I\u2019ll keep an eye on the MSTR and AMD signals and see if the market shifts enough to justify adding more size before the next swing.",
    "sleeve": 74966.5
+  },
+  {
+   "at": "2026-11-24T13:00:40-05:00",
+   "at_text": "Tue Nov 24, 1:00:40 PM ET",
+   "text": "The bot just sold 2 of my QQQ 12/07 661P at a 51% loss to free cash and then bought the QQQ call after clearing the 125P position. My book is still skewed: MSTR 125P up 321.2% ($3,501), COIN 116C down -57.3% (-$12,274), AMD 487.5C down -69.3% (-$8,812), QQQ 660C down -8.9% (-$968). Signals show MSTR call 28.5% and AMD call 21.5% next, so I'm watching those. Account is up 17.1% overall, down 21.1% today, with $73,574 in the sleeve and $9,601 cash.",
+   "sleeve": 73574.0
   }
  ],
  "pick_status": {
@@ -271,7 +271,7 @@
   ],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-24T12:30:23-05:00"
+  "seen": "2026-11-24T13:00:40-05:00"
  },
  "picks": {
   "date": "2026-11-23",
