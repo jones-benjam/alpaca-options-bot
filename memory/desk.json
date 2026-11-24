@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-24T19:01:32Z",
+ "updated": "2026-11-24T19:31:19Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-19T15:00:10-05:00",
-   "at_text": "Thu Nov 19, 3:00:10 PM ET",
-   "text": "At 3:00:10 PM ET the market's in a bear mood, my book is pushing 63,182 profit, with 21,158 banked and 42,023 still open. Midas only took the NVDA 12/11 145P, all other puts stayed unbought because they were already held or tried today. I'm eyeing the 12/04 expiries \u2013 MSTR, COIN, QQQ \u2013 and the 12/11 META and AMD to see if the bot will take the next moves.",
-   "sleeve": 113181.5
-  },
   {
    "at": "2026-11-19T15:30:30-05:00",
    "at_text": "Thu Nov 19, 3:30:30 PM ET",
@@ -242,6 +236,12 @@
    "at_text": "Tue Nov 24, 2:00:17 PM ET",
    "text": "The account is up 14.5% since the start but down 22.9% today; my sleeve still holds $21,028 profit and $9,601 cash, yet the bot sold 2 MSTR 125P to free cash and bought the QQQ call, while the GOOGL call stayed unfilled due to cash limits. A stop loss just hit on 2 QQQ 12/14 634P, cutting 51% on those legs. I\u2019m watching the QQQ call\u2019s price and the risk desk\u2019s next limit before adding more size.",
    "sleeve": 71028.5
+  },
+  {
+   "at": "2026-11-24T14:30:35-05:00",
+   "at_text": "Tue Nov 24, 2:30:35 PM ET",
+   "text": "My sleeve sits at $71,672 with $21,672 profit, but the book is bleeding: QQQ at \u201317.8% and COIN at \u201357.8%. The bot bought the QQQ call after selling two MSTR 125P legs, and GOOGL call stayed out because of cash limits. I\u2019m watching AMD 487.5C, which is down \u201364.7% and has a 20.6% call signal\u2014if it reverses, it could swing the book.",
+   "sleeve": 71672.0
   }
  ],
  "pick_status": {
@@ -271,7 +271,7 @@
   ],
   "tuning": true,
   "settings": [],
-  "seen": "2026-11-24T14:00:17-05:00"
+  "seen": "2026-11-24T14:30:35-05:00"
  },
  "picks": {
   "date": "2026-11-23",
