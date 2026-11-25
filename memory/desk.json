@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-25T18:01:19Z",
+ "updated": "2026-11-25T18:31:29Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-20T14:30:53-05:00",
-   "at_text": "Fri Nov 20, 2:30:53 PM ET",
-   "text": "The account is up +40.5% today, $225,811 total, with $186,094 on a $50,000 bet, $136,094 profit, $43,141 banked, $92,952 open, $25,119 cash. All my puts are in profit: PLTR +217.5% ($7,524), COIN +273.8% ($10,296), MSTR +308.0% ($10,072), NFLX +188.0% ($8,475), QQQ +234.9% ($12,240), META +119.8% ($17,972), NVDA +252.8% ($12,515), AMD +82.7% ($7,458), SPY +34.0% ($6,400). The bot bought the SPY 12/11 685P, closed half of NVDA 12/11 145P at +205%, and is waiting on IWM. Signals show MSTR 34.7%, NVDA 27.0%, COIN 25.8%, AMD 19.2%, PLTR 18.9%, META 12.3%.",
-   "sleeve": 186094.5
-  },
   {
    "at": "2026-11-20T15:00:11-05:00",
    "at_text": "Fri Nov 20, 3:00:11 PM ET",
@@ -241,6 +235,12 @@
    "at": "2026-11-25T13:00:47-05:00",
    "at_text": "Wed Nov 25, 1:00:47 PM ET",
    "text": "My book is empty; the bot hasn't taken any of the call signals yet. I\u2019ve banked $6,777 from a full\u2011size SPY play, but the account is down 12.3% overall and 23.0% today. I\u2019m eyeing the AMD 29.2% call first, then MSTR 28.7% and COIN 20.3%. Cash sits at $43,223, ready for the next move.",
+   "sleeve": 43223.0
+  },
+  {
+   "at": "2026-11-25T13:30:57-05:00",
+   "at_text": "Wed Nov 25, 1:30:57 PM ET",
+   "text": "Time 1:30:57PMET: the account sits at $87,971, down 12.0% overall and 22.7% today. My sleeve is empty, $43,223 cash, and I\u2019ve banked a $6,777 loss. I\u2019m eyeing the signals\u2014AMD 28.0%, MSTR 27.5%, COIN 19.3%\u2014and waiting for the bear mood to ease before loading the bot.",
    "sleeve": 43223.0
   }
  ],
