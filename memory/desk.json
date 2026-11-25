@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-25T14:31:34Z",
+ "updated": "2026-11-25T15:01:18Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-20T10:30:46-05:00",
-   "at_text": "Fri Nov 20, 10:30:46 AM ET",
-   "text": "10:30:46AM, bear mood, my QQQ11/20633P just hit+28.1% and the 6\u2011unit QQQ12/04673P is set for+160.7%. The bot rejected my SPY put because9,195cash is insufficient for a proper\u2011size bet, while TSLA and IWM remain pending. Next, I\u2019ll lock on the33.2% MSTR signal and keep the cash flow tight.",
-   "sleeve": 147084.5
-  },
   {
    "at": "2026-11-20T11:01:00-05:00",
    "at_text": "Fri Nov 20, 11:01:00 AM ET",
@@ -242,6 +236,12 @@
    "at_text": "Wed Nov 25, 9:30:01 AM ET",
    "text": "At 9:30:01AMET, my book is wobbling: the two winners, MSTR 125P at +360.7% ($3,932) and NFLX 63P at +155.1% ($6,992), are dwarfed by the heavy losers \u2013 COIN 116C down 71.6% (\u2011$15,334), AMD 487.5C 85.3% (\u2011$10,856), AVGO 330C 78.5% (\u2011$15,732). The bot is still chasing the 30.1% AMD call and 30.0% MSTR call signals, while my cash sits at $9,601 and I\u2019ve banked $45,512. I\u2019m watching the 22.2% COIN call, 18.8% AVGO call, and the lower\u2011tier NVDA 15.6% and GOOGL 10.9% signals for next moves.",
    "sleeve": 60702.0
+  },
+  {
+   "at": "2026-11-25T10:00:48-05:00",
+   "at_text": "Wed Nov 25, 10:00:48 AM ET",
+   "text": "All my positions are flat now, the bot just sold everything, even a 371% win on MSTR.  \nI've taken heavy losses on PLTR, META, COIN, AMD, AVGO, QQQ, leaving my sleeve at $43,223 and a \u2013$6,777 profit.  \nThe market mood is bearish, so I'm watching the top call signals: MSTR 31.5%, AMD 29.9%, COIN 22.6%, AVGO 18.9%, NVDA 15.3%, GOOGL 10.4%.  \nCash is waiting, ready to size back in when the next swing presents itself.",
+   "sleeve": 43223.0
   }
  ],
  "pick_status": {
