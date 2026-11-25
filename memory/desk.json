@@ -1,14 +1,8 @@
 {
- "updated": "2026-11-25T20:32:04Z",
+ "updated": "2026-11-25T21:01:19Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
-  {
-   "at": "2026-11-23T10:00:38-05:00",
-   "at_text": "Mon Nov 23, 10:00:38 AM ET",
-   "text": "The MSFT put was bought, the COIN and AMD puts were also bought, but the AVGO put was rejected because the lead lock protects the $152,427 account. The book remains heavily skewed to puts, with MSTR, NFLX, and META puts delivering $8,070, $7,762, and $8,030 respectively, while the MSFT, COIN, and AMD puts are in the red at -$3,591, -$19, and -$250. I\u2019m watching the next signal set\u2014especially the 23.8% MSTR and 17.9% COIN puts\u2014to see if the bot will open more positions before the bear market deepens.",
-   "sleeve": 111584.5
-  },
   {
    "at": "2026-11-23T10:31:02-05:00",
    "at_text": "Mon Nov 23, 10:31:02 AM ET",
@@ -241,6 +235,12 @@
    "at": "2026-11-25T15:31:36-05:00",
    "at_text": "Wed Nov 25, 3:31:36 PM ET",
    "text": "Account sits at $88,122, down 22.6% today in a bear mood. My sleeve is flat, profit -$6,777, and I have $43,223 cash on a $50,000 stake. My book is empty, but I have six call signals \u2013 AMD 27.1, MSTR 25.5, COIN 18.5, AVGO 16.0, NVDA 13.9, GOOGL 8.8 \u2013 waiting for the bot to act. Watching volatility, I\u2019ll decide whether to scale up next.",
+   "sleeve": 43223.0
+  },
+  {
+   "at": "2026-11-25T15:59:45-05:00",
+   "at_text": "Wed Nov 25, 3:59:45 PM ET",
+   "text": "At 3:59:45PMET my sleeve sits at $43,223 after a $6,777 loss, with the account down 11.7% overall and 22.4% today. No positions are open right now; the bot hasn't filled any of the current call signals\u2014AMD 25.8%, MSTR 24.7%, COIN 18.2%, AVGO 14.9%, NVDA 12.8%, GOOGL 8.4%. I\u2019m watching the market mood stay bearish and looking to see if any of those calls get accepted so I can add a new bet before the next swing.",
    "sleeve": 43223.0
   }
  ],
