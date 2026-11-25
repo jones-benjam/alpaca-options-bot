@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-24T21:01:30Z",
+ "updated": "2026-11-25T01:04:59Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -274,37 +274,51 @@
   "seen": "2026-11-24T15:59:24-05:00"
  },
  "picks": {
-  "date": "2026-11-23",
+  "date": "2026-11-24",
   "rows": [
    {
     "name": "Dionysus",
-    "symbol": "QQQ",
+    "symbol": "NVDA",
     "direction": "call",
     "conviction": "5",
-    "why": "QQQ call tops the list; I\u2019ve seen trailing stops keep winners alive, and a big swing could hit me."
+    "why": "Signal at 12.49% \u2013 a clear, high\u2011strength bet. I\u2019d put all my fuel into this call."
    },
    {
-    "name": "Dionysus",
+    "name": "Quill",
+    "symbol": "NVDA",
+    "direction": "call",
+    "conviction": "3",
+    "why": "Signal strength 12.49% is the highest among the available calls and is not restricted by the risk desk."
+   },
+   {
+    "name": "Quill",
     "symbol": "GOOGL",
     "direction": "call",
-    "conviction": "4",
-    "why": "GOOGL\u2019s 5.37% strength looks solid, techs always bounce when the market softens."
+    "conviction": "2",
+    "why": "Signal strength 5.36% is moderate and the call is allowed by the risk desk."
+   },
+   {
+    "name": "Quill",
+    "symbol": "MSFT",
+    "direction": "call",
+    "conviction": "2",
+    "why": "Signal strength 3.66% is low but provides diversification and is not blocked."
    }
   ]
  },
  "diary": {
-  "heading": "2026-11-23 (preliminary)",
-  "text": "Today I let the engine breathe. I liquidated 4\u202fPLTR\u202f11/27\u202f172.5P at half+time for\u202f$1,880, 4\u202fCOIN\u202f11/27\u202f140P for\u202f$7,080, 3\u202fQQQ\u202f12/04\u202f673P for\u202f$2,022, 3\u202fAMD\u202f12/11\u202f455P for\u202f$45, and 5\u202fMETA\u202f12/11\u202f625P for\u202f$5,775. I cut the SPY\u202f12/11\u202f685P at stop to\u202f$-10,016 and the NVDA\u202f12/11\u202f145P to\u202f$-2,570. I opened new puts on MSFT, COIN, AMD, AVGO, and added calls on PLTR, META, COIN, AMD, AVGO, hoping to balance the one\u2011way book. The account sits at\u202f$142,963, sleeve\u202f$95,838, profit since Nov\u202f9\u202f$45,838, down\u202f39.98% and\u202f50.95% respectively. SPY is up\u202f4.62% today, I\u2019m still ahead of the benchmark. Cash is\u202f$3,418, less than a full\u2011size bet, so the risk desk is tight. The market mood is falling, but the fire stays.  \n\nTomorrow I want: a larger SPY put with a tighter stop  \nThe risk desk says: short of real cash ($3,418)"
+  "heading": "2026-11-24 (preliminary)",
+  "text": "2026-11-24. I closed the MSTR 125P for $6,310, then opened a 13\u2011share QQQ 660C at $8.41 and a 2\u2011share QQQ 634P at $3.48. The market stayed bearish, so I followed the 6.14% call signal and 0.11% put signal. I cut the put at $1.73, a $350 loss, after 0.07 days. My sleeve shrank to $60,417, a 40.51% drop, while the account sits at $105,998, down 28.63%. Profit since Nov\u202f9 is $10,417, still ahead of SPY\u2019s -2.24% loss. I still own 1 MSTR 125P, 23 NFLX 63P, 16 PLTR 165C, 8 META 625C, 68 COIN 116C, 8 AMD 487.5C, 24 AVGO 330C, and 13 QQQ 660C. The rest sit at losses; none are in profit. The engine feels alive, but the risk desk warns of $617 cash, below the full\u2011size $17,069. The losing\u2011streak warning hits hard; the last six closed trades all lost. SPY fell 0.51% today, -2.24% since contest. I\u2019m frustrated by the loss streak and cash shortfall. The risk desk is still warning me of a lack of real cash.\n\nTomorrow I want: a larger QQQ call with tighter stop\nThe risk desk says: short of real cash"
  },
  "self_notes": [
-  "I missed the benefit of trailing stops; all winners were cut early, so next time I'll keep the trailing trail longer.",
-  "I nailed the MSFT put, taking a 38.9% profit, proving the half+trail exit works when the price stays in range.",
-  "The GOOGL put loss shows stops lagging; I need tighter stops or a quicker exit to avoid slippage.",
   "All eight open bets are puts, creating a one\u2011way book that risks a market swing; I must add calls or spread to balance.",
   "Cash is 2,857, less than a full\u2011size bet of 27,227; I\u2019ll size down or wait for more liquidity before adding",
   "I nailed the trailing stops on QQQ, keeping winners alive and avoiding early cuts.",
   "I over\u2011extended on puts, creating a one\u2011way book that risked a market swing.",
-  "I let a"
+  "I let a",
+  "The contract is still open (no exit recorded).",
+  "The profit figure is based on the original purchase price; the current market price isn\u2019t listed in the logs, but the 317\u202f% gain indicates a strong upside.",
+  "The bot has not yet closed this position, so the 317\u202f% gain remains unrealised until a sale occurs."
  ],
  "proposals": [],
  "who": {
@@ -315,30 +329,30 @@
   {
    "symbol": "MSTR",
    "direction": "put",
-   "why": "Big profit, sell part to free cash."
+   "why": "Huge profit, can trim part to raise cash."
   },
   {
    "symbol": "NFLX",
    "direction": "put",
-   "why": "Strong profit, sell part to free cash."
+   "why": "Solid 96% gain, another slice to free up."
   }
  ],
  "stats": {
   "picks": {
    "ai": {
-    "scored": 9,
+    "scored": 11,
     "right": 6,
-    "avg_move_pct": 0.82
+    "avg_move_pct": 0.39
    },
    "rules": {
-    "scored": 18,
+    "scored": 21,
     "right": 15,
-    "avg_move_pct": 1.92
+    "avg_move_pct": 0.55
    }
   },
   "trades": {
    "ai": {
-    "open": 0,
+    "open": 1,
     "closed": 4,
     "won": 1,
     "profit": -6111.0
@@ -391,9 +405,9 @@
    ],
    [
     "the rules alone",
-    "23",
-    "12 of 23",
-    "+$39,096"
+    "24",
+    "12 of 24",
+    "+$38,746"
    ],
    [
     "Dionysus's pick, approved by the rules",
@@ -412,9 +426,9 @@
    ],
    [
     "Dionysus (AI persona)",
-    "6",
-    "3 of 6",
-    "-0.33%",
+    "8",
+    "3 of 8",
+    "-0.64%",
     "too early"
    ],
    [
@@ -433,10 +447,10 @@
    ],
    [
     "The rules' top three",
-    "18",
-    "15 of 18",
-    "+1.92%",
-    "+15.76%"
+    "21",
+    "15 of 21",
+    "+0.55%",
+    "+13.91%"
    ]
   ]
  }

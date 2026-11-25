@@ -21,3 +21,9 @@ Written by the trader persona (a local AI model) when he looks back over each da
 - I nailed the trailing stops on QQQ, keeping winners alive and avoiding early cuts.
 - I over‑extended on puts, creating a one‑way book that risked a market swing.
 - I let a
+
+## 2026-11-24 (preliminary)
+
+- The contract is still open (no exit recorded).
+- The profit figure is based on the original purchase price; the current market price isn’t listed in the logs, but the 317 % gain indicates a strong upside.
+- The bot has not yet closed this position, so the 317 % gain remains unrealised until a sale occurs.
