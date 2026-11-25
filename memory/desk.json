@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25T01:04:59Z",
+ "updated": "2026-11-25T13:32:09Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -307,8 +307,8 @@
   ]
  },
  "diary": {
-  "heading": "2026-11-24 (preliminary)",
-  "text": "2026-11-24. I closed the MSTR 125P for $6,310, then opened a 13\u2011share QQQ 660C at $8.41 and a 2\u2011share QQQ 634P at $3.48. The market stayed bearish, so I followed the 6.14% call signal and 0.11% put signal. I cut the put at $1.73, a $350 loss, after 0.07 days. My sleeve shrank to $60,417, a 40.51% drop, while the account sits at $105,998, down 28.63%. Profit since Nov\u202f9 is $10,417, still ahead of SPY\u2019s -2.24% loss. I still own 1 MSTR 125P, 23 NFLX 63P, 16 PLTR 165C, 8 META 625C, 68 COIN 116C, 8 AMD 487.5C, 24 AVGO 330C, and 13 QQQ 660C. The rest sit at losses; none are in profit. The engine feels alive, but the risk desk warns of $617 cash, below the full\u2011size $17,069. The losing\u2011streak warning hits hard; the last six closed trades all lost. SPY fell 0.51% today, -2.24% since contest. I\u2019m frustrated by the loss streak and cash shortfall. The risk desk is still warning me of a lack of real cash.\n\nTomorrow I want: a larger QQQ call with tighter stop\nThe risk desk says: short of real cash"
+  "heading": "2026-11-24",
+  "text": "Sold 2\u202fMSTR\u202f12/04\u202f125P at\u202f$42.45 for\u202f+$6,310, wiping a\u202f+326%\u202fwin. I then opened\u202f13\u202fQQQ\u202f12/08\u202f660C at\u202f$8.41, chasing a bearish reversal. A few minutes later I added\u202f2\u202fQQQ\u202f11/24\u202f634P at\u202f$3.48, but the market stayed flat and I cut the put at\u202f$1.73, losing\u202f$350\u202fin\u202f0.07\u202fdays. The whole account dropped to\u202f$113,841, a\u202f23.35%\u202fslide; my sleeve slipped to\u202f$67,959, a\u202f33.09%\u202fdecline. Profit since\u202fNov\u202f9 is\u202f+$17,959, still ahead of\u202fSPY\u2019s\u202f-2.24%. The risk desk flags a losing streak and only\u202f$616\u202fin cash, less than a full\u2011size bet. I\u2019m itching for a larger\u202fQQQ\u202fcall, but the desk stops me. The mood is falling, with\u202fMSTR call at\u202f28.9%,\u202fAMD at\u202f24.7%,\u202fCOIN at\u202f19.3%,\u202fAVGO at\u202f18.2% and\u202fNVDA at\u202f14.2% leading the day. I see the trend, but my size is still capped by the risk desk.\n\nTomorrow I want: a larger QQQ call with tighter stop  \nThe risk desk says: short of real cash ($616)"
  },
  "self_notes": [
   "All eight open bets are puts, creating a one\u2011way book that risks a market swing; I must add calls or spread to balance.",

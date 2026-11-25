@@ -1,11 +1,11 @@
 # Review of the bot's trades
 
-Generated Tue Nov 24, 2026, 11:16 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Wed Nov 25, 2026, 8:30 AM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
 
-- **Sleeve:** $85,346 on $50,000 of capital (+$35,346).
+- **Sleeve:** $99,131 on $50,000 of capital (+$49,131).
 - **Closed trades:** 28, of which 13 made money (46%).
 - **Banked profit or loss:** +$45,512.
 - **Typical winner and loser:** +$5,551 against -$2,635.
@@ -16,20 +16,20 @@ This report is produced by fixed rules, not by an AI model. It describes what ha
 
 - **Bets against the market's mood:** #30 PLTR call (2026-11-23), #31 META call (2026-11-23), #32 COIN call (2026-11-23), #33 AMD call (2026-11-23), #34 AVGO call (2026-11-23), #35 QQQ call (2026-11-24). The rules have blocked these for same-day bets since Nov 11, so this looks like a bug.
 - **Losing streak:** the last 6 closed trades all lost money.
-- **Short of real cash:** the shared account has $617 in cash, less than one full-size bet ($17,069). New bets will be smaller or skipped.
+- **Short of real cash:** the shared account has $616 in cash, less than one full-size bet ($19,826). New bets will be smaller or skipped.
 
 ## Open bets
 
 | Bet | Paid | Now | Result so far |
 |---|---|---|---|
 | 1 MSTR 12/04 125P | $10.90 | $47.09 | +332% |
-| 23 NFLX 12/04 63P | $1.96 | $4.62 | +135% |
-| 16 PLTR 12/04 165C | $3.90 | $4.74 | +22% |
-| 8 META 12/07 625C | $11.20 | $7.21 | -36% |
+| 23 NFLX 12/04 63P | $1.96 | $4.84 | +147% |
+| 16 PLTR 12/04 165C | $3.90 | $3.26 | -16% |
+| 8 META 12/07 625C | $11.20 | $5.46 | -51% |
 | 68 COIN 12/04 116C | $3.15 | $1.08 | -66% |
-| 8 AMD 12/04 487.5C | $15.90 | $4.80 | -70% |
-| 24 AVGO 12/04 330C | $8.35 | $4.17 | -50% |
-| 13 QQQ 12/08 660C | $8.41 | $6.61 | -21% |
+| 8 AMD 12/04 487.5C | $15.90 | $4.88 | -69% |
+| 24 AVGO 12/04 330C | $8.35 | $2.34 | -72% |
+| 13 QQQ 12/08 660C | $8.41 | $3.40 | -60% |
 
 ## Where the profit and loss came from
 
