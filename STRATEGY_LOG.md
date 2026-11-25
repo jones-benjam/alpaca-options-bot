@@ -601,6 +601,20 @@ trending, not on skill.
   neither machine will save a file with conflict markers in it, and the daily
   job skips damaged rows instead of stopping.
 
+### Tue Nov 24, 2026, 7:35 pm: The lead lock is back on
+- **Why:** In two days the dip calls cut the account from $148,528 to about
+  $106,000, and its lead over SPY fell from 52 points to 8.6. The grade
+  depends on finishing ahead of SPY, so the team chose to protect the win.
+- **What it does now:** The floor is SPY's return plus 5 points, about $102,600.
+  The account is about $3,400 above it, which allows about $6,800 of options.
+  Midas already holds $58,500, so it opens no new bets. If the account falls
+  to the floor, Midas sells everything, which keeps a lead of about 5 points.
+  Open bets keep their normal selling rules until then.
+- **What it costs:** Most of the upside. A rebound in the calls can still lift
+  the account, but Midas will not add bets unless the lead grows again.
+- **How:** It was switched on for the live bot at 7:34 pm with
+  `fly secrets set LOCK_ENABLED=1`, and is now also the default in `config.py`.
+
 ## Changes Dionysus made to Midas's settings
 
 Written automatically. Dionysus may change one setting a day, inside hard limits that Midas checks itself (see TUNING_LIMITS in config.py). A change starts the next trading day; a person can veto it before then with `mac_mini/veto.sh DIAL`, and it is undone automatically if the three-week trades opened after it clearly lose.
