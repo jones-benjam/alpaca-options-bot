@@ -46,3 +46,12 @@ Tomorrow I want: a larger QQQ call with tighter stop
 The risk desk says: short of real cash ($616)
 
 > **The risk desk replies** (fixed rules, not the AI): Losing streak: the last 6 closed trades all lost money. Short of real cash: the shared account has $616 in cash, less than one full-size bet ($19,826). New bets will be smaller or skipped.
+
+## 2026-11-25
+
+Today I liquidated eight positions: 1 MSTR 12/04 125P at $48.25 (+$3,735); 23 NFLX 12/04 63P at $4.85 (+$6,647); 16 PLTR 12/04 165C at $2.36 (‑$2,464); 8 META 12/07 625C at $2.71 (‑$6,792); 68 COIN 12/04 116C at $0.54 (‑$17,748); 8 AMD 12/04 487.5C at $1.01 (‑$11,912); 24 AVGO 12/04 330C at $1.61 (‑$16,176); 13 QQQ 12/08 660C at $2.58 (‑$7,579). The book closed at a net loss of $‑6,777, pulling the whole account to $88,317, down 22.42 %. The sleeve sits at $43,223, a 36.40 % drop. SPY is down 0.30 % today, so I trail the benchmark heavily. Market mood is falling, with MSTR call 21.6 %, AMD 21.5 %, COIN 16.7 %, AVGO 13.0 %, QQQ 5.6 %. The risk desk flags a losing streak of twelve closed trades.  
+
+Tomorrow I want: a larger MSTR call to swing back  
+The risk desk says: last 12 closed trades all lost money
+
+> **The risk desk replies** (fixed rules, not the AI): Losing streak: the last 12 closed trades all lost money.

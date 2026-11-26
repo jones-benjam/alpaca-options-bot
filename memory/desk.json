@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-25T21:01:19Z",
+ "updated": "2026-11-26T13:34:25Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -274,41 +274,34 @@
   "seen": "2026-11-24T15:59:24-05:00"
  },
  "picks": {
-  "date": "2026-11-24",
+  "date": "2026-11-25",
   "rows": [
    {
     "name": "Dionysus",
-    "symbol": "NVDA",
+    "symbol": "MSTR",
     "direction": "call",
     "conviction": "5",
-    "why": "Signal at 12.49% \u2013 a clear, high\u2011strength bet. I\u2019d put all my fuel into this call."
+    "why": "Past win, 21.6% strength, and the bot\u2019s risk desk still allows it \u2013 best bet to stay in the market."
    },
    {
-    "name": "Quill",
-    "symbol": "NVDA",
-    "direction": "call",
-    "conviction": "3",
-    "why": "Signal strength 12.49% is the highest among the available calls and is not restricted by the risk desk."
-   },
-   {
-    "name": "Quill",
-    "symbol": "GOOGL",
+    "name": "Dionysus",
+    "symbol": "AMD",
     "direction": "call",
     "conviction": "2",
-    "why": "Signal strength 5.36% is moderate and the call is allowed by the risk desk."
+    "why": "Strong 21.5% signal, but last trade was a 93.6% loss \u2013 risk\u2011adjusted play."
    },
    {
-    "name": "Quill",
-    "symbol": "MSFT",
+    "name": "Dionysus",
+    "symbol": "COIN",
     "direction": "call",
-    "conviction": "2",
-    "why": "Signal strength 3.66% is low but provides diversification and is not blocked."
+    "conviction": "1",
+    "why": "Weak 16.7% signal and a huge loss last time \u2013 only a punt if nothing else."
    }
   ]
  },
  "diary": {
-  "heading": "2026-11-24",
-  "text": "Sold 2\u202fMSTR\u202f12/04\u202f125P at\u202f$42.45 for\u202f+$6,310, wiping a\u202f+326%\u202fwin. I then opened\u202f13\u202fQQQ\u202f12/08\u202f660C at\u202f$8.41, chasing a bearish reversal. A few minutes later I added\u202f2\u202fQQQ\u202f11/24\u202f634P at\u202f$3.48, but the market stayed flat and I cut the put at\u202f$1.73, losing\u202f$350\u202fin\u202f0.07\u202fdays. The whole account dropped to\u202f$113,841, a\u202f23.35%\u202fslide; my sleeve slipped to\u202f$67,959, a\u202f33.09%\u202fdecline. Profit since\u202fNov\u202f9 is\u202f+$17,959, still ahead of\u202fSPY\u2019s\u202f-2.24%. The risk desk flags a losing streak and only\u202f$616\u202fin cash, less than a full\u2011size bet. I\u2019m itching for a larger\u202fQQQ\u202fcall, but the desk stops me. The mood is falling, with\u202fMSTR call at\u202f28.9%,\u202fAMD at\u202f24.7%,\u202fCOIN at\u202f19.3%,\u202fAVGO at\u202f18.2% and\u202fNVDA at\u202f14.2% leading the day. I see the trend, but my size is still capped by the risk desk.\n\nTomorrow I want: a larger QQQ call with tighter stop  \nThe risk desk says: short of real cash ($616)"
+  "heading": "2026-11-25",
+  "text": "Today I liquidated eight positions: 1\u202fMSTR\u202f12/04\u202f125P at\u202f$48.25\u202f(+$3,735);\u202f23\u202fNFLX\u202f12/04\u202f63P at\u202f$4.85\u202f(+$6,647);\u202f16\u202fPLTR\u202f12/04\u202f165C at\u202f$2.36\u202f(\u2011$2,464);\u202f8\u202fMETA\u202f12/07\u202f625C at\u202f$2.71\u202f(\u2011$6,792);\u202f68\u202fCOIN\u202f12/04\u202f116C at\u202f$0.54\u202f(\u2011$17,748);\u202f8\u202fAMD\u202f12/04\u202f487.5C at\u202f$1.01\u202f(\u2011$11,912);\u202f24\u202fAVGO\u202f12/04\u202f330C at\u202f$1.61\u202f(\u2011$16,176);\u202f13\u202fQQQ\u202f12/08\u202f660C at\u202f$2.58\u202f(\u2011$7,579). The book closed at a net loss of\u202f$\u20116,777, pulling the whole account to\u202f$88,317, down\u202f22.42\u202f%. The sleeve sits at\u202f$43,223, a\u202f36.40\u202f% drop. SPY is down\u202f0.30\u202f% today, so I trail the benchmark heavily. Market mood is falling, with MSTR call\u202f21.6\u202f%, AMD\u202f21.5\u202f%, COIN\u202f16.7\u202f%, AVGO\u202f13.0\u202f%, QQQ\u202f5.6\u202f%. The risk desk flags a losing streak of twelve closed trades.  \n\nTomorrow I want: a larger MSTR call to swing back  \nThe risk desk says: last 12 closed trades all lost money"
  },
  "self_notes": [
   "All eight open bets are puts, creating a one\u2011way book that risks a market swing; I must add calls or spread to balance.",
@@ -325,43 +318,32 @@
   "ai": "Dionysus",
   "bot": "Midas"
  },
- "free_up": [
-  {
-   "symbol": "MSTR",
-   "direction": "put",
-   "why": "Huge profit, can trim part to raise cash."
-  },
-  {
-   "symbol": "NFLX",
-   "direction": "put",
-   "why": "Solid 96% gain, another slice to free up."
-  }
- ],
+ "free_up": [],
  "stats": {
   "picks": {
    "ai": {
-    "scored": 11,
+    "scored": 12,
     "right": 6,
-    "avg_move_pct": 0.39
+    "avg_move_pct": 0.03
    },
    "rules": {
-    "scored": 21,
-    "right": 15,
-    "avg_move_pct": 0.55
+    "scored": 24,
+    "right": 17,
+    "avg_move_pct": 0.6
    }
   },
   "trades": {
    "ai": {
-    "open": 1,
-    "closed": 4,
+    "open": 0,
+    "closed": 5,
     "won": 1,
-    "profit": -6111.0
+    "profit": -13690.0
    },
    "rules": {
-    "open": 7,
-    "closed": 13,
-    "won": 7,
-    "profit": 22159.0
+    "open": 0,
+    "closed": 20,
+    "won": 9,
+    "profit": -9674.0
    }
   }
  },
@@ -405,15 +387,15 @@
    ],
    [
     "the rules alone",
-    "24",
-    "12 of 24",
-    "+$38,746"
+    "31",
+    "14 of 31",
+    "+$6,913"
    ],
    [
     "Dionysus's pick, approved by the rules",
-    "4",
-    "1 of 4",
-    "-$6,111"
+    "5",
+    "1 of 5",
+    "-$13,690"
    ]
   ],
   "picks_vs_rules": [
@@ -426,9 +408,9 @@
    ],
    [
     "Dionysus (AI persona)",
-    "8",
-    "3 of 8",
-    "-0.64%",
+    "9",
+    "3 of 9",
+    "-1.01%",
     "too early"
    ],
    [
@@ -436,21 +418,21 @@
     "3",
     "3 of 3",
     "+3.13%",
-    "too early"
+    "+6.18%"
    ],
    [
     "Quill (AI persona)",
-    "2",
-    "1 of 2",
-    "+0.83%",
-    "too early"
+    "5",
+    "1 of 5",
+    "-1.14%",
+    "+1.02%"
    ],
    [
     "The rules' top three",
-    "21",
-    "15 of 21",
-    "+0.55%",
-    "+13.91%"
+    "24",
+    "17 of 24",
+    "+0.60%",
+    "+11.98%"
    ]
   ]
  }

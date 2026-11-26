@@ -1,6 +1,6 @@
 # Review of the bot's trades
 
-Generated Wed Nov 25, 2026, 10:36 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Thu Nov 26, 2026, 8:30 AM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
@@ -88,7 +88,7 @@ Picks of 3/5 or more are tried first the next trading day, if the rules still ap
 | 2026-11-20 | TSLA put | 3/5 | Not bought; the rules no longer approved it |
 | 2026-11-23 | QQQ call | 5/5 | Bought, trade #35: closed, -$7,579 (-69.3%) |
 | 2026-11-23 | GOOGL call | 4/5 | Not bought; still a signal at the next close (slots, cash, lead-lock room or contract ran out) |
-| 2026-11-24 | NVDA call | 5/5 | Not bought; still a signal at the next close (slots, cash, lead-lock room or contract ran out) |
+| 2026-11-24 | NVDA call | 5/5 | Not bought; the rules no longer approved it |
 
 ## The trader's own picks, scored against the rules
 

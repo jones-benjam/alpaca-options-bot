@@ -23,3 +23,8 @@ date,name,symbol,direction,conviction,why
 2026-11-24,Quill,NVDA,call,3,Signal strength 12.49% is the highest among the available calls and is not restricted by the risk desk.
 2026-11-24,Quill,GOOGL,call,2,Signal strength 5.36% is moderate and the call is allowed by the risk desk.
 2026-11-24,Quill,MSFT,call,2,Signal strength 3.66% is low but provides diversification and is not blocked.
+2026-11-25,Dionysus,MSTR,call,5,"Past win, 21.6% strength, and the bot’s risk desk still allows it – best bet to stay in the market."
+2026-11-25,Dionysus,AMD,call,2,"Strong 21.5% signal, but last trade was a 93.6% loss – risk‑adjusted play."
+2026-11-25,Dionysus,COIN,call,1,Weak 16.7% signal and a huge loss last time – only a punt if nothing else.
+2026-11-25,Prudence,,,,passed
+2026-11-25,Quill,,,,passed
