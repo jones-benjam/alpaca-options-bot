@@ -27,3 +27,9 @@ Written by the trader persona (a local AI model) when he looks back over each da
 - The contract is still open (no exit recorded).
 - The profit figure is based on the original purchase price; the current market price isn’t listed in the logs, but the 317 % gain indicates a strong upside.
 - The bot has not yet closed this position, so the 317 % gain remains unrealised until a sale occurs.
+
+## 2026-11-25
+
+- The only *winning* closed trades in the sample are the two rule‑compliant puts (#6 and #11).
+- All six *losing* trades were the ones that broke the market‑mood rule.
+- The rule‑violation trades alone accounted for a loss of **$62 171** (the sum of the negative P/Ls).
