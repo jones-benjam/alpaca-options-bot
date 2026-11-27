@@ -1,6 +1,6 @@
 # Review of the bot's trades
 
-Generated Fri Nov 27, 2026, 8:30 AM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
+Generated Fri Nov 27, 2026, 4:42 PM ET (market closed) by `python3 bot.py memory`. Do not edit by hand; it is rewritten every day.
 This report is produced by fixed rules, not by an AI model. It describes what happened; it does not predict anything.
 
 ## Scoreboard
@@ -89,7 +89,7 @@ Picks of 3/5 or more are tried first the next trading day, if the rules still ap
 | 2026-11-23 | QQQ call | 5/5 | Bought, trade #35: closed, -$7,579 (-69.3%) |
 | 2026-11-23 | GOOGL call | 4/5 | Not bought; still a signal at the next close (slots, cash, lead-lock room or contract ran out) |
 | 2026-11-24 | NVDA call | 5/5 | Not bought; the rules no longer approved it |
-| 2026-11-25 | MSTR call | 5/5 | Waiting for the next trading day |
+| 2026-11-25 | MSTR call | 5/5 | Not bought; still a signal at the next close (slots, cash, lead-lock room or contract ran out) |
 
 ## The trader's own picks, scored against the rules
 
@@ -97,10 +97,10 @@ Neither set is traded. Each pick is judged on what the stock did afterwards, in 
 
 | | Picks scored | Right after 1 day | Average 1-day move | Average 5-day move |
 |---|---|---|---|---|
-| Dionysus (AI persona) | 9 | 3 of 9 | -1.01% | too early |
+| Dionysus (AI persona) | 12 | 6 of 12 | +0.04% | -4.12% |
 | Midas (AI persona) | 3 | 3 of 3 | +3.13% | +6.18% |
 | Quill (AI persona) | 5 | 1 of 5 | -1.14% | +1.02% |
-| The rules' top three | 24 | 17 of 24 | +0.60% | +11.98% |
+| The rules' top three | 27 | 20 of 27 | +0.89% | +9.84% |
 
 ## Where the rest of the memory lives
 

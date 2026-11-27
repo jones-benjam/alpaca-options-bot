@@ -9,3 +9,4 @@ date,as_of,regime,spy,spy_vs_avg_pct,qqq,qqq_vs_avg_pct,strongest_signals
 2026-11-23,close,bear,713.21,-3.37,636.34,-4.83,MSTR call 23.6%; AMD call 17.8%; COIN call 16.2%; AVGO call 12.3%; PLTR call 9.6%
 2026-11-24,close,bear,705.73,-4.05,620.4,-6.59,MSTR call 28.9%; AMD call 24.7%; COIN call 19.3%; AVGO call 18.2%; NVDA call 14.2%
 2026-11-25,close,bear,728.06,-1.04,633.92,-4.31,MSTR call 21.6%; AMD call 18.2%; COIN call 16.7%; AVGO call 13.0%; QQQ call 5.6%
+2026-11-27,close,bear,728.35,-1.01,650.8,-2.0,MSTR call 19.5%; AMD call 18.4%; COIN call 14.5%; AVGO call 9.7%; MSFT call 3.2%
