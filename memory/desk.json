@@ -1,5 +1,5 @@
 {
- "updated": "2026-11-26T13:34:25Z",
+ "updated": "2026-11-27T01:02:38Z",
  "name": "Dionysus",
  "model": "gpt-oss:20b",
  "notes": [
@@ -374,6 +374,17 @@
     "status": "vetoed",
     "vetoed_on": "2026-11-23",
     "vetoed_by": "a person"
+   },
+   {
+    "dial": "CORE_DTE_TARGET",
+    "from": 14,
+    "to": 18,
+    "why": "The best\u2011performing exit method held trades for ~13.8 days, longer than the current 14\u2011day target, indicating that a slightly longer DTE target could capture more upside.",
+    "evidence": "\"took profit on half then time stop\": 2 trades, 2 won, average +110%, best +150%, worst +71%, held 13.8 days on average",
+    "check_why": "The evidence cited refers to an exit method that averaged 13.8 days\u2014shorter than the current 14\u2011day target\u2014so it does not support raising CORE_DTE_TARGET to 18 days.",
+    "by": "Dionysus",
+    "proposed": "2026-11-25",
+    "status": "rejected"
    }
   ]
  },
