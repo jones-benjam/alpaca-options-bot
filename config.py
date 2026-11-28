@@ -200,7 +200,7 @@ STATE_FILE = _env("STATE_FILE", "")
 # floor under that: SPY's return since the start, plus a margin. The bot may hold
 # options worth up to LOCK_MULTIPLIER times the account's cushion above the floor.
 # A shrinking cushion stops new bets; if it is gone, the bot closes everything.
-LOCK_ENABLED = _env("LOCK_ENABLED", True, bool)  # off Nov 23-24 for upside; back on Nov 24 to protect the win
+LOCK_ENABLED = _env("LOCK_ENABLED", False, bool)  # off again from Nov 28: the lead is gone, so it protects nothing
 LOCK_START_VALUE = 100_000.0     # the whole account at the start
 LOCK_MARGIN_PCT = 0.05           # stay at least 5 points ahead of SPY
 LOCK_MULTIPLIER = _env("LOCK_MULTIPLIER", 2.0, float)
