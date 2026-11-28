@@ -556,6 +556,7 @@ def test_buy_the_dip():
 
 def test_switch_puts():
     """Midas sells puts up less than 50% and buys calls on them; bigger winners keep running."""
+    sizes, (C.CORE_SLOT_PCT, C.ODTE_RISK_PCT) = (C.CORE_SLOT_PCT, C.ODTE_RISK_PCT), (0.20, 0.06)  # room for several puts
     b, f, step = harness(trend=-1)
     f.range = (90.0, 89.0)
     C.BEAR_BUY_DIPS = False
@@ -576,6 +577,7 @@ def test_switch_puts():
     after = len(led.events)
     led, _ = step("next pass: nothing left to switch", ticks=2)
     assert len(led.events) == after, "no churn once the book is settled"
+    C.CORE_SLOT_PCT, C.ODTE_RISK_PCT = sizes
     print("\n--- hold or switch: small puts become calls, big winners run, no churn ---")
 
 
@@ -730,7 +732,7 @@ def main():
     test_late_trail()
     test_archive()
     # The scenarios below use the original, smaller setup and exits to stay short.
-    C.SLEEVE_START, C.CORE_SLOTS, C.CORE_SLOT_PCT = 25_000.0, 3, 0.28
+    C.SLEEVE_START, C.CORE_SLOTS, C.CORE_SLOT_PCT, C.ODTE_RISK_PCT = 25_000.0, 3, 0.28, 0.06
     C.CORE_TP1, C.CORE_TRAIL, C.CORE_TRAIL_FROM = 1.0, 0.30, 1.0
     stop_now, C.CORE_STOP, C.CORE_MIN_DTE_EXIT = C.CORE_STOP, -0.50, 4
     test_lifecycle()
