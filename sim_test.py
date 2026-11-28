@@ -265,7 +265,8 @@ def test_default_sizing():
     b, f, step = harness(trend=1)
     led, _ = step(f"default settings (${C.SLEEVE_START:,.0f} sleeve): expect bets until the cash runs out")
     core = [p for p in led.pos.values() if p.tag == "core"]
-    assert 4 <= len(core) <= C.CORE_SLOTS, "cash, not a fixed slot count, sets how many bets"
+    least = max(1, int((1 - C.ODTE_RISK_PCT) / C.CORE_SLOT_PCT))  # full-size bets the cash pays for (4 at 20%/6%)
+    assert least <= len(core) <= C.CORE_SLOTS, "cash, not a fixed slot count, sets how many bets"
     assert all(p.cost >= C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * C.SLEEVE_START * 0.9 for p in core), "no dribble bets"
     odte = [p for p in led.pos.values() if p.tag == "odte"]
     assert odte and odte[0].cost >= C.ODTE_RISK_PCT * C.SLEEVE_START * 0.9, "cash is kept back for a full same-day bet"

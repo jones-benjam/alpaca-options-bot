@@ -631,6 +631,11 @@ trending, not on skill.
   is unlikely.
 - **Lesson:** A lock that sells when a line is crossed cannot protect against
   a gap at the open. It sold after the damage was done.
+- **Bigger bets (12:15 am):** With so few bets available, each one is now much
+  larger, so the cash does not sit idle. A main bet is up to 40% of the sleeve,
+  about $17,300 (it was 20%), and a same-day bet up to 30%, about $13,000 (it
+  was 6%). Midas can spend only the account's real cash, about $34,200.
+  Switched on live with `fly secrets set CORE_SLOT_PCT=0.40 ODTE_RISK_PCT=0.30`.
 
 ## Changes Dionysus made to Midas's settings
 
