@@ -597,7 +597,7 @@ def test_lead_lock():
 
     b3, f3, step3 = harness(trend=1)
     led, _ = step3("plenty of lead: expect a full book")
-    assert len([p for p in led.pos.values() if p.tag == "core"]) >= 4
+    assert len([p for p in led.pos.values() if p.tag == "core"]) >= max(1, int((1 - C.ODTE_RISK_PCT) / C.CORE_SLOT_PCT))
     f3.equity = floor - 5_000                # the account has fallen behind the floor
     led, _ = step3("lead gone for three passes: expect everything closed", ticks=3)
     assert not led.pos, "the lock closes everything once the lead is gone"
