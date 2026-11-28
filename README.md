@@ -61,7 +61,7 @@ is the local AI model that suggests trades to it.
   approve.
 
 **Guard rails.**
-- Lead lock (**off since Nov 23**; `LOCK_ENABLED=1` turns it back on): the whole
+- Lead lock (on; it was off Nov 23-24, and `LOCK_ENABLED=0` turns it off): the whole
   account must stay at least 5 points ahead of SPY. The bot may hold options worth up to twice the account's cushion above that
   floor; a smaller cushion blocks new bets, and no cushion closes everything.
 - Kill switch: if the sleeve falls to 30% of its size the bot closes
