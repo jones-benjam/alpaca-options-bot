@@ -36,7 +36,7 @@ PENNY_ALL = {"SPY", "QQQ", "IWM"}  # options quoted in $0.01 at every price
 # cash freed by sales funds new bets for as long as it lasts, up to this many.
 CORE_SLOTS = _env("CORE_SLOTS", 10, int)
 CORE_MIN_BET_SHARE = 0.25        # skip a new bet smaller than a quarter of a full-size one
-CORE_SLOT_PCT = _env("CORE_SLOT_PCT", 0.20, float)  # of sleeve equity, per slot
+CORE_SLOT_PCT = _env("CORE_SLOT_PCT", 0.40, float)  # of sleeve equity, per slot (0.20 until the Nov 28 final push)
 CORE_MIN_STRENGTH = 0.02    # skip names with under 2% blended momentum
 # When SPY and QQQ are both below trend, buy CALLS on the most beaten-down stocks
 # instead of puts on them. On real option prices since March 2024, calls on those
@@ -83,7 +83,7 @@ HOLD_THROUGH_EARNINGS = _env("HOLD_THROUGH_EARNINGS", False, bool)
 # ---- Satellite: 0DTE opening-range breakout ----------------------------------
 ODTE_ENABLED = _env("ODTE_ENABLED", True, bool)
 ODTE_SYMBOLS = ["SPY", "QQQ"]
-ODTE_RISK_PCT = _env("ODTE_RISK_PCT", 0.06, float)  # premium per trade, of equity
+ODTE_RISK_PCT = _env("ODTE_RISK_PCT", 0.30, float)  # premium per trade, of equity (0.06 until the Nov 28 final push)
 ODTE_MAX_PER_DAY = _env("ODTE_MAX_PER_DAY", 1, int)  # SPY and QQQ move together
 ODTE_WITH_REGIME = _env("ODTE_WITH_REGIME", True, bool)  # never trade against the trend
 ODTE_OTM = 0.0015           # strike about 0.15% out of the money
@@ -200,7 +200,7 @@ STATE_FILE = _env("STATE_FILE", "")
 # floor under that: SPY's return since the start, plus a margin. The bot may hold
 # options worth up to LOCK_MULTIPLIER times the account's cushion above the floor.
 # A shrinking cushion stops new bets; if it is gone, the bot closes everything.
-LOCK_ENABLED = _env("LOCK_ENABLED", True, bool)  # off Nov 23-24 for upside; back on Nov 24 to protect the win
+LOCK_ENABLED = _env("LOCK_ENABLED", False, bool)  # off again from Nov 28: the lead is gone, so it protects nothing
 LOCK_START_VALUE = 100_000.0     # the whole account at the start
 LOCK_MARGIN_PCT = 0.05           # stay at least 5 points ahead of SPY
 LOCK_MULTIPLIER = _env("LOCK_MULTIPLIER", 2.0, float)

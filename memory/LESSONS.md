@@ -70,6 +70,10 @@ each lesson are in `STRATEGY_LOG.md`.
   container copies named files only; a new module left out of it stopped
   the bot for a minute. Rule changed: check the Dockerfile when adding a
   file the bot imports. (Nov 18)
+- **A lock that sells when a line is crossed cannot protect against a gap.**
+  On Nov 25 the account opened below the floor, and selling at 9:32 locked in
+  a -$52,289 day. With most of the account in short-dated calls, overnight
+  moves decide the result before any rule can act. (Nov 28)
 - **Two machines writing to one repository need a guard.** On Nov 24 the Mac
   mini's `git pull --autostash` hit a clash with GitHub's daily job, left git's
   conflict markers in four files without failing, and committed them. That

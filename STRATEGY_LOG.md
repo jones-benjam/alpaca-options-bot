@@ -615,6 +615,28 @@ trending, not on skill.
 - **How:** It was switched on for the live bot at 7:34 pm with
   `fly secrets set LOCK_ENABLED=1`, and is now also the default in `config.py`.
 
+### Sat Nov 28, 2026, 12:10 am: The lead lock fired, and is off again for a final push
+- **What happened:** At Tuesday's open (Nov 25) the dip-call stocks opened
+  lower again, below the lock's floor. At 9:32 am the lock sold everything,
+  below the floor because of the gap down at the open: the calls lost $62,671,
+  and the last two puts made $10,382, for -$52,289 that day.
+- **Where that leaves us:** The account is $89,257 (-10.7%), while SPY is
+  -1.0%, so we are 9.8 points behind. Midas holds nothing.
+- **Why turn the lock off:** It was there to protect a win, and the win is
+  gone. Finishing behind SPY still earns 9 of 10 points as long as the team
+  traded, so more risk cannot lower the grade. The lock was switched off
+  live with `fly secrets set LOCK_ENABLED=0`.
+- **Honest odds:** Getting back ahead needs about +$9,800 more than SPY in
+  three trading days. On Friday's close only AMD fits Midas's rules, so this
+  is unlikely.
+- **Lesson:** A lock that sells when a line is crossed cannot protect against
+  a gap at the open. It sold after the damage was done.
+- **Bigger bets (12:15 am):** With so few bets available, each one is now much
+  larger, so the cash does not sit idle. A main bet is up to 40% of the sleeve,
+  about $17,300 (it was 20%), and a same-day bet up to 30%, about $13,000 (it
+  was 6%). Midas can spend only the account's real cash, about $34,200.
+  Switched on live with `fly secrets set CORE_SLOT_PCT=0.40 ODTE_RISK_PCT=0.30`.
+
 ## Changes Dionysus made to Midas's settings
 
 Written automatically. Dionysus may change one setting a day, inside hard limits that Midas checks itself (see TUNING_LIMITS in config.py). A change starts the next trading day; a person can veto it before then with `mac_mini/veto.sh DIAL`, and it is undone automatically if the three-week trades opened after it clearly lose.

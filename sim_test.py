@@ -265,7 +265,8 @@ def test_default_sizing():
     b, f, step = harness(trend=1)
     led, _ = step(f"default settings (${C.SLEEVE_START:,.0f} sleeve): expect bets until the cash runs out")
     core = [p for p in led.pos.values() if p.tag == "core"]
-    assert 4 <= len(core) <= C.CORE_SLOTS, "cash, not a fixed slot count, sets how many bets"
+    least = max(1, int((1 - C.ODTE_RISK_PCT) / C.CORE_SLOT_PCT))  # full-size bets the cash pays for (4 at 20%/6%)
+    assert least <= len(core) <= C.CORE_SLOTS, "cash, not a fixed slot count, sets how many bets"
     assert all(p.cost >= C.CORE_MIN_BET_SHARE * C.CORE_SLOT_PCT * C.SLEEVE_START * 0.9 for p in core), "no dribble bets"
     odte = [p for p in led.pos.values() if p.tag == "odte"]
     assert odte and odte[0].cost >= C.ODTE_RISK_PCT * C.SLEEVE_START * 0.9, "cash is kept back for a full same-day bet"
@@ -555,6 +556,7 @@ def test_buy_the_dip():
 
 def test_switch_puts():
     """Midas sells puts up less than 50% and buys calls on them; bigger winners keep running."""
+    sizes, (C.CORE_SLOT_PCT, C.ODTE_RISK_PCT) = (C.CORE_SLOT_PCT, C.ODTE_RISK_PCT), (0.20, 0.06)  # room for several puts
     b, f, step = harness(trend=-1)
     f.range = (90.0, 89.0)
     C.BEAR_BUY_DIPS = False
@@ -575,6 +577,7 @@ def test_switch_puts():
     after = len(led.events)
     led, _ = step("next pass: nothing left to switch", ticks=2)
     assert len(led.events) == after, "no churn once the book is settled"
+    C.CORE_SLOT_PCT, C.ODTE_RISK_PCT = sizes
     print("\n--- hold or switch: small puts become calls, big winners run, no churn ---")
 
 
@@ -596,7 +599,7 @@ def test_lead_lock():
 
     b3, f3, step3 = harness(trend=1)
     led, _ = step3("plenty of lead: expect a full book")
-    assert len([p for p in led.pos.values() if p.tag == "core"]) >= 4
+    assert len([p for p in led.pos.values() if p.tag == "core"]) >= max(1, int((1 - C.ODTE_RISK_PCT) / C.CORE_SLOT_PCT))
     f3.equity = floor - 5_000                # the account has fallen behind the floor
     led, _ = step3("lead gone for three passes: expect everything closed", ticks=3)
     assert not led.pos, "the lock closes everything once the lead is gone"
@@ -729,7 +732,7 @@ def main():
     test_late_trail()
     test_archive()
     # The scenarios below use the original, smaller setup and exits to stay short.
-    C.SLEEVE_START, C.CORE_SLOTS, C.CORE_SLOT_PCT = 25_000.0, 3, 0.28
+    C.SLEEVE_START, C.CORE_SLOTS, C.CORE_SLOT_PCT, C.ODTE_RISK_PCT = 25_000.0, 3, 0.28, 0.06
     C.CORE_TP1, C.CORE_TRAIL, C.CORE_TRAIL_FROM = 1.0, 0.30, 1.0
     stop_now, C.CORE_STOP, C.CORE_MIN_DTE_EXIT = C.CORE_STOP, -0.50, 4
     test_lifecycle()
